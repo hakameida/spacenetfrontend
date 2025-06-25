@@ -5,11 +5,10 @@ import { AccessoryList } from "@/feature/Accessory-list";
 import { Hero } from "@/components/hero";
 import { AllProductPage } from "@/feature/all-products-list";
 import MultipleItems from "@/components/react-slick/react-slick";
-import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
-
 
 
 import type { Viewport } from "next";
+import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -61,10 +60,9 @@ export const metadata = {
 
 export default function Home() {
   return (
-    
-    <div className="sm:container w-[90%] mx-auto mb-16 mt-8">
-  <Hero />
-  <div className="my-[10px]">
+    <div className="sm:container w-[90%] mx-auto mb-16 mt-8 ">
+      <Hero />
+      <div className="my-[10px]">
     <h2 className="md:text-[34px] text-[20px] font-[700]" style={{ color: 'rgba(255,15,27,1)' }}>
       التصنيفات الموجودة بالموقع
     </h2>
@@ -72,8 +70,8 @@ export default function Home() {
       جميع انواع الابتوبات و الملحقات الخاصة باللابتوب
     </span>
   </div>
-  <MultipleItems ProductList={products} />
-  <AllProductPage productType="Laptop" title="لابتوبات" />
-</div>
+      <MultipleItems ProductList={products} />
+      <AllProductPage productType="printers" title="طابعات" />
+    </div>
   );
 }

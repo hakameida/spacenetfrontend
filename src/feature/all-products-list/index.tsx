@@ -1,66 +1,34 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  useGetAccessoryListQuery,
-  useGetAllProductsListQuery,
-  useGetAllProductsTypesListQuery,
-  useGetDollarQuery,
-  useGetProductsListQuery,
-} from "@/data-access/api/products/products";
-
-import {
-  selectAllProductsListList,
-  resetAllProductsList,
-} from "@/data-access/slices/all-products-list";
-
-import { Skeleton } from "@mui/material";
-import { useAppSelector, useAppDispatch } from "@/store";
-import Card from "@/components/card/card-about";
+import { useGetDollarQuery, useGetProductsListQuery } from "@/data-access/api/products/products";
+import { useAppSelector } from "@/store";
 import { selectLaptopListList } from "@/data-access/slices/product-list";
 import { LaptopList } from "../laptop-list";
-import { selectAccessoryListList } from "@/data-access/slices/Accessory-list";
-import { AccessoryList } from "../Accessory-list";
+import { Viewport } from "next";
+import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
+
 
 interface ProductList {
-  description?: string;
-  discount?: string;
   id?: string;
-  image?: string;
   name?: string;
   price?: string;
   type?: string;
 }
 
-export interface ProductType {
-  type?: string;
-}
-
-const sortProductsByPrice = (
-  products: ProductList[],
-  direction: "asc" | "desc"
-) => {
-  return products.slice().sort((a, b) => {
-    const priceA = parseFloat(a.price || "0");
-    const priceB = parseFloat(b.price || "0");
-
-    if (direction === "asc") {
-      return priceA - priceB;
-    } else {
-      return priceB - priceA;
-    }
-  });
+const sortProductsByPrice = (products: ProductList[], direction: "asc" | "desc") => {
+  return products.slice().sort((a, b) => parseFloat(a.price || "0") - parseFloat(b.price || "0"));
 };
 
-export const AllProductPage = ({ productType, title }: { productType: string, title: string }) => {
-  const [type, setType] = useState("Laptop");
+export const AllProductPage = ({ productType, title }: { productType: string; title: string }) => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-
-  const dispatch = useAppDispatch();
-
-  const { isLoading: isLoadingLaptop } = useGetProductsListQuery({ type: productType });
+  const { isLoading } = useGetProductsListQuery({ type: productType });
   const { data } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
+
+  // Filter states
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedCondition, setSelectedCondition] = useState("");
 
   useEffect(() => {
     if (data?.data?.dollarPriceByPk) {
@@ -68,100 +36,168 @@ export const AllProductPage = ({ productType, title }: { productType: string, ti
     }
   }, [data]);
 
+  let selectedLaptopListList: ProductList[] = useAppSelector(selectLaptopListList);
+  selectedLaptopListList = sortProductsByPrice(selectedLaptopListList, sortDirection);
 
-  let selectedLaptopListList: ProductList[] = useAppSelector((state) =>
-    selectLaptopListList(state)
-  );
-
-  // const { isLoading: isLoadingAccessory } = useGetAccessoryListQuery({});
-  let selectedAccessoryListList: ProductList[] = useAppSelector((state) =>
-    selectAccessoryListList(state)
-  );
-
-  selectedLaptopListList = sortProductsByPrice(
-    selectedLaptopListList,
-    sortDirection
-  );
-  selectedAccessoryListList = sortProductsByPrice(
-    selectedAccessoryListList,
-    sortDirection
-  );
+  // Apply filtering
+  const filteredProductList =
+    productType === "Laptop" || productType === "Computer" || productType === "Mobile" || productType === "Accessory" || productType === "printers"|| productType === "playstation"
+      ? selectedLaptopListList.filter((product) => {
+          const matchesBrand = selectedBrand ? product.name?.toLowerCase().includes(selectedBrand.toLowerCase()) : true;
+          const matchesCondition = selectedCondition ? product.name?.toLowerCase().includes(selectedCondition.toLowerCase()) : true;
+          return matchesBrand && matchesCondition;
+        })
+      : selectedLaptopListList;
 
   return (
     <>
-      <div className="select-type flex items-center justify-between">
-        <div className="flex gap-x-2">
-          {/* <button
-            className={`${
-              type === "Accessory" ? "type-item-active" : "type-item"
-            }`}
-            onClick={() => {
-              setType("Accessory");
-            }}
-            disabled={isLoadingLaptop}
-          >
-            أكسسوارات
-          </button> */}
-          {/* <button
-            className={` ${type === "Laptop" ? "type-item-active" : "type-item"
-              }`}
-            onClick={() => {
-              setType("Laptop");
-            }}
-            disabled={isLoadingLaptop}
-          >
-            {title}
-          </button> */}
-        </div>
-        <span
-          className="cursor-pointer p-2 bg-main_color text-white rounded"
-          onClick={() =>
-            setSortDirection((prevDirection) =>
-              prevDirection === "asc" ? "desc" : "asc"
-            )
-          }
+     <div className="select-type flex flex-wrap items-center justify-between gap-4 md:gap-6 p-2 md:p-4">
+  <div className="flex flex-wrap md:flex-nowrap gap-2 overflow-x-auto">
+    {productType === "Laptop" && (
+      ["HP", "Asus", "Acer", "Dell"].map((brand) => (
+        <button
+          key={brand}
+          className={`filter-btn ${selectedBrand === brand ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === brand ? "" : brand)}
         >
-          {sortDirection === "asc"
-            ? "من الارخص الى الاغلى"
-            : "من الاغلى الى الارخص"}
-        </span>
-      </div>
-      <LaptopList
-        title={title}
-        dollarPrice={dollar}
-        isLoading={isLoadingLaptop}
-        selectedList={selectedLaptopListList}
-      />
+          {brand}
+        </button>
+      ))
+    )}
+
+    {productType === "computer" && (
+      ["CPU", "GPU", "RAM", "Cooler", "Motherboard", "Power Supply", "Hard Drive"].map((component) => (
+        <button
+          key={component}
+          className={`filter-btn ${selectedBrand === component ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === component ? "" : component)}
+        >
+          {component}
+        </button>
+      ))
+    )}
+{productType === "printers" && (
+      ["hp", "brother", "epson", "samsung"].map((component) => (
+        <button
+          key={component}
+          className={`filter-btn ${selectedBrand === component ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === component ? "" : component)}
+        >
+          {component}
+        </button>
+      ))
+    )}
+    {productType === "playstation" && (
+      ["ps5","ps4"].map((component) => (
+        <button
+          key={component}
+          className={`filter-btn ${selectedBrand === component ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === component ? "" : component)}
+        >
+          {component}
+        </button>
+      ))
+    )}
+    {productType === "Mobile" && (
+      ["Samsung", "Tecno", "Xiaomi", "Infinix"].map((brand) => (
+        <button
+          key={brand}
+          className={`filter-btn ${selectedBrand === brand ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === brand ? "" : brand)}
+        >
+          {brand}
+        </button>
+      ))
+    )}
+
+    {productType === "Accessory" && (
+      ["Router", "Camera", "Mouse", "Headphones", "RAM", "SD Card", "Keyboard", "USB Flash Drive"].map((accessory) => (
+        <button
+          key={accessory}
+          className={`filter-btn ${selectedBrand === accessory ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === accessory ? "" : accessory)}
+        >
+          {accessory}
+        </button>
+      ))
+    )}
+  </div>
+
+  {/* Search and Sort */}
+  <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-center">
+    <input
+      type="text"
+      placeholder="Search condition"
+      value={selectedCondition}
+      onChange={(e) => setSelectedCondition(e.target.value)}
+      className="border rounded p-2 min-w-[180px]"
+    />
+
+    <span
+      className="cursor-pointer p-2 bg-main_color text-white rounded text-center min-w-[150px]"
+      onClick={() => setSortDirection((prevDirection) => (prevDirection === "asc" ? "desc" : "asc"))}
+    >
+      {sortDirection === "asc" ? "من الارخص الى الاغلى" : "من الاغلى الى الارخص"}
+    </span>
+  </div>
+
+  <style>
+    {`
+      .filter-btn {
+        padding: 8px 12px;
+        background-color: rgba(0,0,0,0.5);
+        color: #fff;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+        white-space: nowrap;
+      }
+
+      .filter-btn.active {
+        background-color: var(--main-color);
+      }
+
+      /* Smooth scroll for mobile filter buttons */
+      .overflow-x-auto::-webkit-scrollbar {
+        height: 4px;
+      }
+      .overflow-x-auto::-webkit-scrollbar-thumb {
+        background-color: var(--main-color);
+        border-radius: 10px;
+      }
+    `}
+  </style>
+</div>
+<h2
+  className="md:text-[34px] text-[20px] font-extrabold"
+  style={{ color: "rgba(34,82,154,1)" }} // bright red
+>
+  عروض الاسبوع
+</h2>
+<span
+  className="text-[14px] font-normal"
+  style={{ color: "rgba(34,82,154,1)" }} // deep blue
+>
+  عروض كل اسبوع شكل
+</span>
+          <MultipleItemsOffer  productType={productType} />
+      <LaptopList title={title} dollarPrice={dollar} isLoading={isLoading} selectedList={filteredProductList} />
 
       <style>
         {`
-
-          div.select-type{
-            margin : 14px 0px
-            
-          }
-          
-          div.select-type button {
-            text-align: center;
-            padding: 10px;
-            width : 120px;
-            background-color : rgba(0,0,0,0.5);
-            color : #fff;
-            border-radius : 5px;
-          }
-          
-          div.select-type button.type-item-active {
-            position: relative;
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 400;
+          .filter-btn {
+            padding: 8px 12px;
+            background-color: rgba(0,0,0,0.5);
+            color: #fff;
+            border-radius: 5px;
             cursor: pointer;
-            width: 120px;
+            margin: 5px;
+          }
+
+          .filter-btn.active {
             background-color: var(--main-color);
           }
-        
-          
-          `}
+        `}
       </style>
     </>
   );

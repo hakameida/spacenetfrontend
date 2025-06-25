@@ -22,6 +22,7 @@ export default function SearchPage({
   return (
     <div className="container mx-auto">
       <SearchList word={decodeURIComponent(params.searchWord)} />
+      
     </div>
   );
 }

@@ -20,6 +20,14 @@ export interface ProductList {
   type: string;
   age: string;
 }
+export interface OffersList {
+  description: string;
+  id: string;
+  url1: string;
+  image1 :string ;
+  name: string;
+  price: string;
+}
 
 export interface ProductType {
   type: string;
@@ -123,6 +131,76 @@ const extendedApi = apiSlice.injectEndpoints({
           return;
         }
       },
+    }),
+    getOffersList: builder.query({
+      query: ({ type }) => ({
+        url: ``,
+        method: "POST",
+        body: {
+          query: `
+                    query MyQuery {
+                      allOffers(type:"${type}"){
+                          id
+                          url1
+                          image1
+                          name
+                          price
+                        }
+                      }              
+                    `,
+        },
+      }), transformResponse: (response: { data: { allOffers: ProductList[] } }) => {
+        const OffersList = response?.data?.allOffers.map((obj) => {
+          return {
+            // description: obj?.description,
+            // discount: obj?.discount,
+            id: obj?.id,
+            image: obj?.url1,
+            name: obj?.name,
+            price: obj?.price,
+            image1 : obj?.image1,
+
+          };
+        });
+
+        return OffersList;
+      },
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
+        try {
+          const { data } = await queryFulfilled;
+          data.forEach((item) => {
+            dispatch(addAccessoryListItem(item));
+          });
+        } catch {
+          return;
+        }
+      },
+    }),
+    getOfferById: builder.query({
+      query: ({ id }) => ({
+        url: ``,
+        method: "POST",
+        body: {
+          query: `
+                    query MyQuery {
+                      offerById(id : "${id}"){
+                          description
+                          id
+                          url1
+                          url2
+                          image1
+                          image2
+                          image3
+                          image4
+                          price
+                          name
+                          
+                        }
+                      }
+                                       
+                    `,
+        },
+      }),
     }),
     getProductById: builder.query({
       query: ({ id }) => ({
@@ -311,6 +389,8 @@ const extendedApi = apiSlice.injectEndpoints({
 export const {
   useGetProductsListQuery,
   useGetAccessoryListQuery,
+  useGetOffersListQuery,
+  useGetOfferByIdQuery,
   useGetProductByIdQuery,
   useGetDollarQuery,
   useGetAllProductsListQuery,

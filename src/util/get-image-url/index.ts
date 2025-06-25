@@ -19,6 +19,10 @@ export const getImage = (rawURL: string | undefined, size = 800): string => {
   if (containsProducts) {
     return `https://spacenetserver.up.railway.app/media/${rawURL}`;
   }
+  const containsOffers= rawURL.includes("offers/");
+  if (containsOffers) {
+    return `https://spacenetserver.up.railway.app/media/${rawURL}`;
+  }
 
  
   return rawURL;

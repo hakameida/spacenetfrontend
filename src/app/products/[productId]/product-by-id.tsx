@@ -1,262 +1,163 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useGetDollarQuery, useGetProductByIdQuery } from "@/data-access/api/products/products";
 import { IoMdCart } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import { getImage } from "@/util/get-image-url";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
-interface ProductList {
-  description?: string;
-  discount?: string;
-  id?: string;
-  url1?: string;
-  url2?: string;
-  url3?: string;
-  url4?: string;
-  url5?: string;
-  image1 ?: string ;
-  image2 ?: string ;
-  image3 ?: string ;
-  image4 ?: string ;
-  image5 ?: string ;
-  
-  name?: string;
-  price?: string;
-  type?: string;
-  age?: string;
-  arabic_info?: string;
-}
+const highlightSpecs = (text: string) => {
+  const specs = ["CPU", "GPU", "RAM", "HARD", "SCREEN"];
+  let formatted = text;
 
-function calculateDiscountedPrice(price: number, discount: number, dollar: number) {
-  let discountAmount = (price * discount) / 100;
-  let discountedPrice = price - discountAmount;
-  return discountedPrice * dollar;
-}
+  specs.forEach((keyword) => {
+    const regex = new RegExp(`(${keyword})(\\s*:)`, "gi");
+    formatted = formatted.replace(
+      regex,
+      `<span class='font-bold text-[22px] text-[rgba(34,82,154,1)]'>$1$2</span>`
+    );
+  });
+
+  return formatted.replace(/\n/g, "<br />");
+};
 
 export const ProductById = ({ id }: { id: string }) => {
   const { data, isLoading } = useGetProductByIdQuery({ id });
-  const { data: dollarPrice } = useGetDollarQuery({});
+  const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
-  const [currentImage, setCurrentImage] = useState('');
+  const [currentImage, setCurrentImage] = useState("");
 
   useEffect(() => {
-    if (dollarPrice?.data?.dollarPriceByPk) {
-      setDollar(dollarPrice?.data?.dollarPriceByPk?.dollarPrice ?? 0);
+    if (dollarData?.data?.dollarPriceByPk) {
+      setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);
     }
-  }, [dollarPrice]);
+  }, [dollarData]);
 
   useEffect(() => {
-    if (data?.data?.productById) {
-      // Find the first available image URL
+    const product = data?.data?.productById;
+    if (product) {
       const firstImage = [
-        data.data.productById.url1,
-        data.data.productById.url2,
-        data.data.productById.url3,
-        data.data.productById.url4,
-        data.data.productById.url5,
-        data.data.productById.image1,
-        data.data.productById.image2,
-        data.data.productById.image3,
-        data.data.productById.image4,
-        data.data.productById.image5,
-
-      ].find(url => url);
-      
-      if (firstImage) {
-        setCurrentImage(firstImage);
-      }
+        product.url1, product.url2, product.url3, product.url4, product.url5,
+        product.image1, product.image2, product.image3, product.image4, product.image5
+      ].find(Boolean);
+      if (firstImage) setCurrentImage(firstImage);
     }
   }, [data]);
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    initialSlide: 1,
-    nextArrow: <SampleNextArrow />,
-    prevArrow: <SamplePrevArrow />,
-  };
+  const product = data?.data?.productById;
 
   return (
-    <>
-      {isLoading ? (
-        Array.from(new Array(1)).map((_, index) => (
-          <div className="grid grid-cols-12 gap-2" key={index}>
-            <div className="md:col-span-8 col-span-12 h-full flex flex-col justify-between">
-              <div>
-                <div className="flex justify-between items-center">
-                  <Skeleton variant="text" width="60%" />
-                  <Skeleton variant="text" width="40%" />
-                </div>
-                <Skeleton variant="text" />
-                <Skeleton variant="text" />
-              </div>
-              <div className="">
-                <Skeleton variant="rectangular" width="150px" height="40px" />
-              </div>
+    <div className="flex justify-center ">
+      <div className="w-full ">
+        {isLoading ? (
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="w-full md:w-1/2">
+              <Skeleton variant="rectangular" width="100%" height="400px" />
             </div>
-            <div className="md:col-span-4 col-span-12">
-              <div className="w-full h-[400px] p-4 rounded-[0.5rem] bg-[rgba(0,0,0,0.1)] flex items-center justify-center">
-                <Skeleton variant="rectangular" width="80%" height="100%" />
-              </div>
+            <div className="w-full md:w-1/2 space-y-6">
+              <Skeleton variant="text" width="80%" />
+              <Skeleton variant="text" width="60%" />
+              <Skeleton variant="text" width="50%" />
+              <Skeleton variant="rectangular" width="150px" height="50px" />
             </div>
           </div>
-        ))
-      ) : data?.data?.productById ? (
-        <div>
-          <div className="grid grid-cols-12 gap-8">
-            <div
-              dir="ltr"
-              className="lg:col-span-8 md:col-span-6 col-span-12 h-full flex flex-col justify-between md:p-0 p-2"
-            >
-              <div className="space-y-2">
-                <p className="text-[28px] text-[#191919] font-bold">
-                  {data.data.productById.name}
-                </p>
-                
-                <p className="text-[20px] text-[#191919] font-[400]">
-                  <span className="font-[700]">Type: </span>
-                  {data.data.productById.type}
-                </p>
-                
-                <p className="text-[24px] text-[#191919] font-bold">
-                  {Number(data.data.productById.price) * dollar} S.P
-                </p>
-                
-                {data.data.productById.discount !== "0%" && (
-                  <p className="text-[16px] text-[#191919] font-[400]">
-                    <span className="font-[700]">Discount: </span>
-                    {data.data.productById.discount}
-                  </p>
+        ) : product ? (
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Image Left */}
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-center">
+              <div className="w-full h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+                {currentImage ? (
+                  <img
+                    src={getImage(currentImage, 3072)}
+                    alt={product.name}
+                    className="w-full h-full object-contain"
+                    onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder-image.jpg")}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                    <span>Loading image...</span>
+                  </div>
                 )}
-                
-                <div className="mt-6">
-                  <p className="text-[20px] text-[#333333] font-bold mb-2">Description:</p>
-                  <div className="whitespace-pre-line text-[16px]">
-                    {data.data.productById.description}
-                  </div>
-                </div>
-                
-                <div className="mt-6" dir="rtl">
-                  <div className="whitespace-pre-line text-[16px]">
-                    {data.data.productById.arabic_info}
-                  </div>
-                </div>
               </div>
-              
-              <div className="mt-8">
-                <a href="http://wa.me/963956958013" target="_blank">
-                  <button className="w-[150px] rounded p-4 bg-[rgb(255,153,0)] cursor-pointer text-white flex items-center justify-center gap-2">
-                    Order now <IoMdCart />
+
+              {/* Thumbnails */}
+              <div className="flex gap-2 overflow-x-auto py-4">
+                {[
+                  product.url1, product.url2, product.url3, product.url4, product.url5,
+                  product.image1, product.image2, product.image3, product.image4, product.image5
+                ]
+                  .filter(Boolean)
+                  .map((url, index) => (
+                    <div
+                      key={index}
+                      className={`w-16 h-16 rounded border-2 cursor-pointer transition ${currentImage === url ? "border-[rgba(34,82,154,1)]" : "border-transparent"}`}
+                      onClick={() => setCurrentImage(url!)}
+                    >
+                      <img src={getImage(url!, 200)} alt={`thumb-${index + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Info Right */}
+            <div className="w-full md:w-1/2 flex flex-col justify-start space-y-6 text-center px-4" dir="rtl">
+              <h1 className="text-[24px] font-extrabold text-[rgba(34,82,154,1)]">{product.name}</h1>
+              <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+              <p className="text-[24px] font-bold text-[rgba(34,82,154,1)]">السعر:</p>
+              <p className="text-[20px] font-black" style={{ color: 'rgba(255,15,27,1)' }}>
+                {Number(product.price) * dollar} S.P
+              </p>
+              <p className="text-[24px] font-bold text-[rgba(34,82,154,1)]">السعر بالدولار :</p>
+              <p className="text-[26px] font-black" style={{ color: 'rgba(255,15,27,1)' }}>
+                {dollar} $
+              </p>
+              </p>
+              </div>
+
+              {product.description && (
+                <div>
+<div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose"></p>
+                  <p className="text-[24px] font-bold text-[rgba(34,82,154,1)] mb-2">الوصف:</p>
+                  <div
+                    className="text-[20px] leading-[1.8] text-gray-800 font-medium whitespace-pre-wrap text-center"
+                    dangerouslySetInnerHTML={{ __html: highlightSpecs(product.description) }}
+                  />
+                  </div>  
+                </div>
+              )}
+
+              <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+                  احصل عليه الآن مع الهداية بالكفالة الذهبية  
+                  <br />شهر كامل هاردوير وثلاث شهور سوفتوير  
+                  <br />الهداية: حقيبة + ماوس + ستاند معدني + ماوس باد
+                </p>
+              </div>
+
+              {product.arabic_info && (
+                <div>
+                  <p className="text-[24px] font-bold text-[rgba(34,82,154,1)] mb-2">تفاصيل إضافية:</p>
+                  <p className="whitespace-pre-line text-[20px] leading-9 text-gray-800 font-medium">{product.arabic_info}</p>
+                </div>
+              )}
+
+              <div className=" pt-4">
+                <a href="http://wa.me/963956958013" target="_blank" rel="noopener noreferrer">
+                  <button className="w-[220px] rounded p-4 bg-[rgba(34,82,154,1)] hover:bg-blue-800 transition text-white flex items-center justify-center gap-2 text-[18px] text-center font-semibold">
+                  اطلبه الآن عل الواتس اب<IoMdCart />
                   </button>
                 </a>
               </div>
             </div>
-
-            <div className="lg:col-span-4 md:col-span-6 col-span-12">
-              <div className="flex flex-col gap-4">
-                <div className="w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
-                  {currentImage ? (
-                    <img 
-                      src={getImage(currentImage, 3072)} 
-                      alt={data.data.productById.name}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                      <span>Loading image...</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex gap-2 overflow-x-auto py-2">
-                  {[
-                    data.data.productById.url1,
-                    data.data.productById.url2,
-                    data.data.productById.url3,
-                    data.data.productById.url4,
-                    data.data.productById.url5,
-                    data.data.productById.image1,
-                    data.data.productById.image2,
-                    data.data.productById.image3,
-                    data.data.productById.image4,
-                    data.data.productById.image5,
-
-                  ].filter(url => url).map((url, index) => (
-                    <div 
-                      key={index}
-                      className={`w-16 h-16 rounded cursor-pointer border-2 ${currentImage === url ? 'border-orange-500' : 'border-transparent'}`}
-                      onClick={() => setCurrentImage(url)}
-                    >
-                      <img 
-                        src={getImage(url, 200)} 
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
-        </div>
-      ) : (
-        <div className="text-center py-8">Product not found</div>
-      )}
-    </>
+        ) : (
+          <div className="text-center py-10 text-lg">المنتج غير متوفر</div>
+        )}
+      </div>
+    </div>
   );
 };
-
-function SampleNextArrow(props) {
-  const { className, style, onClick } = props;
-  return (
-    <div
-      className={className}
-      style={{
-        ...style,
-        display: "flex",
-        background: "#ccc",
-        width: "40px",
-        height: "40px",
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: "50%",
-        color: "black",
-        zIndex: "999",
-      }}
-      onClick={onClick}
-    />
-  );
-}
-
-function SamplePrevArrow(props) {
-  const { className, style, onClick } = props;
-  return (
-    <div
-      className={className}
-      style={{
-        ...style,
-        display: "flex",
-        background: "#ccc",
-        width: "40px",
-        height: "40px",
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: "50%",
-        color: "black",
-        zIndex: "999",
-      }}
-      onClick={onClick}
-    />
-  );
-}
 
 export default ProductById;

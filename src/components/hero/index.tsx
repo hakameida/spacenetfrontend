@@ -1,19 +1,85 @@
 "use client";
 
-import React, { useState } from "react";
-import { Inter } from "next/font/google";
+import React, { useEffect, useRef, useState } from "react";
 import { IoSearch } from "react-icons/io5";
-import { FaTelegramPlane } from "react-icons/fa";
-import { FaFacebook } from "react-icons/fa";
-import { IoLogoWhatsapp } from "react-icons/io";
+import gsap from "gsap";
 
-const inter = Inter({ subsets: ["latin"] });
+const messages = [
+  "يوجد لدينا توصيل لكافة المحافظات",
+  "أفضل العروض بأفضل الأسعار",
+];
 
 export const Hero = () => {
   const [search, setSearch] = useState<string>("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
+  const logoRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  // Logo floating + container fade in
+  useEffect(() => {
+    gsap.to(logoRef.current, {
+      y: -15,
+      rotation: 5,
+      repeat: -1,
+      yoyo: true,
+      duration: 2,
+      ease: "power1.inOut",
+    });
+
+    gsap.fromTo(
+      containerRef.current,
+      { opacity: 0, x: 50 },
+      { opacity: 1, x: 0, duration: 3, ease: "power2.out" }
+    );
+  }, []);
+
+  // Sliding text animation under logo
+  useEffect(() => {
+    if (showVideo) return () => {}; // Safe empty cleanup
+
+    const el = textRef.current;
+    if (!el) return () => {}; // Safe empty cleanup
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setCurrentIndex((prev) => (prev + 1) % messages.length);
+      },
+    });
+
+    tl.fromTo(
+      el,
+      { x: 100, opacity: 0 },
+      { x: 0, opacity: 1, duration: 1.5, ease: "power3.out" }
+    )
+      .to(el, { duration: 7 }) // Keep text visible longer (7 seconds)
+      .to(el, { x: -100, opacity: 0, duration: 1.5, ease: "power3.in" });
+
+    return () => tl.kill();
+  }, [currentIndex, showVideo]);
+
+  // Cycle text <-> video every 20 seconds (longer display time)
+  useEffect(() => {
+    const totalCycleMs = 20000; // total 20 seconds cycle
+    const videoDurationMs = 5000;
+
+    const interval = setInterval(() => {
+      setShowVideo(true);
+
+      setTimeout(() => {
+        setShowVideo(false);
+        setCurrentIndex(0);
+      }, videoDurationMs);
+    }, totalCycleMs);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Search handlers
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
       window.location.href = `/search/${search}`;
     }
   };
@@ -24,77 +90,71 @@ export const Hero = () => {
 
   return (
     <>
-      <ul className="flex items-center gap-4 text-gray-500 dark:text-gray-400 font-medium mb-8">
-        <li className="flex items-center justify-center gap-4">
-          <a
-            href="http://wa.me/963956958013"
-            className="hover:underline"
-          >
-            WhatsApp
-          </a>
-          <IoLogoWhatsapp className="text-gray-500" size={20} />
-        </li>
-        <li className="flex items-center justify-center gap-4">
-          <a
-            href="https://www.facebook.com/profile.php?id=61572406436431"
-            className="hover:underline"
-          >
-            Facebook
-          </a>
-          <FaFacebook className="text-gray-500" size={20} />
-        </li>
-        <li className="flex items-center justify-center gap-4">
-          <a
-            href="https://t.me/laptop_space_net"
-            className="hover:underline"
-          >
-            Telegram
-          </a>
-          <FaTelegramPlane className="text-gray-500" size={20} />
-        </li>
-      </ul>
       <div
-        className={
-          "relative w-full h-auto overflow-hidden rounded-[10px]"
-        }
+        ref={containerRef}
+        className="relative w-[80%] h-[300px] md:h-[450px] overflow-hidden mx-auto bg-white flex items-center justify-center gap-12 md:gap-32 px-4"
       >
-        <img
-          src="/back-img.jpg"
-          alt="hereo-image"
-          className="w-full object-contain"
-        />
-        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-start lg:justify-center flex-col z-20 md:p-0 p-4 ">
-          <h1
-            className={`md:text-[45px] text-[20px] text-[#fff] font-sans mb-4 ${inter.className}`}
-          >
-            .Space Net For Laptop
-          </h1>
-          <div
-            className="relative p-2 rounded-[12px] border-[2px] border-main_color overflow-hidden md:w-[600px] w-[80%]"
-            onKeyDown={handleKeyDown}
-          >
-            <input
-              type="text"
-              placeholder="أبحث هنا..."
-              className="h-full w-full bg-transparent text-white text-[22px]"
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <span
-              className="absolute top-[50%] left-[10px] md:text-[28px] text-[18px] translate-y-[-50%] text-white"
-              onClick={onSearchClick}
-            >
-              <IoSearch />
-            </span>
-          </div>
-        </div>
-        <div className="absolute top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.2)] z-10"></div>
-      </div>
+        {/* Logo Container */}
+        <div
+          ref={logoRef}
+          className="relative flex flex-col items-center cursor-pointer w-[180px] md:w-[300px] h-[180px] md:h-[300px] transform rotate-[-10deg] select-none"
+        >
+          {/* Logo Image */}
+          <img
+            src="/logo.png"
+            alt="logo"
+            className="w-full h-full object-contain"
+            draggable={false}
+          />
 
-      <style>
-        {`
-                
-            `}
-      </style>
+          {/* Sliding Text (Always Visible Under Logo) */}
+          <div
+            className="mt-4 text-center text-[16px] md:text-[22px] font-semibold text-[rgba(34,82,154,1)] whitespace-nowrap select-none pointer-events-none"
+            aria-live="polite"
+            style={{ width: "100%", maxWidth: "280px" }}
+          >
+            <div ref={textRef}>{!showVideo && messages[currentIndex]}</div>
+          </div>
+
+          {/* YouTube Video Overlay */}
+          {showVideo && (
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/g9t8t66A6oI?autoplay=1&mute=1&controls=0&rel=0"
+              title="YouTube video"
+              frameBorder="0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              className="absolute top-0 left-0 rounded-md"
+            />
+          )}
+        </div>
+
+        {/* Inclined Line */}
+        <div
+          className="w-[4px] h-[100px] bg-gradient-to-b from-[rgba(34,82,154,1)] to-[rgba(255,15,27,1)] transform -rotate-[20deg]"
+        ></div>
+
+        {/* Search Bar */}
+        <div
+          className="flex items-center border-b-4 border-[rgba(34,82,154,1)] px-2 cursor-pointer w-[50%] md:w-[40%]"
+          onKeyDown={handleKeyDown}
+        >
+          <input
+            type="text"
+            placeholder="أبحث هنا..."
+            className="h-full w-full bg-transparent text-[rgba(34,82,154,1)] text-[22px] outline-none placeholder:text-[rgba(34,82,154,1)]"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <span
+            className="ml-2 md:text-[28px] text-[18px] text-[rgba(34,82,154,1)] cursor-pointer"
+            onClick={onSearchClick}
+          >
+            <IoSearch />
+          </span>
+        </div>
+      </div>
     </>
   );
 };

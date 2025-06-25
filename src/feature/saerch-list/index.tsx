@@ -79,12 +79,11 @@
           {selectedSearchListList?.length > 0 ? (
             <div className="container mx-auto">
               <div className="my-[10px]">
-                <h2 className="text-[34px] text-[#2a2a2a] font-[7000]">
+                <h2 className="bg-white text-gray-500 text-center p-6 rounded cursor-default select-none"
+        style={{ color: "rgba(34,82,154,1)" }}>
                   نتيجة البحث عن : {word}
                 </h2>
-                <span className="text-[14px] text-[#a1a1a1] font-[400] ">
-                  لابتوبات مكتبية - غيمينغ لابتوب
-                </span>
+
               </div>
               <div className="my-[40px]">
                 <div className="grid-container">
@@ -111,7 +110,9 @@
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center flex-col w-full h-[400px]">
+            <div className="flex items-center justify-center flex-col w-full h-[400px]"
+            
+        style={{ color: "rgba(34,82,154,1)" }}>
               <p> لم يتم العثور على منتجات متطابقة مع نتيجة البحث </p>
             </div>
           )}

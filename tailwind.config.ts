@@ -15,7 +15,7 @@ const config: Config = {
       },
       colors: {
         //// light colors
-        main_color : "rgb(255,153,0)"
+        main_color : "rgb(255,0,0)"
       },
     },
   },

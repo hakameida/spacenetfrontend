@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --main-color: rgb(255, 153, 0);
+  --main-color: rgba(34,82,154,255);
   --bg-hover: #f3f3f3;
 }
 
@@ -103,4 +103,77 @@ div img.card-image {
 ::-ms-input-placeholder {
   /* Microsoft Edge */
   color: white;
+}
+@keyframes glow-red {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 15, 27, 0.7), 0 0 10px rgba(255, 15, 27, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 15, 27, 1), 0 0 25px rgba(255, 15, 27, 1);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 15, 27, 0.7), 0 0 10px rgba(255, 15, 27, 0.7);
+  }
+}
+
+@keyframes glow-blue {
+  0% {
+    box-shadow: 0 0 5px rgba(34, 82, 154, 0.7), 0 0 10px rgba(34, 82, 154, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(34, 82, 154, 1), 0 0 25px rgba(34, 82, 154, 1);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(34, 82, 154, 0.7), 0 0 10px rgba(34, 82, 154, 0.7);
+  }
+}
+
+
+.animate-glow-red {
+  animation: glow-red 2s infinite;
+}
+
+.animate-glow-blue {
+  animation: glow-blue 2s infinite;
+}
+/* Hide scrollbar - Chrome, Safari, Edge */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar - Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+@keyframes modern-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 0, 120, 0.6), 0 0 20px rgba(0, 200, 255, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.animate-glow-modern {
+  animation: modern-glow 2.5s infinite;
+}
+
+@keyframes button-glow {
+  0% {
+    box-shadow: 0 0 4px #ff002b;
+  }
+  50% {
+    box-shadow: 0 0 12px #ff002b, 0 0 16px #0066ff;
+  }
+  100% {
+    box-shadow: 0 0 4px #ff002b;
+  }
+}
+
+.animate-glow-button {
+  animation: button-glow 2s infinite;
 }

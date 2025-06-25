@@ -8,6 +8,7 @@ import MultipleItems from "@/components/react-slick/react-slick";
 
 
 import type { Viewport } from "next";
+import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -62,13 +63,13 @@ export default function Home() {
     <div className="sm:container w-[90%] mx-auto mb-16 mt-8 ">
       <Hero />
       <div className="my-[10px]">
-        <h2 className="md:text-[34px] text-[20px] text-[#2a2a2a] font-[7000]">
-          التصنيفات الموجودة بالموقع
-        </h2>
-        <span className="text-[14px] text-[#a1a1a1] font-[400] ">
-          جميع انواع الموبايلات
-        </span>
-      </div>
+    <h2 className="md:text-[34px] text-[20px] font-[700]" style={{ color: 'rgba(255,15,27,1)' }}>
+      التصنيفات الموجودة بالموقع
+    </h2>
+    <span className="text-[14px] font-[400]" style={{ color: 'rgba(34,82,154,1)' }}>
+      جميع انواع الابتوبات و الملحقات الخاصة باللابتوب
+    </span>
+  </div>
       <MultipleItems ProductList={products} />
       <AllProductPage productType="Mobile" title="موبايلات" />
     </div>
