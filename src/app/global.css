@@ -177,3 +177,18 @@ div img.card-image {
 .animate-glow-button {
   animation: button-glow 2s infinite;
 }
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px #25d366, 0 0 10px #25d366;
+  }
+  50% {
+    box-shadow: 0 0 15px #25d366, 0 0 25px #25d366;
+  }
+  100% {
+    box-shadow: 0 0 5px #25d366, 0 0 10px #25d366;
+  }
+}
+
+.animate-glow {
+  animation: glow 2s infinite ease-in-out;
+}

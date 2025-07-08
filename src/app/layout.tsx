@@ -4,7 +4,8 @@ import Navbar from "@/components/navbar/navbar";
 import Head from "next/head";
 import { FaWhatsapp, FaFacebook, FaTelegram, FaPhoneAlt, FaMapMarkerAlt } from "react-icons/fa";
 import TopNavbar from "@/components/navbar/navbar";
-import SideNav from "@/components/sidenavbar/sidenavbar";
+// import SideNav from "@/components/sidenavbar/sidenavbar";
+import WhatsappButton from "@/components/whatsapp/WhatsappButton";
 
 export default function LocaleLayout({
   children,
@@ -20,13 +21,14 @@ export default function LocaleLayout({
       <body className="bg-white">
         <ProviderComponent>
           <TopNavbar />
-          <SideNav/>
+          {/* <SideNav/> */}
+          <WhatsappButton />
           {children}
         </ProviderComponent>
 
         <footer className="bg-white mt-12 border-t">
           <div className="container mx-auto w-full p-4 py-10 lg:py-12">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-12">
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-12">
 
               {/* Social Links */}
               <div className="flex flex-col justify-center items-center text-center">
@@ -114,9 +116,9 @@ export default function LocaleLayout({
 
             <hr className="my-8 border-gray-200 sm:mx-auto lg:my-12" />
 
-            <a href="https://xdevelopment.net/" target="_blank">
+            <a href="https://EIXADARKO.com/" target="_blank">
               <p className="text-[18px] text-buttons_color text-center">
-                © 2025 . All rights reserved.<span className="underline">فريق البرمجي الساحر بقيادة عمار شوقل </span>
+                <span className="underline">EIXADARKO</span>© 2025 . All rights reserved.
               </p>
             </a>
           </div>
