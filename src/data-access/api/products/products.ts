@@ -26,6 +26,7 @@ export interface OffersList {
   url1: string;
   image1 :string ;
   name: string;
+  oldprice: string;
   price: string;
 }
 
@@ -144,12 +145,13 @@ const extendedApi = apiSlice.injectEndpoints({
                           url1
                           image1
                           name
+                          oldprice
                           price
                         }
                       }              
                     `,
         },
-      }), transformResponse: (response: { data: { allOffers: ProductList[] } }) => {
+      }), transformResponse: (response: { data: { allOffers: OffersList[] } }) => {
         const OffersList = response?.data?.allOffers.map((obj) => {
           return {
             // description: obj?.description,
@@ -157,6 +159,7 @@ const extendedApi = apiSlice.injectEndpoints({
             id: obj?.id,
             image: obj?.url1,
             name: obj?.name,
+            oldprice: obj?.oldprice,
             price: obj?.price,
             image1 : obj?.image1,
 
@@ -192,6 +195,7 @@ const extendedApi = apiSlice.injectEndpoints({
                           image2
                           image3
                           image4
+                          oldprice
                           price
                           name
                           
@@ -244,6 +248,23 @@ const extendedApi = apiSlice.injectEndpoints({
               dollarPriceByPk(id: "d1b83b15-6103-436e-b080-51550c049036"){
                         dollarPrice
                         id
+                    }
+                }
+                                
+            `,
+        },
+      }),
+    }),
+    getyoutubeUrl: builder.query({
+      query: () => ({
+        url: ``,
+        method: "POST",
+        body: {
+          query: `
+            query MyQuery {
+              youtubelinks{
+                        id
+                        youtubeUrl
                     }
                 }
                                 
@@ -393,6 +414,7 @@ export const {
   useGetOfferByIdQuery,
   useGetProductByIdQuery,
   useGetDollarQuery,
+  useGetyoutubeUrlQuery,
   useGetAllProductsListQuery,
   useGetAllProductsTypesListQuery,
   useGetSearchProductsListQuery,

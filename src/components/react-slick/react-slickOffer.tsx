@@ -120,6 +120,9 @@ function MultipleItemsOffer({ productType }) {
                 <h3 className="mt-4 text-xl md:text-2xl font-semibold text-gray-900 text-center">
                   {offer.name}
                 </h3>
+                <p className="mt-1 text-lg text-red-600 font-bold text-center line-through">
+                  {offer.oldprice} $
+                </p>
                 <p className="mt-1 text-lg text-red-600 font-bold text-center">
                   {offer.price} $
                 </p>

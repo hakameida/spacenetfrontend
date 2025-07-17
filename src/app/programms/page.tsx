@@ -11,7 +11,6 @@ import type { Viewport } from "next";
 import VideoCarousel from "@/components/youtubevideo/VideoCarousel";
 import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 
-
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 0.5, // Change this value to adjust the zoom level
@@ -56,11 +55,11 @@ const products = [
 ];
 
 export const metadata = {
-  title: "طابعات سبيس نت ستور",
+  title: "اكسسوارات سبيس نت ستور",
   description:
-    "طابعات بارخص الاسعار وافضل الانواع في سبيس ستور  ",
+    "تنزيل برامج  بارخص الاسعار وافضل الانواع في سبيس ستور ",
   keywords:
-    "طابعات بحصه  , طابعات جودة عالية بحصه , طابعات بارخص الاسعار بحصه"
+    "تنزيل  برامج بحصه ",
 };
 
 export default function Home() {
@@ -89,7 +88,7 @@ export default function Home() {
 </span>
           <MultipleItemsOffer   productType="Accessory" />
           </div>
-      <AllProductPage productType="printers" title="طابعات" />
+      <AllProductPage productType="programms" title="برامج" />
     </div>
   );
 }

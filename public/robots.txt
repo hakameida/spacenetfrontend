@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://spacenetstore.com
+
+# Sitemaps
+Sitemap: https://spacenetstore.com/sitemap.xml

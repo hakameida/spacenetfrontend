@@ -9,7 +9,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: true,
 };
-
+// export const metadata = {
+//   title: "بطاريات لابتوب  سبيس نت ستور",
+//   description:
+//     "بطاريات بارخص الاسعار وافضل الانواع في سبيس ستور  ",
+//   keywords:
+//     "بيع بطاريات بحصه  , بطاريات جودة عالية بحصه , بطاريات بارخص الاسعار بحصه ",
+// };
 export default function Home() {
   const [phone, setPhone] = useState("");
   const [model, setModel] = useState("");

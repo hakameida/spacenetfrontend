@@ -5,12 +5,12 @@ import { AccessoryList } from "@/feature/Accessory-list";
 import { Hero } from "@/components/hero";
 import { AllProductPage } from "@/feature/all-products-list";
 import MultipleItems from "@/components/react-slick/react-slick";
+import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
+
 
 
 import type { Viewport } from "next";
 import VideoCarousel from "@/components/youtubevideo/VideoCarousel";
-import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
-
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -56,18 +56,19 @@ const products = [
 ];
 
 export const metadata = {
-  title: "طابعات سبيس نت ستور",
+  title: "اكسسوارات سبيس نت ستور",
   description:
-    "طابعات بارخص الاسعار وافضل الانواع في سبيس ستور  ",
+    "لابتوبات جيمينغ ومكتبي بارخص الاسعار وافضل الانواع في سبيس ستور ",
   keywords:
-    "طابعات بحصه  , طابعات جودة عالية بحصه , طابعات بارخص الاسعار بحصه"
+    "بيع لابتوبات جيمينغ   , لابتوبات بحصة , لابتوبات بارخص الاسعار بحصه , لابتوبات جيمينغ   ,جيمينغ لابتوبات ",
 };
 
 export default function Home() {
   return (
-    <div className="sm:container w-[90%] mx-auto mb-16 mt-8 ">
-      <Hero />
-      <div className="my-[10px]">
+    
+    <div className="sm:container w-[90%] mx-auto mb-16 mt-8">
+  <Hero />
+  <div className="my-[10px]">
         <h2
   className="md:text-[34px] text-[20px] font-extrabold"
   style={{ color: "rgba(34,82,154,1)" }} // bright red
@@ -89,7 +90,8 @@ export default function Home() {
 </span>
           <MultipleItemsOffer   productType="Accessory" />
           </div>
-      <AllProductPage productType="printers" title="طابعات" />
-    </div>
+  {/* <MultipleItems ProductList={products} /> */}
+  <AllProductPage productType="Laptop" title="لابتوبات" />
+</div>
   );
 }

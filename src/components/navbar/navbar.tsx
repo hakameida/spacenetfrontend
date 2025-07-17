@@ -4,16 +4,16 @@ import { useState } from "react";
 import { LaptopIcon, MonitorIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import WhatsappButton from "../whatsapp/WhatsappButton";
 
 const navLinks = [
   { name: "كومبيوتر", href: "/computer" },
   { name: "موبايلات", href: "/mobiles" },
   { name: "اكسسوارات", href: "/accessories" },
-  { name: "لابتوبات", href: "/" },
+  { name: "لابتوبات", href: "/laptops" },
   { name: "بلايستيشن", href: "/playstation" },
   { name: "طابعات", href: "/printers" },
   { name: "بطاريات", href: "/batteries" },
+  { name: "برامج", href: "/programms" },
 ];
 
 const TopNavbar = () => {
@@ -25,14 +25,19 @@ const TopNavbar = () => {
       {/* Top Navbar */}
       <nav className="sticky top-0 w-full h-[80px] bg-white bg-opacity-30 backdrop-blur-md z-50 shadow-md">
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
+          {/* Left icon + label */}
           <a
             href="https://www.notebookcheck.net/"
             target="_blank"
             rel="noopener noreferrer"
+            className="flex flex-col items-center text-red-600 hover:scale-110 transition"
+            style={{ width: 76 }}
           >
-            <LaptopIcon className="w-6 h-6 text-red-600 hover:scale-110 transition" />
+            <LaptopIcon className="w-6 h-6" />
+            <span className="text-xs mt-1"> مقارنة كومبيوتر  </span>
           </a>
 
+          {/* Center logo */}
           <a href="/">
             <Image
               src="/logo.png"
@@ -43,13 +48,16 @@ const TopNavbar = () => {
             />
           </a>
 
+          {/* Right icon + label */}
           <a
             href="https://pcpartpicker.com/"
             target="_blank"
             rel="noopener noreferrer"
+            className="flex flex-col items-center text-blue-800 hover:scale-110 transition"
+            style={{ width: 76 }}
           >
-            
-            <MonitorIcon className="w-6 h-6 text-blue-800 hover:scale-110 transition" />
+            <MonitorIcon className="w-6 h-6" />
+            <span className="text-xs mt-1">مقارنة لابتوب</span>
           </a>
         </div>
       </nav>

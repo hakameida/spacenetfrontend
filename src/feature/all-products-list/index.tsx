@@ -41,7 +41,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
 
   // Apply filtering
   const filteredProductList =
-    productType === "Laptop" || productType === "Computer" || productType === "Mobile" || productType === "Accessory" || productType === "printers"|| productType === "playstation"
+    productType === "Laptop" || productType === "Computer" || productType === "Mobile" || productType === "Accessory" || productType === "printers"|| productType === "playstation" || productType === "programms" 
       ? selectedLaptopListList.filter((product) => {
           const matchesBrand = selectedBrand ? product.name?.toLowerCase().includes(selectedBrand.toLowerCase()) : true;
           const matchesCondition = selectedCondition ? product.name?.toLowerCase().includes(selectedCondition.toLowerCase()) : true;
@@ -51,10 +51,25 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
 
   return (
     <>
+    <div className="my-[10px]">
+            <h2 className="md:text-[34px] text-[20px] text-[#2a2a2a] font-[7000]"
+  style={{ color: "rgba(34,82,154,1)" }}>
+              {title}
+            </h2>
+            
+            {/* <span className="text-[14px] text-[#a1a1a1] font-[400] "
+            style={{ color: "rgba(34,82,154,1)" }}>
+              لابتوبات مكتبية - غيمينغ لابتوب
+            </span> */}
+          </div>
      <div className="select-type flex flex-wrap items-center justify-between gap-4 md:gap-6 p-2 md:p-4">
+      
+  
   <div className="flex flex-wrap md:flex-nowrap gap-2 overflow-x-auto">
+    
+          
     {productType === "Laptop" && (
-      ["HP", "Asus", "Acer", "Dell"].map((brand) => (
+      ["HP", "Asus", "Acer", "Dell","Lenovo","Msi"].map((brand) => (
         <button
           key={brand}
           className={`filter-btn ${selectedBrand === brand ? "active" : ""}`}
@@ -66,7 +81,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
     )}
 
     {productType === "computer" && (
-      ["CPU", "GPU", "RAM", "Cooler", "Motherboard", "Power Supply", "Hard Drive"].map((component) => (
+      ["CPU", "GPU", "RAM", "Cooler", "Motherboard", "Power Supply", "Hard"].map((component) => (
         <button
           key={component}
           className={`filter-btn ${selectedBrand === component ? "active" : ""}`}
@@ -98,6 +113,17 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
         </button>
       ))
     )}
+    {productType === "programms" && (
+      ["Adobe","Autodesk"].map((component) => (
+        <button
+          key={component}
+          className={`filter-btn ${selectedBrand === component ? "active" : ""}`}
+          onClick={() => setSelectedBrand(selectedBrand === component ? "" : component)}
+        >
+          {component}
+        </button>
+      ))
+    )}
     {productType === "Mobile" && (
       ["Samsung", "Tecno", "Xiaomi", "Infinix"].map((brand) => (
         <button
@@ -111,7 +137,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
     )}
 
     {productType === "Accessory" && (
-      ["Router", "Camera", "Mouse", "Headphones", "RAM", "SD Card", "Keyboard", "USB Flash Drive"].map((accessory) => (
+      ["Router", "Webcam", "Mouse", "Headset", "RAM", "SD Card", "Keyboard", "USB Flash Drive","Hard","Hubusb","Hubtypec","Mic","Mousepad","Speaker","Bag","Cooler","Ram"].map((accessory) => (
         <button
           key={accessory}
           className={`filter-btn ${selectedBrand === accessory ? "active" : ""}`}
@@ -127,7 +153,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
   <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-center">
     <input
       type="text"
-      placeholder="Search condition"
+      placeholder="فلتر يدوي"
       value={selectedCondition}
       onChange={(e) => setSelectedCondition(e.target.value)}
       className="border rounded p-2 min-w-[180px]"
@@ -168,19 +194,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
     `}
   </style>
 </div>
-<h2
-  className="md:text-[34px] text-[20px] font-extrabold"
-  style={{ color: "rgba(34,82,154,1)" }} // bright red
->
-  عروض الاسبوع
-</h2>
-<span
-  className="text-[14px] font-normal"
-  style={{ color: "rgba(34,82,154,1)" }} // deep blue
->
-  عروض كل اسبوع شكل
-</span>
-          <MultipleItemsOffer  productType={productType} />
+
       <LaptopList title={title} dollarPrice={dollar} isLoading={isLoading} selectedList={filteredProductList} />
 
       <style>

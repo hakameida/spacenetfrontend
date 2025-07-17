@@ -99,6 +99,10 @@ export default function OfferPage({ params }: { params: { id: string } }) {
             ) : (
               <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
                 <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+                <p className="text-[24px] font-bold text-[rgba(34,82,154,1)]">السعرالقديم:</p>
+                <p className="text-[42px] font-black line-through" style={{ color: 'rgba(255,15,27,1)' }}>
+                {offer?.oldprice} $
+              </p>
               <p className="text-[24px] font-bold text-[rgba(34,82,154,1)]">السعر:</p>
               <p className="text-[42px] font-black" style={{ color: 'rgba(255,15,27,1)' }}>
                 {offer?.price} $

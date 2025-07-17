@@ -9,6 +9,7 @@ import MultipleItems from "@/components/react-slick/react-slick";
 
 import type { Viewport } from "next";
 import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
+import VideoCarousel from "@/components/youtubevideo/VideoCarousel";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -54,23 +55,38 @@ const products = [
 ];
 
 export const metadata = {
-  title: "Space Net For Laptop",
-  description: "سبيس نت فور لابتوب, جميع انواع الابتوبات المكتبية و الغيمنغ لابتوب و الاكسسوارات والموبايلات",
+  title: "موبايلات سبيس نت ستور",
+  description:
+    "موبايلات  بارخص الاسعار وافضل الانواع في سبيس ستور  ",
+  keywords:
+    "بيع موبايلات بحصه  , موبايلات  بحصه , موبايلات بارخص الاسعار بحصه ",
 };
-
 export default function Home() {
   return (
     <div className="sm:container w-[90%] mx-auto mb-16 mt-8 ">
       <Hero />
       <div className="my-[10px]">
-    <h2 className="md:text-[34px] text-[20px] font-[700]" style={{ color: 'rgba(255,15,27,1)' }}>
-      التصنيفات الموجودة بالموقع
-    </h2>
-    <span className="text-[14px] font-[400]" style={{ color: 'rgba(34,82,154,1)' }}>
-      جميع انواع الابتوبات و الملحقات الخاصة باللابتوب
-    </span>
-  </div>
-      <MultipleItems ProductList={products} />
+        <h2
+  className="md:text-[34px] text-[20px] font-extrabold"
+  style={{ color: "rgba(34,82,154,1)" }} // bright red
+>
+  فيديوهات سبيس نت ستور
+</h2>
+                <VideoCarousel />
+<h2
+  className="md:text-[34px] text-[20px] font-extrabold"
+  style={{ color: "rgba(34,82,154,1)" }} // bright red
+>
+  عروض الاسبوع
+</h2>
+<span
+  className="text-[14px] font-normal"
+  style={{ color: "rgba(34,82,154,1)" }} // deep blue
+>
+  عروض كل اسبوع شكل
+</span>
+          <MultipleItemsOffer   productType="Accessory" />
+          </div>
       <AllProductPage productType="Mobile" title="موبايلات" />
     </div>
   );

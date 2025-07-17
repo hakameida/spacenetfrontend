@@ -75,17 +75,7 @@ export const LaptopList = ({
       ) : (
         <div className="container mx-auto my-[40px]">
 
-          <div className="my-[10px]">
-            <h2 className="md:text-[34px] text-[20px] text-[#2a2a2a] font-[7000]"
-  style={{ color: "rgba(34,82,154,1)" }}>
-              {title}
-            </h2>
-            
-            <span className="text-[14px] text-[#a1a1a1] font-[400] "
-            style={{ color: "rgba(34,82,154,1)" }}>
-              لابتوبات مكتبية - غيمينغ لابتوب
-            </span>
-          </div>
+          
           <div className="my-[40px]">
             <div className="grid-container">
               {selectedList?.map((laptopItem, key) => (
