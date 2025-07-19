@@ -17,8 +17,15 @@ interface ProductList {
 }
 
 const sortProductsByPrice = (products: ProductList[], direction: "asc" | "desc") => {
-  return products.slice().sort((a, b) => parseFloat(a.price || "0") - parseFloat(b.price || "0"));
+  return products
+    .slice()
+    .sort((a, b) =>
+      direction === "asc"
+        ? parseFloat(a.price || "0") - parseFloat(b.price || "0")
+        : parseFloat(b.price || "0") - parseFloat(a.price || "0")
+    );
 };
+
 
 export const AllProductPage = ({ productType, title }: { productType: string; title: string }) => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -41,7 +48,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
 
   // Apply filtering
   const filteredProductList =
-    productType === "Laptop" || productType === "Computer" || productType === "Mobile" || productType === "Accessory" || productType === "printers"|| productType === "playstation" || productType === "programms" 
+    productType === "Laptop" || productType === "computer" || productType === "Mobile" || productType === "Accessory" || productType === "printers"|| productType === "playstation" || productType === "programms" 
       ? selectedLaptopListList.filter((product) => {
           const matchesBrand = selectedBrand ? product.name?.toLowerCase().includes(selectedBrand.toLowerCase()) : true;
           const matchesCondition = selectedCondition ? product.name?.toLowerCase().includes(selectedCondition.toLowerCase()) : true;
@@ -81,7 +88,7 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
     )}
 
     {productType === "computer" && (
-      ["CPU", "GPU", "RAM", "Cooler", "Motherboard", "Power Supply", "Hard"].map((component) => (
+      ["CPU", "GPU", "RAM", "Cooler", "Motherboard", "PowerSupply", "Hard"].map((component) => (
         <button
           key={component}
           className={`filter-btn ${selectedBrand === component ? "active" : ""}`}

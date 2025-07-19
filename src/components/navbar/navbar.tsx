@@ -22,10 +22,10 @@ const TopNavbar = () => {
 
   return (
     <>
-      {/* Top Navbar */}
+      {/* 🔝 Top Navigation Bar */}
       <nav className="sticky top-0 w-full h-[80px] bg-white bg-opacity-30 backdrop-blur-md z-50 shadow-md">
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
-          {/* Left icon + label */}
+          {/* 🔺 Left Button */}
           <a
             href="https://www.notebookcheck.net/"
             target="_blank"
@@ -34,10 +34,10 @@ const TopNavbar = () => {
             style={{ width: 76 }}
           >
             <LaptopIcon className="w-6 h-6" />
-            <span className="text-xs mt-1"> مقارنة كومبيوتر  </span>
+            <span className="text-xs mt-1">مقارنة كومبيوتر</span>
           </a>
 
-          {/* Center logo */}
+          {/* 🖼 Logo Center */}
           <a href="/">
             <Image
               src="/logo.png"
@@ -48,7 +48,7 @@ const TopNavbar = () => {
             />
           </a>
 
-          {/* Right icon + label */}
+          {/* 🔻 Right Button */}
           <a
             href="https://pcpartpicker.com/"
             target="_blank"
@@ -62,21 +62,20 @@ const TopNavbar = () => {
         </div>
       </nav>
 
-      {/* Sticky "أقسام" Button under the navbar */}
+      {/* 🟣 Floating "أقسام" Button — Centered Under Navbar */}
       {!showMenu && (
-        <div className="sticky top-[80px] z-40 flex justify-center py-2">
-          <button
-            onClick={() => setShowMenu(true)}
-            aria-expanded={showMenu}
-            aria-controls="nav-menu"
-            className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-blue-600 text-white font-bold px-6 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-300"
-          >
-            أقسام
-          </button>
-        </div>
+        <button
+          onClick={() => setShowMenu(true)}
+          title="أقسام"
+          aria-expanded={showMenu}
+          aria-controls="nav-menu"
+          className="fixed top-[90px] left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-red-600 to-blue-600 text-white font-bold px-6 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-300"
+        >
+          أقسام
+        </button>
       )}
 
-      {/* Backdrop */}
+      {/* 🔲 Fullscreen Backdrop */}
       {showMenu && (
         <div
           className="fixed inset-0 bg-black/30 z-40"
@@ -84,15 +83,15 @@ const TopNavbar = () => {
         />
       )}
 
-      {/* Sliding Menu */}
+      {/* 📋 Sliding Section Menu */}
       <div
         id="nav-menu"
         role="menu"
-        className={`fixed top-[120px] left-1/2 -translate-x-1/2 w-[280px] z-[60] transition-all duration-500 ease-in-out bg-white/30 backdrop-blur-md shadow-md rounded-xl overflow-hidden ${
-          showMenu ? "max-h-[600px] py-4 px-6" : "max-h-0 py-0 px-6"
+        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] z-[60] transition-all duration-500 ease-in-out bg-white/80 backdrop-blur-md shadow-xl rounded-xl overflow-hidden ${
+          showMenu ? "scale-100 opacity-100 p-6" : "scale-0 opacity-0 p-0"
         }`}
       >
-        <div className="flex flex-col gap-3 items-center">
+        <div className="flex flex-col gap-4 items-center">
           {navLinks.map((link) => (
             <a
               key={link.name}
@@ -101,17 +100,17 @@ const TopNavbar = () => {
                 ${
                   pathname === link.href
                     ? "bg-gradient-to-r from-red-500 to-blue-500 text-white"
-                    : "bg-white/50 text-blue-900"
+                    : "bg-white/60 text-blue-900"
                 }`}
             >
               {link.name}
             </a>
           ))}
 
-          {/* Back Button Inside Menu */}
+          {/* 🔙 Close Button */}
           <button
             onClick={() => setShowMenu(false)}
-            className="mt-4 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-red-600 text-white font-bold px-6 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-300"
+            className="mt-4 bg-gradient-to-r from-blue-600 to-red-600 text-white font-bold px-6 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-300"
           >
             ↑ إغلاق
           </button>

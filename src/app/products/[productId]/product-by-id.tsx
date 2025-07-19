@@ -110,7 +110,7 @@ export const ProductById = ({ id }: { id: string }) => {
               </p>
               <p className="text-[24px] font-bold text-[rgba(34,82,154,1)]">السعر بالدولار :</p>
               <p className="text-[26px] font-black" style={{ color: 'rgba(255,15,27,1)' }}>
-                {dollar} $
+                {product.price} $
               </p>
               </p>
               </div>
