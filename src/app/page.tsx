@@ -1,17 +1,18 @@
 // pages/index.tsx
 import { FloatingLogo } from "@/components/FloatingLogo/FloatingLogo";
+import { TextSwitcher } from "@/components/TextSwitcher/TextSwitcher";
 import Image from "next/image";
 import Link from "next/link";
 
 const sections = [
-  { name: "كومبيوتر", href: "/computer", img: "/logo.png" },
-  { name: "موبايلات", href: "/mobiles", img: "/logo.png" },
-  { name: "اكسسوارات", href: "/accessories", img: "/logo.png" },
-  { name: "لابتوبات", href: "/laptops", img: "/logo.png" },
-  { name: "بلايستيشن", href: "/playstation", img: "/logo.png" },
-  { name: "طابعات", href: "/printers", img: "/logo.png" },
-  { name: "بطاريات", href: "/batteries", img: "/logo.png" },
-  { name: "برامج", href: "/programms", img: "/logo.png" },
+  { name: "كومبيوتر", href: "/computer", img: "/al.jpg" },
+  { name: "موبايلات", href: "/mobiles", img: "/s25.jpg" },
+  { name: "اكسسوارات", href: "/accessories", img: "/1234.jpg" },
+  { name: "لابتوبات", href: "/laptops", img: "/111.jpg" },
+  { name: "بلايستيشن", href: "/playstation", img: "/pla.jpg" },
+  { name: "طابعات", href: "/printers", img: "/b.jpg" },
+  { name: "بطاريات", href: "/batteries", img: "/bat.jpg" },
+  { name: "برامج", href: "/programms", img: "/images.png" },
 ];
 export const metadata = {
   title: "  سبيس نت ستور سوريا بحصة ",
@@ -23,24 +24,32 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-<div   className="min-h-screen w-full overflow-x-hidden" 
-style={{
-     backgroundImage: "url('/bg.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    backgroundAttachment: "fixed",
-  }}>
+
 
       <main
       >
 
         {/* 🎯 Hero with background and snow */}
 <FloatingLogo/>
-<section className="text-center py-16 px-4"> <h1 className="text-4xl font-bold text-blue-800 mb-4">مرحباً بكم في سبيس نت ستور</h1> <p className="text-lg text-gray-700"> المكان الأفضل للحصول على افضل اسعار الالكترونيات في دمشق </p> </section>
+<section className="py-16 px-4 flex items-center justify-center">
+  <div className="bg-white border border-blue-300 rounded-xl shadow-md p-6 text-center max-w-2xl w-full">
+    <h1 className="text-4xl font-bold text-blue-800 mb-4">
+      مرحباً بكم في سبيس نت ستور
+    </h1>
+    <TextSwitcher /> {/* 👈 Animated switching tagline */}
+  </div>
+</section>
+
         {/* 🔲 Section Grid Layout */}
-        <section className="py-20 px-6 ">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <section className="py-20 px-6 "
+        style={{
+     backgroundImage: "url('/image.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    backgroundAttachment: "fixed",
+  }}>
+          <div  className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
             {sections.map((section) => (
               <Link
                 key={section.name}
@@ -75,7 +84,7 @@ style={{
           </p>
         </section>
       </main>
-      </div>
+
     </>
   );
 }
