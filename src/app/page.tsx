@@ -5,51 +5,64 @@ import Image from "next/image";
 import Link from "next/link";
 
 const sections = [
+    { name: "لابتوبات", href: "/laptops", img: "/111.jpg" },
   { name: "كومبيوتر", href: "/computer", img: "/al.jpg" },
+    { name: "اكسسوارات", href: "/accessories", img: "/1234.jpg" },
   { name: "موبايلات", href: "/mobiles", img: "/s25.jpg" },
-  { name: "اكسسوارات", href: "/accessories", img: "/1234.jpg" },
-  { name: "لابتوبات", href: "/laptops", img: "/111.jpg" },
-  { name: "بلايستيشن", href: "/playstation", img: "/pla.jpg" },
-  { name: "طابعات", href: "/printers", img: "/b.jpg" },
+  
   { name: "بطاريات", href: "/batteries", img: "/bat.jpg" },
   { name: "برامج", href: "/programms", img: "/images.png" },
+  { name: "بلايستيشن", href: "/playstation", img: "/pla.jpg" },
+  { name: "طابعات", href: "/printers", img: "/b.jpg" },
 ];
+
+// 🧠 Centralized descriptions
+const sectionDescriptions: { [key: string]: string } = {
+  "كومبيوتر": "جميع قطع الكومبيوتر مع احدث الشاشات ",
+  "موبايلات": "احدث الموديلات وافضل الاسعار",
+  "اكسسوارات": "اكسسوارات مميزة لجميع الأجهزة.",
+  "لابتوبات": "أسعار جملة وكفالة حقيقية وهدايا مميزة",
+  "بلايستيشن": "سعر مميز و تخديم كامل",
+  "طابعات": "متوفر قريبا",
+  "بطاريات": "بطاريات أصلية تدوم طويلاً.",
+  "برامج": "جميع اصدار البرامج مع الكراكات.",
+};
+
 export const metadata = {
-  title: "  سبيس نت ستور سوريا بحصة ",
+  title: "سبيس نت ستور سوريا بحصة",
   description:
     "اسعار اللابتوبات والموبايلات والاكسسوارات وقطع الكومبيوتر في دمشق - سوق البحصة",
   keywords:
     "اسعار الابتوبات في سوريا , اسعار الموبايلات في دمشق, اسعار الاكسسوارات في دمشق, اسعار قطع الكومبيتر في سوريا , سوق البحصة, لابتوبات البحصه ",
 };
+
 export default function HomePage() {
   return (
     <>
+      <main>
+        {/* 🎯 Hero Section */}
+        <FloatingLogo />
+        <section className="py-16 px-4 flex items-center justify-center">
+          <div className="bg-white border border-blue-300 rounded-xl shadow-md p-6 text-center max-w-2xl w-full">
+            <h1 className="text-4xl font-bold text-blue-800 mb-4">
+              مرحباً بكم في سبيس نت ستور
+            </h1>
+            <TextSwitcher />
+          </div>
+        </section>
 
-
-      <main
-      >
-
-        {/* 🎯 Hero with background and snow */}
-<FloatingLogo/>
-<section className="py-16 px-4 flex items-center justify-center">
-  <div className="bg-white border border-blue-300 rounded-xl shadow-md p-6 text-center max-w-2xl w-full">
-    <h1 className="text-4xl font-bold text-blue-800 mb-4">
-      مرحباً بكم في سبيس نت ستور
-    </h1>
-    <TextSwitcher /> {/* 👈 Animated switching tagline */}
-  </div>
-</section>
-
-        {/* 🔲 Section Grid Layout */}
-        <section className="py-20 px-6 "
-        style={{
-     backgroundImage: "url('/image.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    backgroundAttachment: "fixed",
-  }}>
-          <div  className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
+        {/* 🔲 Section Grid */}
+        <section
+          className="py-20 px-6"
+          style={{
+            backgroundImage: "url('/image.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundAttachment: "fixed",
+          }}
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
             {sections.map((section) => (
               <Link
                 key={section.name}
@@ -67,16 +80,15 @@ export default function HomePage() {
                   {section.name}
                 </h2>
                 <p className="text-gray-600 text-center mt-2">
-                  {section.name === "برامج"
-                    ? "تعرّف على برامجنا الحصرية."
-                    : `أفضل الأسعار لـ ${section.name} في سوق البحصة.`}
+                  {sectionDescriptions[section.name] ||
+                    `أفضل الأسعار لـ ${section.name} في سوق البحصة.`}
                 </p>
               </Link>
             ))}
           </div>
         </section>
 
-        {/* 💬 Why Us */}
+        {/* 💬 Why Us Section */}
         <section className="bg-blue-50 py-16 px-4 text-center">
           <h2 className="text-2xl font-bold text-blue-800 mb-4">لماذا نحن؟</h2>
           <p className="text-gray-700 max-w-xl mx-auto">
@@ -84,7 +96,6 @@ export default function HomePage() {
           </p>
         </section>
       </main>
-
     </>
   );
 }

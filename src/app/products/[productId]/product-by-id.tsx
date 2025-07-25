@@ -5,6 +5,7 @@ import { useGetDollarQuery, useGetProductByIdQuery } from "@/data-access/api/pro
 import { IoMdCart } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import { getImage } from "@/util/get-image-url";
+import { Laptop } from "lucide-react";
 
 const highlightSpecs = (text: string) => {
   const specs = ["CPU", "GPU", "RAM", "HARD", "SCREEN"];
@@ -128,14 +129,40 @@ export const ProductById = ({ id }: { id: string }) => {
                 </div>
               )}
 
-              <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+              {product.type==="Laptop" && product.age==="جديد" && <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+                  احصل عليه الآن مع الهداية بالكفالة الذهبية  
+                  <br />ثلاث شهور هاردوير وستة اشهر سوفتوير  
+                  <br />الهدايا: حقيبة + ماوس + ستاند معدني + ماوس باد
+                </p>
+              </div>}
+{product.type==="Laptop" && product.age==="مستعمل"  && <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+                  احصل عليه الآن مع الهداية بالكفالة الذهبية  
+                  <br />شهر كامل هاردوير و سوفتوير  
+                  <br />الهدايا: حقيبة + ماوس + ماوس باد
+                </p>
+              </div>}
+{product.type==="Laptop" && product.age==="اوبن بوكس" && <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
                 <p className="text-[20px] font-semibold text-gray-900 leading-loose">
                   احصل عليه الآن مع الهداية بالكفالة الذهبية  
                   <br />شهر كامل هاردوير وثلاث شهور سوفتوير  
-                  <br />الهداية: حقيبة + ماوس + ستاند معدني + ماوس باد
+                  <br />الهدايا: حقيبة + ماوس + ستاند معدني + ماوس باد
                 </p>
-              </div>
-
+              </div>}
+              {product.type==="Mobile"  && <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+                  احصل عليه الآن  بالكفالة الذهبية  
+                  <br />اسبوع هارد وير سوفت وير 
+                </p>
+              </div>}
+              {product.type==="Accessory"  && <div className="p-4 border-[3px] border-dashed border-[rgba(34,82,154,1)] bg-[rgba(34,82,154,0.05)] rounded-lg">
+                <p className="text-[20px] font-semibold text-gray-900 leading-loose">
+                  احصل عليه الآن   بالكفالة الذهبية  
+                  <br />15 يوم   
+                
+                </p>
+              </div>}
               {product.arabic_info && (
                 <div>
                   <p className="text-[24px] font-bold text-[rgba(34,82,154,1)] mb-2">تفاصيل إضافية:</p>

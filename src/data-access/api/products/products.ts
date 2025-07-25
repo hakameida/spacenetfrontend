@@ -214,6 +214,7 @@ const extendedApi = apiSlice.injectEndpoints({
           query: `
                     query MyQuery {
                       productById(id : "${id}"){
+                          status
                           description
                           discount
                           id

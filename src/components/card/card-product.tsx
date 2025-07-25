@@ -40,7 +40,7 @@ const CardProduct = ({
       <a href={`/products/${id}`}>
         <div className="card-product max-w-sm rounded overflow-hidden shadow-lg">
           <div className="h-[350px] flex items-center justify-center overflow-hidden">
-            <img className="w-[100%]" alt="اشتر ${title} باحسن سعر من سبيس نت ستور" src={getImage(image, 3072)} />
+            <img className="w-[100%] h-[100%]" alt="اشتر ${title} باحسن سعر من سبيس نت ستور" src={getImage(image, 400)} />
             {/* <Image
               alt={title}
               src={getImage(image)}
@@ -51,7 +51,13 @@ const CardProduct = ({
           <div className="px-6 py-4 border-t border-[#cccccc] flex items-center justify-center flex-col">
             <p className="font-bold text-[1rem] mb-2">{title}</p>
             {
-              price ? <>
+              price ==="0" ? <>
+                <p className="font-bold text-[1rem] mb">قريبا</p>
+                
+              </> : null
+            }
+            {
+              price !=="0" ? <>
                 <p className="font-bold text-[1rem] mb">{Number(price) * dollarPrice}S.P</p>
                 <p className="font-bold text-[1rem] mb">{price}$</p>
               </> : null
