@@ -27,7 +27,7 @@ const TopNavbar = () => {
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
           {/* 🔺 Left Button */}
           <a
-            href="https://www.notebookcheck.net/"
+            href="https://pcpartpicker.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center text-red-600 hover:scale-110 transition"
@@ -50,7 +50,7 @@ const TopNavbar = () => {
 
           {/* 🔻 Right Button */}
           <a
-            href="https://pcpartpicker.com/"
+            href="https://www.notebookcheck.net/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center text-blue-800 hover:scale-110 transition"

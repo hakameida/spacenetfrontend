@@ -8,43 +8,29 @@ import { useGetOffersListQuery } from "@/data-access/api/products/products";
 import Link from "next/link";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 
-function NextArrow(props) {
-  const { className, style, onClick } = props;
+const ArrowButton = ({ direction, onClick }) => {
+  const isNext = direction === "next";
+  const Icon = isNext ? IoIosArrowForward : IoIosArrowBack;
+  const positionClass = isNext ? "left-4" : "right-4";
+
   return (
     <button
-      aria-label="Next slide"
-      className="flex justify-center items-center bg-[rgba(34,82,154,1)] hover:bg-blue-800 text-white rounded-full w-12 h-12 absolute left-4 top-1/2 -translate-y-1/2 z-20 transition-all duration-300"
-      style={{ ...style, display: "flex" }}
+      aria-label={isNext ? "Next slide" : "Previous slide"}
       onClick={onClick}
+      className={`absolute top-1/2 ${positionClass} -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white rounded-full shadow transition duration-300`}
     >
-      <IoIosArrowForward size={24} />
+      <Icon size={24} />
     </button>
   );
-}
+};
 
-function PrevArrow(props) {
-  const { className, style, onClick } = props;
-  return (
-    <button
-      aria-label="Previous slide"
-      className="flex justify-center items-center bg-[rgba(34,82,154,1)] hover:bg-blue-800 text-white rounded-full w-12 h-12 absolute right-4 top-1/2 -translate-y-1/2 z-20 transition-all duration-300"
-      style={{ ...style, display: "flex" }}
-      onClick={onClick}
-    >
-      <IoIosArrowBack size={24} />
-    </button>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="block bg-white rounded-lg border overflow-hidden p-4 animate-pulse">
-      <div className="w-full h-60 bg-gray-300 rounded-md mb-4" />
-      <div className="h-6 bg-gray-300 rounded mb-2 w-3/4 mx-auto" />
-      <div className="h-5 bg-gray-300 rounded w-1/4 mx-auto" />
-    </div>
-  );
-}
+const SkeletonCard = () => (
+  <div className="bg-white rounded-lg border p-4 animate-pulse">
+    <div className="w-full aspect-[4/3] bg-gray-300 rounded mb-4" />
+    <div className="h-6 bg-gray-300 rounded mb-2 w-3/4 mx-auto" />
+    <div className="h-5 bg-gray-300 rounded w-1/4 mx-auto" />
+  </div>
+);
 
 function MultipleItemsOffer({ productType }) {
   const { data, isLoading, error } = useGetOffersListQuery({ type: productType });
@@ -55,8 +41,8 @@ function MultipleItemsOffer({ productType }) {
     infinite: offers.length > 1,
     slidesToShow: 1,
     slidesToScroll: 1,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
+    nextArrow: <ArrowButton direction="next" onClick={undefined} />,
+    prevArrow: <ArrowButton direction="prev" onClick={undefined} />,
     autoplay: offers.length > 1,
     speed: 600,
     autoplaySpeed: 5000,
@@ -66,7 +52,7 @@ function MultipleItemsOffer({ productType }) {
 
   if (isLoading) {
     return (
-      <div className="max-w-lg mx-auto px-4">
+      <div className="max-w-2xl mx-auto px-4">
         <SkeletonCard />
       </div>
     );
@@ -74,7 +60,7 @@ function MultipleItemsOffer({ productType }) {
 
   if (error) {
     return (
-      <p className="bg-white text-red-600 text-center p-6 rounded cursor-pointer hover:shadow-lg transition-shadow duration-300">
+      <p className="bg-white text-red-600 text-center p-6 rounded shadow hover:shadow-lg transition">
         خطأ في جلب العروض
       </p>
     );
@@ -82,48 +68,47 @@ function MultipleItemsOffer({ productType }) {
 
   if (offers.length === 0) {
     return (
-      <p
-        className="bg-white text-gray-500 text-center p-6 rounded cursor-default select-none"
-        style={{ color: "rgba(34,82,154,1)" }}
-      >
+      <p className="bg-white text-blue-700 text-center p-6 rounded select-none">
         حاليا لا يوجد عروض
       </p>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4">
+    <div className="max-w-2xl mx-auto px-4">
       <Slider {...settings}>
         {offers.map((offer) => {
           const imageUrl =
             offer.image ||
             (offer.image1?.startsWith("offers/")
-              ? `https://spacenetserver.up.railway.app/media/${offer.image1}`
+              ? `https://dockergqlserver.onrender.com/media/${offer.image1}`
               : offer.image1);
 
           return (
             <Link
               key={offer.id}
               href={`/offers/${offer.id}`}
-              className="block bg-white rounded-lg border duration-300 overflow-hidden"
+              className="block bg-white rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition duration-300"
               passHref
             >
               <div className="flex flex-col items-center p-4">
                 {imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt={offer.name || ""}
-                    className="w-full h-60 object-cover rounded-md"
-                    loading="lazy"
-                  />
+                  <div className="w-full aspect-[4/3] overflow-hidden rounded-md">
+                    <img
+                      src={imageUrl}
+                      alt={offer.name || ""}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
                 )}
                 <h3 className="mt-4 text-xl md:text-2xl font-semibold text-gray-900 text-center">
                   {offer.name}
                 </h3>
-                <p className="mt-1 text-lg text-red-600 font-bold text-center line-through">
+                <p className="mt-1 text-lg text-red-500 font-bold text-center line-through">
                   {offer.oldprice} $
                 </p>
-                <p className="mt-1 text-lg text-red-600 font-bold text-center">
+                <p className="mt-1 text-lg text-green-600 font-bold text-center">
                   {offer.price} $
                 </p>
               </div>

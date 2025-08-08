@@ -56,7 +56,7 @@ const products = [
 ];
 
 export const metadata = {
-  title: "اكسسوارات سبيس نت ستور",
+  title: "اسعار لابتوبات في سوريا سبيس نت ستور",
   description:
     "لابتوبات جيمينغ ومكتبي بارخص الاسعار وافضل الانواع في سبيس ستور ",
   keywords:
@@ -88,7 +88,7 @@ export default function Home() {
 >
   عروض كل اسبوع شكل
 </span>
-          <MultipleItemsOffer   productType="Accessory" />
+          <MultipleItemsOffer   productType="Laptop" />
           </div>
   {/* <MultipleItems ProductList={products} /> */}
   <AllProductPage productType="Laptop" title="لابتوبات" />
