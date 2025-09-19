@@ -87,7 +87,7 @@ export default function Home() {
 >
   عروض كل اسبوع شكل
 </span>
-          <MultipleItemsOffer   productType="Accessory" />
+          <MultipleItemsOffer   productType="printers" />
           </div>
       <AllProductPage productType="printers" title="طابعات" />
     </div>

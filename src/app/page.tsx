@@ -59,7 +59,6 @@ export default function HomePage() {
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            backgroundAttachment: "fixed",
           }}
         >
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
@@ -89,11 +88,14 @@ export default function HomePage() {
         </section>
 
         {/* 💬 Why Us Section */}
-        <section className="bg-blue-50 py-16 px-4 text-center">
+        <section className="py-16 px-4 flex items-center justify-center">
+          <div className="bg-white border border-gray-300 rounded-xl shadow-lg p-8 max-w-xl text-center"
+  >
           <h2 className="text-2xl font-bold text-blue-800 mb-4">لماذا نحن؟</h2>
           <p className="text-gray-700 max-w-xl mx-auto">
-            لأننا نقدم لك أحدث وأدق معلومات الأسعار في سوق البحصة بدمشق، حيث تجد أفضل الصفقات والإلكترونيات بجودة عالية وأسعار منافسة.
+            لأننا نقدم لك أحدث وأدق الأسعار في سوق البحصة بدمشق، حيث تجد أفضل الصفقات وجودة الإلكترونيات  عالية وأسعار منافسة.
           </p>
+          </div>
         </section>
       </main>
     </>

@@ -1,7 +1,9 @@
+"use client"
 import "./global.css";
 import ProviderComponent from "@/store/ProviderComponnt";
 import Navbar from "@/components/navbar/navbar";
 import Head from "next/head";
+import ScrollToTopButton from "@/components/scrolltop/ScrollToTopButton"
 import { FaWhatsapp, FaFacebook, FaTelegram, FaPhoneAlt, FaMapMarkerAlt } from "react-icons/fa";
 import TopNavbar from "@/components/navbar/navbar";
 // import SideNav from "@/components/sidenavbar/sidenavbar";
@@ -23,6 +25,7 @@ export default function LocaleLayout({
           <TopNavbar />
           {/* <SideNav/> */}
           <WhatsappButton />
+          <ScrollToTopButton/>
           {children}
         </ProviderComponent>
 
@@ -95,21 +98,26 @@ export default function LocaleLayout({
               <div className="flex flex-col justify-center items-center text-center">
                 <h2 className="mb-6 text-lg font-semibold text-gray-900 uppercase">منتجات</h2>
                 <ul className="text-gray-500 font-medium space-y-4">
-                <a href="/"> <li className="hover:underline cursor-pointer">لابتوبات</li></a>
+                <a href="/laptops"> <li className="hover:underline cursor-pointer">لابتوبات</li></a>
                 <a href="/computer">  <li className="hover:underline cursor-pointer">كومبيوتر</li></a>
                 <a href="/accessories">   <li className="hover:underline cursor-pointer">اكسسوارات</li></a>
                 <a href="/mobiles">  <li className="hover:underline cursor-pointer">موبايلات</li></a>
+                <a href="/playstation">  <li className="hover:underline cursor-pointer">بلايستيشن</li></a>
+                <a href="/printers">  <li className="hover:underline cursor-pointer">طابعات</li></a>
+                <a href="/batteries">  <li className="hover:underline cursor-pointer">بطاريات</li></a>
+                <a href="/programms">  <li className="hover:underline cursor-pointer">برامج</li></a>
+
                 </ul>
               </div>
 
               {/* Fifth Section - Image */}
               <div className="flex flex-col justify-center items-center text-center">
                 <h2 className="mb-6 text-lg font-semibold text-gray-900 uppercase">Space Net</h2>
-                <img 
+                <a href="/"> <img 
                   src="/logo.png" // Replace this with your image path
                   alt="Space Net" 
                   className="w-48 h-48 object-cover rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
-                />
+                /> </a>
               </div>
 
             </div>
@@ -118,7 +126,7 @@ export default function LocaleLayout({
 
             <a href="https://EIXADARKO.com/" target="_blank">
               <p className="text-[18px] text-buttons_color text-center">
-                <span className="underline">EIXADARKO</span>© 2025 . All rights reserved.
+                <span className="underline">EIXADARKO</span>© 2025 . All rights reserved
               </p>
             </a>
           </div>

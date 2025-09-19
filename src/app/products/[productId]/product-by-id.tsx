@@ -5,7 +5,6 @@ import { useGetDollarQuery, useGetProductByIdQuery } from "@/data-access/api/pro
 import { IoMdCart } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import { getImage } from "@/util/get-image-url";
-import { Laptop } from "lucide-react";
 
 const highlightSpecs = (text: string) => {
   const specs = ["CPU", "GPU", "RAM", "HARD", "SCREEN"];

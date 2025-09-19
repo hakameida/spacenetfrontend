@@ -85,7 +85,7 @@ export default function Home() {
 >
   عروض كل اسبوع شكل
 </span>
-          <MultipleItemsOffer   productType="Accessory" />
+          <MultipleItemsOffer   productType="mobile" />
           </div>
       <AllProductPage productType="Mobile" title="موبايلات" />
     </div>

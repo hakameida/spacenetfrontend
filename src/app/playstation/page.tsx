@@ -86,7 +86,7 @@ export default function Home() {
 >
   عروض كل اسبوع شكل
 </span>
-          <MultipleItemsOffer   productType="Accessory" />
+          <MultipleItemsOffer   productType="playstation" />
           </div>
       <AllProductPage productType="playstation" title="بلايستيشن" />
     </div>

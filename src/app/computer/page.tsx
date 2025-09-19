@@ -86,7 +86,7 @@ export default function Home() {
                         >
                           عروض كل اسبوع شكل
                         </span>
-                                  <MultipleItemsOffer   productType="Accessory" />
+                                  <MultipleItemsOffer   productType="computer" />
                                   
     {/* <h2 className="md:text-[34px] text-[20px] font-[700]" style={{ color: 'rgba(255,15,27,1)' }}>
       التصنيفات الموجودة بالموقع
