@@ -1,5 +1,4 @@
-const MARKET_SECRET_TOKEN = "sk_live_2f48cae0f7d94b3e9b75a32e61d1ab8a";
-
+const MARKET_SECRET_TOKEN = process.env.MARKET_SECRET_TOKEN;
 export async function getProductById(id: string) {
   const query = `
     query GetProductById($id: String!) {
