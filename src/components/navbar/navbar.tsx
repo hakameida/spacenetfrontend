@@ -10,10 +10,11 @@ const navLinks = [
   { name: "موبايلات", href: "/mobiles" },
   { name: "اكسسوارات", href: "/accessories" },
   { name: "لابتوبات", href: "/laptops" },
-  { name: "بلايستيشن", href: "/playstation" },
-  { name: "طابعات", href: "/printers" },
+  // { name: "بلايستيشن", href: "/playstation" },
+  // { name: "طابعات", href: "/printers" },
   { name: "بطاريات", href: "/batteries" },
-  { name: "برامج", href: "/programms" },
+  { name: "كاميرات مراقبة", href: "/cameras" },
+  // { name: "برامج", href: "/programms" },
 ];
 
 const TopNavbar = () => {

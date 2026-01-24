@@ -102,10 +102,11 @@ export default function LocaleLayout({
                 <a href="/computer">  <li className="hover:underline cursor-pointer">كومبيوتر</li></a>
                 <a href="/accessories">   <li className="hover:underline cursor-pointer">اكسسوارات</li></a>
                 <a href="/mobiles">  <li className="hover:underline cursor-pointer">موبايلات</li></a>
-                <a href="/playstation">  <li className="hover:underline cursor-pointer">بلايستيشن</li></a>
-                <a href="/printers">  <li className="hover:underline cursor-pointer">طابعات</li></a>
+                {/* <a href="/playstation">  <li className="hover:underline cursor-pointer">بلايستيشن</li></a> */}
+                {/* <a href="/printers">  <li className="hover:underline cursor-pointer">طابعات</li></a> */}
                 <a href="/batteries">  <li className="hover:underline cursor-pointer">بطاريات</li></a>
-                <a href="/programms">  <li className="hover:underline cursor-pointer">برامج</li></a>
+                <a href="/cameras">  <li className="hover:underline cursor-pointer">كاميرات مراقبة</li></a>
+                {/* <a href="/programms">  <li className="hover:underline cursor-pointer">برامج</li></a> */}
 
                 </ul>
               </div>

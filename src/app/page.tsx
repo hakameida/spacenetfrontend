@@ -9,11 +9,10 @@ const sections = [
   { name: "كومبيوتر", href: "/computer", img: "/al.jpg" },
     { name: "اكسسوارات", href: "/accessories", img: "/1234.jpg" },
   { name: "موبايلات", href: "/mobiles", img: "/s25.jpg" },
-  
   { name: "بطاريات", href: "/batteries", img: "/bat.jpg" },
-  { name: "برامج", href: "/programms", img: "/images.png" },
-  { name: "بلايستيشن", href: "/playstation", img: "/pla.jpg" },
-  { name: "طابعات", href: "/printers", img: "/b.jpg" },
+  // { name: "برامج", href: "/programms", img: "/images.png" },
+  // { name: "بلايستيشن", href: "/playstation", img: "/pla.jpg" },
+  // { name: "طابعات", href: "/printers", img: "/b.jpg" },
 ];
 
 // 🧠 Centralized descriptions
@@ -22,10 +21,10 @@ const sectionDescriptions: { [key: string]: string } = {
   "موبايلات": "احدث الموديلات وافضل الاسعار",
   "اكسسوارات": "اكسسوارات مميزة لجميع الأجهزة.",
   "لابتوبات": "أسعار جملة وكفالة حقيقية وهدايا مميزة",
-  "بلايستيشن": "سعر مميز و تخديم كامل",
-  "طابعات": "متوفر قريبا",
   "بطاريات": "بطاريات أصلية تدوم طويلاً.",
-  "برامج": "جميع اصدار البرامج مع الكراكات.",
+  // "بلايستيشن": "سعر مميز و تخديم كامل",
+  // "طابعات": "متوفر قريبا",
+  // "برامج": "جميع اصدار البرامج مع الكراكات.",
 };
 
 export const metadata = {
