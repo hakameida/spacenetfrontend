@@ -1,22 +1,20 @@
-// pages/index.tsx
+// pages/index.tsx or app/page.tsx
+
 import { FloatingLogo } from "@/components/FloatingLogo/FloatingLogo";
 import { TextSwitcher } from "@/components/TextSwitcher/TextSwitcher";
+import LoadingScreen from "@/components/loading/LoadingScreen";
 import Image from "next/image";
 import Link from "next/link";
 
 const sections = [
-    { name: "لابتوبات", href: "/laptops", img: "/111.jpg" },
+  { name: "لابتوبات", href: "/laptops", img: "/111.jpg" },
   { name: "كومبيوتر", href: "/computer", img: "/al.jpg" },
-    { name: "اكسسوارات", href: "/accessories", img: "/1234.jpg" },
+  { name: "اكسسوارات", href: "/accessories", img: "/1234.jpg" },
   { name: "موبايلات", href: "/mobiles", img: "/s25.jpg" },
   { name: "بطاريات", href: "/batteries", img: "/bat.jpg" },
   { name: "كاميرات مراقبة", href: "/cameras", img: "/cam.jpg" },
-  // { name: "برامج", href: "/programms", img: "/images.png" },
-  // { name: "بلايستيشن", href: "/playstation", img: "/pla.jpg" },
-  // { name: "طابعات", href: "/printers", img: "/b.jpg" },
 ];
 
-// 🧠 Centralized descriptions
 const sectionDescriptions: { [key: string]: string } = {
   "كومبيوتر": "جميع قطع الكومبيوتر مع احدث الشاشات ",
   "موبايلات": "احدث الموديلات وافضل الاسعار",
@@ -24,9 +22,6 @@ const sectionDescriptions: { [key: string]: string } = {
   "لابتوبات": "أسعار جملة وكفالة حقيقية وهدايا مميزة",
   "بطاريات": "بطاريات أصلية تدوم طويلاً.",
   "كاميرات مراقبة": "أفضل أنواع كاميرات المراقبة بأفضل الأسعار.",
-  // "بلايستيشن": "سعر مميز و تخديم كامل",
-  // "طابعات": "متوفر قريبا",
-  // "برامج": "جميع اصدار البرامج مع الكراكات.",
 };
 
 export const metadata = {
@@ -40,6 +35,9 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
+      {/* 🔵 Loading Screen */}
+      <LoadingScreen />
+
       <main>
         {/* 🎯 Hero Section */}
         <FloatingLogo />
@@ -90,12 +88,11 @@ export default function HomePage() {
 
         {/* 💬 Why Us Section */}
         <section className="py-16 px-4 flex items-center justify-center">
-          <div className="bg-white border border-gray-300 rounded-xl shadow-lg p-8 max-w-xl text-center"
-  >
-          <h2 className="text-2xl font-bold text-blue-800 mb-4">لماذا نحن؟</h2>
-          <p className="text-gray-700 max-w-xl mx-auto">
-            لأننا نقدم لك أحدث وأدق الأسعار في سوق البحصة بدمشق، حيث تجد أفضل الصفقات وجودة الإلكترونيات  عالية وأسعار منافسة.
-          </p>
+          <div className="bg-white border border-gray-300 rounded-xl shadow-lg p-8 max-w-xl text-center">
+            <h2 className="text-2xl font-bold text-blue-800 mb-4">لماذا نحن؟</h2>
+            <p className="text-gray-700 max-w-xl mx-auto">
+              لأننا نقدم لك أحدث وأدق الأسعار في سوق البحصة بدمشق، حيث تجد أفضل الصفقات وجودة الإلكترونيات عالية وأسعار منافسة.
+            </p>
           </div>
         </section>
       </main>
