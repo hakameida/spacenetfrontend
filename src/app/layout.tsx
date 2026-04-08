@@ -113,9 +113,9 @@ export default function LocaleLayout({
 
               {/* Fifth Section - Image */}
               <div className="flex flex-col justify-center items-center text-center">
-                <h2 className="mb-6 text-lg font-semibold text-gray-900 uppercase">Space Net</h2>
+                <h2 className="mb-6 text-lg font-semibold text-gray-900 uppercase">Space Net Store</h2>
                 <a href="/"> <img 
-                  src="/logo.png" // Replace this with your image path
+                  src="/frame.jpg" // Replace this with your image path
                   alt="Space Net" 
                   className="w-48 h-48 object-cover rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
                 /> </a>

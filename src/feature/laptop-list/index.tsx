@@ -26,25 +26,27 @@ export const LaptopList = ({
   selectedList,
   dollarPrice,
   title,
+  gridClassName = "grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4"
 }: {
   dollarPrice: number;
   isLoading: boolean;
   selectedList: ProductList[];
-  title: string
+  title: string;
+  gridClassName?: string;
 }) => {
 
   return (
     <>
       {isLoading ? (
-        <div className="container mx-auto my-[40px]">
+        <div className="container mx-auto my-[40px] px-2 md:px-4">
           <div className="my-[10px]">
             <Skeleton variant="text" width="60%" />
             <Skeleton variant="text" width="40%" />
           </div>
           <div className="my-[40px]">
-            <div className="grid-container">
-              {Array.from(new Array(4)).map((_, index) => (
-                <div key={index} className="grid-item">
+            <div className={gridClassName}>
+              {Array.from(new Array(8)).map((_, index) => (
+                <div key={index} className="w-full">
                   <div
                     className={"card"}
                     style={{
@@ -73,13 +75,11 @@ export const LaptopList = ({
           </div>
         </div>
       ) : (
-        <div className="container mx-auto my-[40px]">
-
-          
+        <div className="container mx-auto my-[40px] px-2 md:px-4">
           <div className="my-[40px]">
-            <div className="grid-container">
+            <div className={gridClassName}>
               {selectedList?.map((laptopItem, key) => (
-                <div key={key} className="grid-item">
+                <div key={key} className="w-full">
                   <CardProduct
                     height="300px"
                     rounded="10px"
@@ -101,6 +101,21 @@ export const LaptopList = ({
           </div>
         </div>
       )}
+      
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .grid {
+            gap: 0.5rem;
+          }
+        }
+        
+        /* Ensure cards don't overflow on very small screens */
+        @media (max-width: 480px) {
+          :global(.grid-cols-2) {
+            gap: 0.5rem;
+          }
+        }
+      `}</style>
     </>
   );
 };

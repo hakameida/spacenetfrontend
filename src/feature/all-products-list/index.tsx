@@ -295,7 +295,14 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
         عرض {filteredProductList.length} من أصل {selectedLaptopListList.length} منتج
       </div>
 
-      <LaptopList title={title} dollarPrice={dollar} isLoading={isLoading} selectedList={filteredProductList} />
+      {/* Pass a custom className to LaptopList for grid layout */}
+      <LaptopList 
+        title={title} 
+        dollarPrice={dollar} 
+        isLoading={isLoading} 
+        selectedList={filteredProductList}
+        gridClassName="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4"
+      />
 
       <style>
         {`
@@ -328,6 +335,13 @@ export const AllProductPage = ({ productType, title }: { productType: string; ti
           .overflow-x-auto::-webkit-scrollbar-thumb {
             background-color: var(--main-color);
             border-radius: 10px;
+          }
+
+          /* Ensure product cards are properly sized on mobile */
+          @media (max-width: 640px) {
+            .grid {
+              gap: 0.5rem;
+            }
           }
         `}
       </style>
