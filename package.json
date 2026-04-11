@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap"
-    
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -17,7 +16,7 @@
     "@mui/material": "^5.15.14",
     "@reduxjs/toolkit": "^2.2.1",
     "@studio-freight/lenis": "^1.0.42",
-    "framer-motion": "^12.23.3",
+    "framer-motion": "^12.38.0",
     "graphql-request": "^7.2.0",
     "gsap": "^3.13.0",
     "html-to-react": "^1.7.0",

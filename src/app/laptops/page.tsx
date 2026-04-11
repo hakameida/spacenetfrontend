@@ -28,7 +28,8 @@ export default function Home() {
       {/* 🔵 Loading Screen */}
       <LoadingScreen />
 
-      <div className="sm:container w-[90%] mx-auto mb-16 mt-8">
+      {/* 🔴 FIX: Added pt-16 (or adjust based on your navbar height) to prevent content from hiding behind fixed navbar */}
+      <div className="sm:container w-[90%] mx-auto mb-16 mt-8 pt-20 md:pt-24">
         <Hero />
 
         <div className="my-[10px]">

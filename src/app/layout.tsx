@@ -41,6 +41,8 @@ export default function LocaleLayout({
         content="sXMXcw-2VzB_JqJrK5F341-46d9Fydeh6210CvUXqY4"
       />
       <link rel="icon" href="/logo.png" sizes="any" />
+      <link rel="manifest" href="/manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
       <body className="bg-white">
         <ProviderComponent>
           <TopNavbar />
