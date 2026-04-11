@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import Slider from "react-slick";
+import type { Settings } from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -9,7 +10,17 @@ import { useGetOffersListQuery } from "@/data-access/api/products/products";
 import Link from "next/link";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 
-const ArrowButton = ({ direction, onClick, disabled }) => {
+interface ArrowButtonProps {
+  direction: "prev" | "next";
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+const ArrowButton: React.FC<ArrowButtonProps> = ({ 
+  direction, 
+  onClick, 
+  disabled = false 
+}) => {
   const isNext = direction === "next";
   const Icon = isNext ? IoIosArrowForward : IoIosArrowBack;
   
@@ -36,12 +47,26 @@ const SkeletonCard = () => (
   </div>
 );
 
-function MultipleItemsOffer({ productType }) {
-  const sliderRef = useRef(null);
-  const { data, isLoading, error } = useGetOffersListQuery({ type: productType });
-  const offers = data || [];
+interface MultipleItemsOfferProps {
+  productType: string;
+}
 
-  const settings = {
+// Updated interface to match your actual API response
+interface Offer {
+  id: string;
+  name: string;
+  image: string;
+  image1: string;
+  oldprice: string;  // Changed to string to match API response
+  price: string;     // Changed to string to match API response
+}
+
+function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
+  const sliderRef = useRef<Slider>(null);
+  const { data, isLoading, error } = useGetOffersListQuery({ type: productType });
+  const offers: Offer[] = data || [];
+
+  const settings: Settings = {
     dots: true,
     infinite: offers.length > 1,
     slidesToShow: 1,
@@ -51,10 +76,10 @@ function MultipleItemsOffer({ productType }) {
     speed: 500,
     pauseOnHover: true,
     adaptiveHeight: true,
-    arrows: false, // We'll use custom navigation
+    arrows: false,
     dotsClass: "slick-dots custom-dots",
-    fade: false, // Set to true for fade effect between slides
-    cssEase: "cubic-bezier(0.25, 0.46, 0.45, 0.94)", // Smooth easing
+    fade: false,
+    cssEase: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
   };
 
   const handlePrev = () => {
@@ -91,7 +116,6 @@ function MultipleItemsOffer({ productType }) {
 
   return (
     <div className="relative max-w-4xl mx-auto px-4">
-      {/* Custom Navigation Buttons */}
       {offers.length > 1 && (
         <>
           <ArrowButton 
@@ -107,7 +131,6 @@ function MultipleItemsOffer({ productType }) {
 
       <Slider ref={sliderRef} {...settings}>
         {offers.map((offer) => {
-          // Improved image URL handling
           let imageUrl = offer.image || offer.image1;
           
           if (imageUrl) {
@@ -126,7 +149,6 @@ function MultipleItemsOffer({ productType }) {
               passHref
             >
               <div className="flex flex-col">
-                {/* Image Container - Fixed height instead of aspect ratio to prevent cropping */}
                 <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden bg-gray-100">
                   {imageUrl ? (
                     <img
@@ -135,8 +157,8 @@ function MultipleItemsOffer({ productType }) {
                       className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       onError={(e) => {
-                        e.target.src = "/fallback-image.jpg"; // Add a fallback image
-                        e.target.onerror = null;
+                        e.currentTarget.src = "/fallback-image.jpg";
+                        e.currentTarget.onerror = null;
                       }}
                     />
                   ) : (
@@ -146,7 +168,6 @@ function MultipleItemsOffer({ productType }) {
                   )}
                 </div>
                 
-                {/* Content */}
                 <div className="p-4 md:p-6 text-center">
                   <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2 line-clamp-2">
                     {offer.name}
@@ -163,7 +184,6 @@ function MultipleItemsOffer({ productType }) {
                     </p>
                   </div>
                   
-                  {/* Optional: Add a shop now button */}
                   <div className="mt-4">
                     <span className="inline-block px-6 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition">
                       عرض التفاصيل
@@ -176,7 +196,6 @@ function MultipleItemsOffer({ productType }) {
         })}
       </Slider>
 
-      {/* Add custom styles for dots */}
       <style jsx global>{`
         .custom-dots {
           bottom: -30px;
