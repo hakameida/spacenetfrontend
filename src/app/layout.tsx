@@ -9,7 +9,22 @@ import { QrCode } from "lucide-react";
 import TopNavbar from "@/components/navbar/navbar";
 import WhatsappButton from "@/components/whatsapp/WhatsappButton";
 import { useState, useEffect } from "react";
-
+export function registerServiceWorker() {
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((registration) => {
+            console.log("SW registered: ", registration);
+          })
+          .catch((registrationError) => {
+            console.log("SW registration failed: ", registrationError);
+          });
+      });
+    }
+  }, []);
+}
 export default function LocaleLayout({
   children,
 }: {
