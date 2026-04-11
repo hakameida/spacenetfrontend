@@ -1,5 +1,4 @@
-// pages/index.tsx or app/page.tsx
-
+// app/page.tsx or app/[locale]/page.tsx
 import { FloatingLogo } from "@/components/FloatingLogo/FloatingLogo";
 import { TextSwitcher } from "@/components/TextSwitcher/TextSwitcher";
 import LoadingScreen from "@/components/loading/LoadingScreen";
@@ -35,12 +34,13 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-      {/* 🔵 Loading Screen */}
       <LoadingScreen />
-
-      <main>
+      
+      {/* Main content with padding-top to account for fixed navbar */}
+      <main className="pt-[80px]">
         {/* 🎯 Hero Section */}
         <FloatingLogo />
+        
         <section className="py-16 px-4 flex items-center justify-center">
           <div className="bg-white border border-blue-300 rounded-xl shadow-md p-6 text-center max-w-2xl w-full">
             <h1 className="text-4xl font-bold text-blue-800 mb-4">

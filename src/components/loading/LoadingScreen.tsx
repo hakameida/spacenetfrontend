@@ -62,7 +62,7 @@ export default function LoadingScreen() {
               alt="Logo"
               width={65}
               height={65}
-              className="rounded-full"
+              className=""
             />
           </div>
         </div>

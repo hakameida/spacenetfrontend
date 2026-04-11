@@ -351,7 +351,7 @@ export default function TopNavbar() {
           ) : (
             <a
               href="/pc-build"
-              className="flex flex-col items-center text-purple-600 hover:scale-110 transition"
+              className="flex flex-col items-center text-red-600 hover:scale-110 transition"
               style={{ width: 76 }}
             >
               <Wrench className="w-6 h-6" />
