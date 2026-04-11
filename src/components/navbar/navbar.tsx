@@ -12,7 +12,9 @@ import {
   Video,
   Download,
   Wrench,
-  ExternalLink
+  ExternalLink,
+  Home,
+  X
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -51,7 +53,8 @@ export default function TopNavbar() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
-  const [showInstallButton, setShowInstallButton] = useState(false);
+  const [showInstallNotification, setShowInstallNotification] = useState(false);
+  const [notificationDismissed, setNotificationDismissed] = useState(false);
 
   // Check if device is mobile and listen for install prompt
   useEffect(() => {
@@ -62,39 +65,63 @@ export default function TopNavbar() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch(error => {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+
     // Listen for beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallButton(true);
+      
+      // Show notification only if not dismissed before
+      const hasSeenInstallNotification = localStorage.getItem("hasSeenInstallNotification");
+      if (!hasSeenInstallNotification && !isInstalled) {
+        setTimeout(() => {
+          setShowInstallNotification(true);
+        }, 2000);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    // Check if already installed (standalone mode)
+    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+                               (window.navigator as any).standalone === true;
+    
+    if (isInStandaloneMode) {
       setIsInstalled(true);
-      setShowInstallButton(false);
     }
 
-    // Check if app is installed but not in standalone mode
-    const checkInstalled = () => {
-      if ('getInstalledRelatedApps' in navigator) {
-        (navigator as any).getInstalledRelatedApps().then((apps: any[]) => {
+    // Also check for installed related apps
+    if ('getInstalledRelatedApps' in navigator) {
+      (navigator as any).getInstalledRelatedApps()
+        .then((apps: any[]) => {
           if (apps.length > 0) {
             setIsInstalled(true);
-            setShowInstallButton(false);
           }
-        });
-      }
-    };
-    checkInstalled();
+        })
+        .catch(() => {});
+    }
+
+    // Check if user has seen notification before
+    const hasSeen = localStorage.getItem("hasSeenInstallNotification");
+    if (hasSeen) {
+      setNotificationDismissed(true);
+    }
 
     return () => {
       window.removeEventListener('resize', checkMobile);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [isInstalled]);
 
   // Check if first visit and if on mobile
   useEffect(() => {
@@ -104,7 +131,6 @@ export default function TopNavbar() {
     if (!hasSeenOnboarding && isMobile) {
       setShowOnboarding(true);
       
-      // Check if content is scrollable
       setTimeout(() => {
         if (categoriesRef.current) {
           const { scrollWidth, clientWidth } = categoriesRef.current;
@@ -118,7 +144,11 @@ export default function TopNavbar() {
 
   // Handle PWA Install
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // Show manual install instructions
+      showManualInstallInstructions();
+      return;
+    }
 
     // Show the install prompt
     await deferredPrompt.prompt();
@@ -127,15 +157,49 @@ export default function TopNavbar() {
     
     if (outcome === 'accepted') {
       setIsInstalled(true);
-      setShowInstallButton(false);
+      setShowInstallNotification(false);
+      // Show success message
+      showInstallSuccessMessage();
     }
     
     setDeferredPrompt(null);
   };
 
-  // Handle Open in App (for desktop)
+  // Show manual install instructions for browsers that don't support automatic prompt
+  const showManualInstallInstructions = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    let message = "";
+    if (isIOS) {
+      message = "لتثبيت التطبيق على iOS:\n1. اضغط على زر المشاركة 📤\n2. اختر 'إضافة إلى الشاشة الرئيسية'\n3. اضغط على 'إضافة'";
+    } else if (isAndroid) {
+      message = "لتثبيت التطبيق على Android:\n1. اضغط على زر القائمة (⋮)\n2. اختر 'تثبيت التطبيق'\n3. اتبع التعليمات";
+    } else {
+      message = "لتثبيت التطبيق:\n1. اضغط على زر القائمة (⋮) في المتصفح\n2. اختر 'تثبيت التطبيق' أو 'Add to Home Screen'";
+    }
+    
+    alert(message);
+  };
+
+  // Show success message after installation
+  const showInstallSuccessMessage = () => {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-[70] animate-in fade-in slide-in-from-top-2';
+    toast.textContent = '✓ تم تثبيت التطبيق بنجاح!';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  };
+
+  // Dismiss install notification
+  const dismissNotification = () => {
+    setShowInstallNotification(false);
+    setNotificationDismissed(true);
+    localStorage.setItem("hasSeenInstallNotification", "true");
+  };
+
+  // Handle Open in App (for desktop or installed app)
   const handleOpenApp = () => {
-    // Try to launch the PWA if installed
     window.open(window.location.origin, '_blank');
   };
 
@@ -147,8 +211,6 @@ export default function TopNavbar() {
     setHasMoved(false);
     setStartX(e.pageX - categoriesRef.current.offsetLeft);
     setScrollLeft(categoriesRef.current.scrollLeft);
-    
-    // Prevent default to avoid text selection
     e.preventDefault();
   };
 
@@ -158,17 +220,16 @@ export default function TopNavbar() {
     const x = e.pageX - categoriesRef.current.offsetLeft;
     const walk = Math.abs(x - startX);
     
-    // Only consider it a drag if moved more than 5px
     if (walk > 5) {
       setHasMoved(true);
     }
     
     e.preventDefault();
-    const moveX = (x - startX) * 1.5; // Scroll speed multiplier
+    const moveX = (x - startX) * 1.5;
     categoriesRef.current.scrollLeft = scrollLeft - moveX;
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleMouseUp = () => {
     setIsDragging(false);
     setHasMoved(false);
   };
@@ -180,17 +241,14 @@ export default function TopNavbar() {
     }
   };
 
-  // Handle click on links - prevent if was dragging
   const handleLinkClick = (e: React.MouseEvent, href: string) => {
     if (hasMoved) {
       e.preventDefault();
       return;
     }
-    // Normal navigation
     window.location.href = href;
   };
 
-  // Handle scroll hint display
   const handleCategoriesScroll = () => {
     if (categoriesRef.current && showOnboarding) {
       const { scrollLeft, scrollWidth, clientWidth } = categoriesRef.current;
@@ -207,7 +265,6 @@ export default function TopNavbar() {
     }
   };
 
-  // Dismiss onboarding
   const dismissOnboarding = () => {
     setShowOnboarding(false);
     localStorage.setItem("hasSeenNavbarOnboarding", "true");
@@ -233,18 +290,66 @@ export default function TopNavbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Determine what to show in the right button
+  const renderRightButton = () => {
+    // Always show install button on mobile if not installed
+    if (isMobileDevice && !isInstalled) {
+      return (
+        <button
+          onClick={handleInstallClick}
+          className="flex flex-col items-center text-green-600 hover:scale-110 transition relative group"
+          style={{ width: 76 }}
+        >
+          <div className="relative">
+            <Download className="w-6 h-6" />
+            {/* Pulsing dot indicator */}
+            <span className="absolute -top-1 -right-2 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+          </div>
+          <span className="text-xs mt-1 font-bold">تثبيت</span>
+        </button>
+      );
+    }
+    
+    // If installed, show "Open" or "Home"
+    if (isInstalled) {
+      return (
+        <a
+          href="/"
+          className="flex flex-col items-center text-blue-600 hover:scale-110 transition"
+          style={{ width: 76 }}
+        >
+          <Home className="w-6 h-6" />
+          <span className="text-xs mt-1">الرئيسية</span>
+        </a>
+      );
+    }
+    
+    // Default: PC Builder for desktop
+    return (
+      <a
+        href="/pc-build"
+        className="flex flex-col items-center text-purple-600 hover:scale-110 transition"
+        style={{ width: 76 }}
+      >
+        <Wrench className="w-6 h-6" />
+        <span className="text-xs mt-1">جمع حاسوبك</span>
+      </a>
+    );
+  };
+
   return (
     <>
-      {/* 🌟 Onboarding Overlay */}
+      {/* Onboarding Overlay */}
       {showOnboarding && (
         <>
-          {/* Backdrop with fade */}
           <div 
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] animate-in fade-in duration-500"
             onClick={dismissOnboarding}
           />
           
-          {/* Hint Message */}
           <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[101] text-center animate-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white rounded-2xl px-6 py-4 shadow-2xl max-w-[300px]">
               <p className="text-gray-800 font-bold mb-2">✨ تصفح الأقسام</p>
@@ -260,7 +365,6 @@ export default function TopNavbar() {
             </div>
           </div>
 
-          {/* Scroll Hint Arrows */}
           {hintDirection && (
             <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[101] animate-pulse">
               <div className="flex gap-8">
@@ -276,7 +380,7 @@ export default function TopNavbar() {
         </>
       )}
 
-      {/* 🔝 Top Navigation Bar */}
+      {/* Top Navigation Bar */}
       <nav 
         className={`
           fixed top-0 w-full h-[80px] bg-white/30 backdrop-blur-md z-50 shadow-md
@@ -285,7 +389,7 @@ export default function TopNavbar() {
         `}
       >
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
-          {/* Left Button - Compare (always visible) */}
+          {/* Left Button - Compare */}
           <a
             href="https://technical.city/en"
             target="_blank"
@@ -308,42 +412,50 @@ export default function TopNavbar() {
             />
           </a>
 
-          {/* Right Button - PC Builder / Install / Open App */}
-          {isMobileDevice && showInstallButton && !isInstalled ? (
-            // Mobile: Show Install button
-            <button
-              onClick={handleInstallClick}
-              className="flex flex-col items-center text-green-600 hover:scale-110 transition"
-              style={{ width: 76 }}
-            >
-              <Download className="w-6 h-6" />
-              <span className="text-xs mt-1">تثبيت</span>
-            </button>
-          ) : isInstalled && !isMobileDevice ? (
-            // Desktop: Show "Open in App" when installed
-            <button
-              onClick={handleOpenApp}
-              className="flex flex-col items-center text-green-600 hover:scale-110 transition"
-              style={{ width: 76 }}
-            >
-              <ExternalLink className="w-6 h-6" />
-              <span className="text-xs mt-1">فتح بالتطبيق</span>
-            </button>
-          ) : (
-            // Default: PC Builder
-            <a
-              href="/pc-build"
-              className="flex flex-col items-center text-purple-600 hover:scale-110 transition"
-              style={{ width: 76 }}
-            >
-              <Wrench className="w-6 h-6" />
-              <span className="text-xs mt-1">جمع حاسوبك</span>
-            </a>
-          )}
+          {/* Right Button - Always shows install on mobile */}
+          {renderRightButton()}
         </div>
       </nav>
 
-      {/* 🟣 Floating Bottom Categories Bar */}
+      {/* Install Notification Popup - Shows automatically */}
+      {showInstallNotification && !isInstalled && isMobileDevice && !notificationDismissed && (
+        <div className="fixed top-20 left-4 right-4 z-[70] animate-in slide-in-from-top-5 duration-500">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="relative p-4">
+              {/* Close button */}
+              <button
+                onClick={dismissNotification}
+                className="absolute top-2 right-2 text-white/70 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="flex items-center gap-3 pr-6">
+                <div className="bg-white/20 rounded-full p-2">
+                  <Download className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-base">ثبّت التطبيق</h3>
+                  <p className="text-white/90 text-sm">للوصول السريع من شاشة هاتفك</p>
+                </div>
+                <button
+                  onClick={handleInstallClick}
+                  className="bg-white text-green-600 px-4 py-2 rounded-full text-sm font-bold hover:scale-105 transition shadow-lg whitespace-nowrap"
+                >
+                  تثبيت الآن
+                </button>
+              </div>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="h-1 bg-white/30">
+              <div className="h-full bg-white animate-progress-bar" style={{ width: '100%', animation: 'progress 5s linear forwards' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bottom Categories Bar */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}
@@ -405,22 +517,6 @@ export default function TopNavbar() {
         })}
       </div>
 
-      {/* Desktop Install Banner - shows when app is not installed */}
-      {!isInstalled && showInstallButton && !isMobileDevice && (
-        <div className="fixed top-24 right-4 z-[61] animate-in slide-in-from-top-2 duration-300">
-          <div className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            <span className="text-sm">ثبت التطبيق للوصول السريع</span>
-            <button 
-              onClick={handleInstallClick}
-              className="ml-2 bg-white text-green-600 px-3 py-1 rounded text-xs font-bold hover:bg-gray-100"
-            >
-              تثبيت
-            </button>
-          </div>
-        </div>
-      )}
-
       <style jsx>{`
         @keyframes bounce-right {
           0%, 100% { transform: translateX(0); }
@@ -430,11 +526,18 @@ export default function TopNavbar() {
           0%, 100% { transform: translateX(0); }
           50% { transform: translateX(-10px); }
         }
+        @keyframes progress {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
         .animate-bounce-right {
           animation: bounce-right 1s infinite;
         }
         .animate-bounce-left {
           animation: bounce-left 1s infinite;
+        }
+        .animate-progress-bar {
+          animation: progress 5s linear forwards;
         }
         .scrollbar-hide {
           -ms-overflow-style: none;
