@@ -28,52 +28,20 @@ export default function Home() {
       {/* 🔵 Loading Screen */}
       <LoadingScreen />
 
-      {/* 🔴 FIX: Added pt-16 (or adjust based on your navbar height) to prevent content from hiding behind fixed navbar */}
-      <div className="sm:container w-[90%] mx-auto mb-16 mt-8 pt-20 md:pt-24">
-        <Hero />
-
-        <div className="my-[10px]">
-          <h2
-            className="md:text-[34px] text-[20px] font-extrabold"
-            style={{ color: "rgba(34,82,154,1)" }}
-          >
-            فيديوهات سبيس نت ستور
-          </h2>
-
-          <VideoCarousel />
-
-          <section className="py-16 px-4 flex items-center justify-center">
-            <div className="bg-white border border-gray-300 rounded-xl shadow-lg p-8 max-w-xl text-center">
-              <h1 className="text-3xl md:text-4xl font-bold text-blue-900">
-                اسعار الابتوبات في سوريا البحصة
-              </h1>
-              <h2 className="text-3xl md:text-3xl font-bold text-blue-900">
-                افضل الاسعار
-              </h2>
-              <h3 className="text-3xl md:text-2xl font-bold text-blue-900">
-                افضل الاجهزة
-              </h3>
-            </div>
-          </section>
-
-          <h2
-            className="md:text-[34px] text-[20px] font-extrabold"
-            style={{ color: "rgba(34,82,154,1)" }}
-          >
-            عروض الاسبوع
-          </h2>
-
-          <span
-            className="text-[14px] font-normal"
-            style={{ color: "rgba(34,82,154,1)" }}
-          >
-            عروض كل اسبوع شكل
-          </span>
-
-          <MultipleItemsOffer productType="Laptop" />
+      {/* Maintenance Message */}
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <div className="bg-yellow-50 border-r-4 border-yellow-400 rounded-lg shadow-md p-8 max-w-md mx-auto">
+            <div className="text-6xl mb-4">🔧</div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-3">
+              تحت الصيانة
+            </h1>
+            <p className="text-lg text-gray-600">
+              وقت قصير وسوف يعود للخدمة
+            </p>
+            <div className="mt-6 w-16 h-1 bg-yellow-400 mx-auto rounded-full"></div>
+          </div>
         </div>
-
-        <AllProductPage productType="Laptop" title="لابتوبات" />
       </div>
     </>
   );
