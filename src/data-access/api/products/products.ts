@@ -263,7 +263,7 @@ const extendedApi = apiSlice.injectEndpoints({
         body: {
           query: `
             query MyQuery {
-              youtubelinks{
+              youtubeLinks{
                         id
                         youtubeUrl
                     }

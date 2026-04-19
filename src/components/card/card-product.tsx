@@ -1,9 +1,64 @@
 import Link from "next/link";
 import React from "react";
-import { Parser } from "html-to-react";
-import { unescape } from "lodash";
 import { getImage } from "@/util/get-image-url";
-import Image from "next/image";
+
+const CpuIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="3" y="3" width="10" height="10" rx="1"/>
+    <path d="M6 1v2M10 1v2M6 13v2M10 13v2M1 6h2M1 10h2M13 6h2M13 10h2"/>
+  </svg>
+);
+
+const GpuIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="2" y="4" width="12" height="8" rx="1"/>
+    <path d="M6 4V3h4v1M5 8h6"/>
+  </svg>
+);
+
+const RamIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="1" y="5" width="14" height="6" rx="1"/>
+    <path d="M4 5V3M8 5V3M12 5V3M4 11v2M8 11v2M12 11v2"/>
+  </svg>
+);
+
+const StorageIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <ellipse cx="8" cy="6" rx="6" ry="3"/>
+    <path d="M2 6v4c0 1.66 2.69 3 6 3s6-1.34 6-3V6"/>
+  </svg>
+);
+
+// Helper function to convert backend age value to Arabic display
+const getAgeInArabic = (age: string | undefined): string => {
+  if (!age) return "";
+  switch (age.toLowerCase()) {
+    case 'jdyd':
+      return 'جديد';
+    case 'used':
+      return 'مستعمل';
+    case 'openbox':
+      return 'أوبن بوكس';
+    default:
+      return age;
+  }
+};
+
+// Helper function to get badge color based on age
+const getBadgeColor = (age: string | undefined): string => {
+  if (!age) return "bg-gray-600";
+  switch (age.toLowerCase()) {
+    case 'jdyd':
+      return "bg-red-600";
+    case 'used':
+      return "bg-green-600";
+    case 'openbox':
+      return "bg-blue-700";
+    default:
+      return "bg-gray-600";
+  }
+};
 
 const CardProduct = ({
   width,
@@ -14,10 +69,13 @@ const CardProduct = ({
   price,
   dollarPrice,
   description,
-  // description,
   icons,
   id,
   age,
+  cpu,
+  gpu,
+  ram,
+  storage,
 }: {
   width: string;
   height: string;
@@ -26,89 +84,105 @@ const CardProduct = ({
   image: string;
   price: string;
   dollarPrice: number;
-  // description?: string;
   description?: string;
   icons?: boolean;
   id?: string;
   age?: string;
+  cpu?: string;
+  gpu?: string;
+  ram?: string;
+  storage?: string;
 }) => {
-
-
-
+  const ageInArabic = getAgeInArabic(age);
+  const badgeColor = getBadgeColor(age);
+  
+  // Calculate SYP price: USD price × dollar exchange rate
+  const priceInUSD = parseFloat(price);
+  const priceInSYP = !isNaN(priceInUSD) && priceInUSD > 0 
+    ? Math.floor(priceInUSD * dollarPrice).toLocaleString()
+    : 0;
+  
   return (
     <>
-      <a href={`/products/${id}`}>
-        <div className="card-product max-w-sm rounded overflow-hidden shadow-lg">
-          <div className="h-[350px] flex items-center justify-center overflow-hidden">
-            <img className="h-full w-auto object-contain" alt="اشتر ${title} باحسن سعر من سبيس نت ستور" src={getImage(image, 400)} />
-            {/* <Image
-              alt={title}
-              src={getImage(image)}
-              layout="fill"
-              objectFit="contain"
-            /> */}
-          </div>
-          <div className="px-6 py-4 border-t border-[#cccccc] flex items-center justify-center flex-col">
-            <p className="font-bold text-[1rem] mb-2">{title}</p>
-            {
-              price ==="0.00" ? <>
-                <p className="font-bold text-[1rem] mb">قريبا</p>
-                
-              </> : null
-            }
-            {
-              price !=="0.00" ? <>
-                <p className="font-bold text-[1rem] mb">{Number(price) * dollarPrice}S.P</p>
-                <p className="font-bold text-[1rem] mb">{price}$</p>
-              </> : null
-            }
-
-            {/* <div className="react-quill">
-            {Parser().parse(unescape(description?.slice(0, 40)))}
-          </div> */}
-          </div>
-          <div className="pt-4 pb-2">
-            <Link href={`products/${id}`}>
-              <span className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-                معلومات المنتج
-              </span>
-            </Link>
-            {age === "جديد" ? (
-              <span className="inline-block bg-main_color rounded-full px-3 py-1 text-sm font-semibold text-white mr-2 mb-2">
-                جديد
-              </span>
-            ) : age === "مستعمل" ? (
-              <span className="inline-block bg-[#23af23] rounded-full px-3 py-1 text-sm font-semibold text-white mr-2 mb-2">
-                مستعمل
-              </span>
-            ) : (
-              <span className="inline-block bg-[#2b2bd8] rounded-full px-3 py-1 text-sm font-semibold text-white mr-2 mb-2">
-                اوبن بوكس
+      <a href={`/products/${id}`} className="block h-full">
+        <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
+          
+          {/* Image */}
+          <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
+            <img
+              className="w-full h-full object-contain p-2"
+              alt={`اشتر ${title} باحسن سعر من سبيس نت ستور`}
+              src={getImage(image, 400)}
+            />
+            {ageInArabic && (
+              <span className={`absolute top-2 right-2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>
+                {ageInArabic}
               </span>
             )}
           </div>
+
+          {/* Body */}
+          <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
+
+            {/* Title - Centered */}
+            <p className="font-semibold text-[13px] sm:text-[14px] md:text-[15px] leading-snug text-gray-800 line-clamp-2 mb-2 text-center">
+              {title}
+            </p>
+
+            {/* Price - Centered */}
+            {price === "0.00" || priceInUSD === 0 ? (
+              <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
+            ) : (
+              <div className="mb-2 text-center">
+                <p className="text-[13px] font-bold text-red-600 leading-tight">
+                  {priceInSYP} ل.س
+                </p>
+                <p className="text-[20px] text-gray-400 leading-tight">{priceInUSD.toFixed(2)}$</p>
+              </div>
+            )}
+
+            {/* Specs - Centered with Icon on RIGHT, Text on LEFT */}
+            {(cpu || gpu || ram || storage) && (
+              <div className="flex flex-col items-center gap-2 mt-auto pt-2 border-t border-gray-100">
+                {cpu && (
+                  <div className="flex items-center justify-center gap-2 text-gray-600">
+                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{cpu}</span>
+                    <CpuIcon />
+                  </div>
+                )}
+                {gpu && (
+                  <div className="flex items-center justify-center gap-2 text-gray-600">
+                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{gpu}</span>
+                    <GpuIcon />
+                  </div>
+                )}
+                {ram && (
+                  <div className="flex items-center justify-center gap-2 text-gray-600">
+                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{ram}</span>
+                    <RamIcon />
+                  </div>
+                )}
+                {storage && (
+                  <div className="flex items-center justify-center gap-2 text-gray-600">
+                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{storage}</span>
+                    <StorageIcon />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-3 pb-3 pt-1.5">
+            <Link href={`/laptops/${id}`}>
+              <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
+                معلومات المنتج
+              </span>
+            </Link>
+          </div>
+
         </div>
       </a>
-      <style>
-        {`
-          div.react-quill{
-            padding : 0px 0px
-            }
-            div.react-quill p,h1,h2,h3,h4,h5,h6,pre{
-            word-break: break-word;
-            white-space: pre-line;
-          }
-            div.react-quill ul {
-              list-style: disc;
-              margin-left : 15px
-          }
-            div.react-quill ol {
-              list-style: decimal;	
-              margin-left : 15px	
-            }
-
-          `}
-      </style>
     </>
   );
 };

@@ -1,4 +1,3 @@
-import { SearchList } from "@/feature/saerch-list";
 import React from "react";
 import type { Viewport } from "next";
 
@@ -21,7 +20,7 @@ export default function SearchPage({
 }) {
   return (
     <div className="container mx-auto">
-      <SearchList word={decodeURIComponent(params.searchWord)} />
+      {/* <SearchList word={decodeURIComponent(params.searchWord)} /> */}
       
     </div>
   );

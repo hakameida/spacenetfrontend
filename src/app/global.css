@@ -37,6 +37,7 @@ select:focus {
 @media (min-width: 768px) {
   .grid-item {
     grid-column: span 6;
+    
   }
 }
 

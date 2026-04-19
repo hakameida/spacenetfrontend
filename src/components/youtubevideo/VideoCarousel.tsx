@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGetyoutubeUrlQuery } from "@/data-access/api/products/products";
+import { useGetYoutubeUrlQuery } from "@/data-access/api/shared";
 
 const VideoCarousel = () => {
-  const { data, isLoading, error } = useGetyoutubeUrlQuery(undefined);
+  const { data, isLoading, error } = useGetYoutubeUrlQuery({});
+  
+  // RTK Query returns: data.data.youtubeLinks
   const videoLinks =
-    data?.data?.youtubelinks?.map((item: any) => item.youtubeUrl) || [];
+    data?.data?.youtubeLinks?.map((item: { youtubeUrl: string }) => item.youtubeUrl) || [];
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [fullscreenIndex, setFullscreenIndex] = useState<number | null>(null);
@@ -102,14 +104,38 @@ const VideoCarousel = () => {
 
   // Get visible videos based on screen size
   const getVisibleIndices = () => {
+    if (videoLinks.length === 0) return [];
     if (isMobile) {
       return [currentIndex];
+    }
+    if (videoLinks.length === 1) {
+      return [0];
+    }
+    if (videoLinks.length === 2) {
+      return [currentIndex, (currentIndex + 1) % 2];
     }
     return [
       (currentIndex - 1 + videoLinks.length) % videoLinks.length,
       currentIndex,
       (currentIndex + 1) % videoLinks.length,
     ];
+  };
+
+  // Helper function to convert YouTube URL to embed URL
+  const getEmbedUrl = (url: string): string => {
+    // Handle youtu.be links
+    if (url.includes('youtu.be')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Handle youtube.com/watch?v= links
+    if (url.includes('youtube.com/watch')) {
+      const urlParams = new URLSearchParams(url.split('?')[1]);
+      const videoId = urlParams.get('v');
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // If it's already an embed URL, return as is
+    return url;
   };
 
   // 🦴 Skeleton Loader
@@ -121,10 +147,10 @@ const VideoCarousel = () => {
             key={i}
             className={`bg-gray-300 animate-pulse rounded-xl ${
               isMobile 
-                ? "w-[90vw] h-[200px]" 
+                ? "w-[90vw] h-[280px]" 
                 : i === 1 
-                ? "w-[420px] h-[240px]" 
-                : "w-[250px] h-[140px] opacity-70"
+                ? "w-[600px] h-[340px]" 
+                : "w-[350px] h-[200px] opacity-70"
             }`}
           />
         ))}
@@ -133,6 +159,7 @@ const VideoCarousel = () => {
 
   if (error)
     return <div className="text-center p-4 text-red-500">خطأ بتحصيل الفيديوهات</div>;
+    
   if (videoLinks.length === 0)
     return <div className="text-center p-4">لا يوجد فيديوهات</div>;
 
@@ -142,26 +169,26 @@ const VideoCarousel = () => {
     <div className="flex flex-col items-center justify-center p-4 md:p-6">
       {/* 🎥 Carousel */}
       <div 
-        className="relative flex items-center justify-between w-full max-w-6xl overflow-hidden"
+        className="relative flex items-center justify-between w-full max-w-7xl overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {/* ⬅️ Left Arrow - Hide on mobile when at start */}
-        {(!isMobile || currentIndex > 0) && (
+        {videoLinks.length > 1 && (!isMobile || currentIndex > 0) && (
           <button
             onClick={goToPrev}
             className={`${
-              isMobile ? "absolute left-2" : "absolute left-0"
-            } z-30 p-2 bg-white/80 hover:bg-white/90 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 backdrop-blur-sm`}
+              isMobile ? "absolute left-2" : "absolute -left-4"
+            } z-30 p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 backdrop-blur-sm`}
             aria-label="Previous video"
           >
-            <ChevronLeft size={isMobile ? 28 : 32} />
+            <ChevronLeft size={isMobile ? 32 : 40} />
           </button>
         )}
 
         {/* 🎞️ Video Items */}
-        <div className={`flex items-center justify-center gap-4 md:gap-8 w-full transition-all duration-300 ${
-          isMobile ? "px-12" : ""
+        <div className={`flex items-center justify-center gap-4 md:gap-6 w-full transition-all duration-300 ${
+          isMobile ? "px-12" : "px-16"
         }`}>
           <AnimatePresence mode="wait">
             {visibleIndices.map((index, position) => {
@@ -172,24 +199,24 @@ const VideoCarousel = () => {
                 <motion.div
                   key={`video-${index}-${currentIndex}`}
                   initial={{ opacity: 0, x: isMobileView ? (position === 0 ? 100 : -100) : 0, scale: 0.9 }}
-                  animate={{ opacity: 1, x: 0, scale: isCenter ? 1 : isMobileView ? 1 : 0.85 }}
+                  animate={{ opacity: 1, x: 0, scale: isCenter ? 1 : isMobileView ? 1 : 0.9 }}
                   exit={{ opacity: 0, x: isMobileView ? (position === 0 ? -100 : 100) : 0, scale: 0.9 }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className={`rounded-xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 ${
+                  className={`rounded-xl overflow-hidden shadow-xl cursor-pointer transition-all duration-300 ${
                     isCenter 
-                      ? "w-[420px] h-[240px] md:w-[420px] md:h-[240px] z-10" 
+                      ? "w-[600px] h-[340px] md:w-[650px] md:h-[370px] lg:w-[700px] lg:h-[400px] z-10" 
                       : isMobileView
-                      ? "w-[85vw] h-[200px] sm:w-[400px] sm:h-[225px]"
-                      : "w-[200px] h-[120px] md:w-[250px] md:h-[140px] z-0 opacity-70"
+                      ? "w-[90vw] h-[250px] sm:w-[450px] sm:h-[260px]"
+                      : "w-[300px] h-[170px] md:w-[350px] md:h-[200px] z-0 opacity-80"
                   }`}
                   onClick={() => setFullscreenIndex(index)}
-                  whileHover={!isMobileView ? { scale: isCenter ? 1.02 : 0.87 } : {}}
+                  whileHover={!isMobileView ? { scale: isCenter ? 1.02 : 0.92 } : {}}
                   whileTap={{ scale: 0.98 }}
                 >
                   <iframe
                     width="100%"
                     height="100%"
-                    src={`${videoLinks[index]}?autoplay=0&enablejsapi=1`}
+                    src={`${getEmbedUrl(videoLinks[index])}?autoplay=0&enablejsapi=1`}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -204,21 +231,21 @@ const VideoCarousel = () => {
         </div>
 
         {/* ➡️ Right Arrow - Hide on mobile when at end */}
-        {(!isMobile || currentIndex < videoLinks.length - 1) && (
+        {videoLinks.length > 1 && (!isMobile || currentIndex < videoLinks.length - 1) && (
           <button
             onClick={goToNext}
             className={`${
-              isMobile ? "absolute right-2" : "absolute right-0"
-            } z-30 p-2 bg-white/80 hover:bg-white/90 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 backdrop-blur-sm`}
+              isMobile ? "absolute right-2" : "absolute -right-4"
+            } z-30 p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 backdrop-blur-sm`}
             aria-label="Next video"
           >
-            <ChevronRight size={isMobile ? 28 : 32} />
+            <ChevronRight size={isMobile ? 32 : 40} />
           </button>
         )}
       </div>
 
       {/* 📍 Progress Indicators - Mobile */}
-      {isMobile && (
+      {isMobile && videoLinks.length > 1 && (
         <div className="flex gap-2 mt-6">
           {videoLinks.map((_, idx) => (
             <button
@@ -275,15 +302,17 @@ const VideoCarousel = () => {
             </button>
 
             {/* ⬅️ Navigation in Fullscreen */}
-            <button
-              onClick={() => setFullscreenIndex((prev) => 
-                prev !== null ? (prev - 1 + videoLinks.length) % videoLinks.length : null
-              )}
-              className="absolute left-4 text-white hover:text-blue-400 transition-all z-50 p-2 bg-black/50 rounded-full hover:bg-black/70 hover:scale-110"
-              aria-label="Previous video"
-            >
-              <ChevronLeft size={40} />
-            </button>
+            {videoLinks.length > 1 && (
+              <button
+                onClick={() => setFullscreenIndex((prev) => 
+                  prev !== null ? (prev - 1 + videoLinks.length) % videoLinks.length : null
+                )}
+                className="absolute left-4 text-white hover:text-blue-400 transition-all z-50 p-2 bg-black/50 rounded-full hover:bg-black/70 hover:scale-110"
+                aria-label="Previous video"
+              >
+                <ChevronLeft size={40} />
+              </button>
+            )}
 
             {/* 📽️ Fullscreen Video */}
             <motion.iframe
@@ -293,7 +322,7 @@ const VideoCarousel = () => {
               transition={{ duration: 0.3 }}
               width="90%"
               height="80%"
-              src={`${videoLinks[fullscreenIndex]}?autoplay=1&enablejsapi=1`}
+              src={`${getEmbedUrl(videoLinks[fullscreenIndex])}?autoplay=1&enablejsapi=1`}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -302,20 +331,24 @@ const VideoCarousel = () => {
             />
 
             {/* ➡️ Navigation in Fullscreen */}
-            <button
-              onClick={() => setFullscreenIndex((prev) => 
-                prev !== null ? (prev + 1) % videoLinks.length : null
-              )}
-              className="absolute right-4 text-white hover:text-blue-400 transition-all z-50 p-2 bg-black/50 rounded-full hover:bg-black/70 hover:scale-110"
-              aria-label="Next video"
-            >
-              <ChevronRight size={40} />
-            </button>
+            {videoLinks.length > 1 && (
+              <button
+                onClick={() => setFullscreenIndex((prev) => 
+                  prev !== null ? (prev + 1) % videoLinks.length : null
+                )}
+                className="absolute right-4 text-white hover:text-blue-400 transition-all z-50 p-2 bg-black/50 rounded-full hover:bg-black/70 hover:scale-110"
+                aria-label="Next video"
+              >
+                <ChevronRight size={40} />
+              </button>
+            )}
 
             {/* Video Counter */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black/50 px-4 py-2 rounded-full text-sm">
-              {fullscreenIndex + 1} / {videoLinks.length}
-            </div>
+            {videoLinks.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black/50 px-4 py-2 rounded-full text-sm">
+                {fullscreenIndex + 1} / {videoLinks.length}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -6,7 +6,7 @@ import type { Settings } from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import { useGetOffersListQuery } from "@/data-access/api/products/products";
+import { useGetOffersListQuery, type ProductModule, type Offer } from "@/data-access/api/shared";
 import Link from "next/link";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 
@@ -48,30 +48,46 @@ const SkeletonCard = () => (
 );
 
 interface MultipleItemsOfferProps {
-  productType: string;
+  productModule?: ProductModule;
+  limit?: number;
 }
 
-// Updated interface to match your actual API response
-interface Offer {
-  id: string;
-  name: string;
-  image: string;
-  image1: string;
-  oldprice: string;  // Changed to string to match API response
-  price: string;     // Changed to string to match API response
-}
+const getModuleName = (module: ProductModule) => {
+  switch (module) {
+    case 'LAPTOP': return 'لابتوب';
+    case 'COMPUTER': return 'كمبيوتر';
+    case 'ACCESSORY': return 'اكسسوارات';
+    default: return '';
+  }
+};
 
-function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
+const getImageUrl = (url: string) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/graphql/', '') || 'http://localhost:8000';
+  if (url.startsWith('/media/')) {
+    return `${baseUrl}${url}`;
+  }
+  return `${baseUrl}/media/${url}`;
+};
+
+function MultipleItemsOffer({ productModule, limit = 10 }: MultipleItemsOfferProps) {
   const sliderRef = useRef<Slider>(null);
-  const { data, isLoading, error } = useGetOffersListQuery({ type: productType });
-  const offers: Offer[] = data || [];
+  const { data, isLoading, error } = useGetOffersListQuery({});
+  console.log("Offers data:", data, "Loading:", isLoading, "Error:", error);
+  const allOffers: Offer[] = data || [];
+  let filteredOffers = productModule 
+    ? allOffers.filter(offer => offer.product_module === productModule)
+    : allOffers;
+  
+  filteredOffers = filteredOffers.slice(0, limit);
 
   const settings: Settings = {
     dots: true,
-    infinite: offers.length > 1,
+    infinite: filteredOffers.length > 1,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: offers.length > 1,
+    autoplay: filteredOffers.length > 1,
     autoplaySpeed: 5000,
     speed: 500,
     pauseOnHover: true,
@@ -99,6 +115,7 @@ function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
   }
 
   if (error) {
+    console.error("Offers error:", error);
     return (
       <p className="bg-white text-red-600 text-center p-6 rounded shadow hover:shadow-lg transition">
         خطأ في جلب العروض
@@ -106,7 +123,7 @@ function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
     );
   }
 
-  if (offers.length === 0) {
+  if (filteredOffers.length === 0) {
     return (
       <p className="bg-white text-blue-700 text-center p-6 rounded select-none">
         حاليا لا يوجد عروض
@@ -114,9 +131,14 @@ function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
     );
   }
 
+  const getDiscountPercent = (oldprice: string, price: string) => {
+    if (!oldprice || parseFloat(oldprice) === 0) return 0;
+    return Math.floor(((parseFloat(oldprice) - parseFloat(price)) / parseFloat(oldprice)) * 100);
+  };
+
   return (
     <div className="relative max-w-4xl mx-auto px-4">
-      {offers.length > 1 && (
+      {filteredOffers.length > 1 && (
         <>
           <ArrowButton 
             direction="prev" 
@@ -130,31 +152,25 @@ function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
       )}
 
       <Slider ref={sliderRef} {...settings}>
-        {offers.map((offer) => {
-          let imageUrl = offer.image || offer.image1;
-          
-          if (imageUrl) {
-            if (imageUrl.startsWith("offers/") || imageUrl.startsWith("http")) {
-              imageUrl = imageUrl.startsWith("http") 
-                ? imageUrl 
-                : `https://dockergqlserver.onrender.com/media/${imageUrl}`;
-            }
-          }
+        {filteredOffers.map((offer) => {
+          const imageUrl = getImageUrl(offer.image);
+          const discountPercent = getDiscountPercent(offer.oldprice, offer.price);
+          const hasDiscount = discountPercent > 0;
 
           return (
             <Link
               key={offer.id}
               href={`/offers/${offer.id}`}
-              className="block bg-white rounded-lg border overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
-              passHref
+              className="block bg-white rounded-xl border overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group"
             >
-              <div className="flex flex-col">
-                <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden bg-gray-100">
+              <div className="flex flex-col md:flex-row">
+                {/* Image Section */}
+                <div className="relative w-full md:w-1/2 h-64 md:h-80 lg:h-96 overflow-hidden bg-gray-100">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
                       alt={offer.name || "Offer image"}
-                      className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-4"
                       loading="lazy"
                       onError={(e) => {
                         e.currentTarget.src = "/fallback-image.jpg";
@@ -163,30 +179,55 @@ function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                      <span className="text-gray-400">No image</span>
+                      <span className="text-gray-400">لا توجد صورة</span>
                     </div>
                   )}
+                  
+                  {/* Discount Badge */}
+                  {hasDiscount && (
+                    <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                      خصم {discountPercent}%
+                    </div>
+                  )}
+                  
+                  {/* Module Badge */}
+                  <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    {getModuleName(offer.product_module)}
+                  </div>
                 </div>
                 
-                <div className="p-4 md:p-6 text-center">
-                  <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2 line-clamp-2">
+                {/* Content Section */}
+                <div className="flex-1 p-6 md:p-8 text-center md:text-right">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 line-clamp-2">
                     {offer.name}
                   </h3>
                   
-                  <div className="flex items-center justify-center gap-3 mt-2">
-                    {offer.oldprice && (
+                  {offer.description && (
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {offer.description}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center justify-center md:justify-start gap-3 mt-2">
+                    {hasDiscount && (
                       <p className="text-lg text-red-500 font-bold line-through">
-                        {offer.oldprice} $
+                        {offer.oldprice} ل.س
                       </p>
                     )}
-                    <p className="text-2xl text-green-600 font-bold">
-                      {offer.price} $
+                    <p className="text-3xl font-bold text-green-600">
+                      {offer.price} <span className="text-sm">ل.س</span>
                     </p>
                   </div>
                   
-                  <div className="mt-4">
-                    <span className="inline-block px-6 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition">
-                      عرض التفاصيل
+                  {hasDiscount && (
+                    <p className="text-sm text-green-600 mt-1">
+                      وفر {Math.floor(parseFloat(offer.oldprice) - parseFloat(offer.price))} ل.س
+                    </p>
+                  )}
+                  
+                  <div className="mt-6">
+                    <span className="inline-block px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition shadow-md group-hover:shadow-lg">
+                      تفاصيل العرض
                     </span>
                   </div>
                 </div>
@@ -208,6 +249,12 @@ function MultipleItemsOffer({ productType }: MultipleItemsOfferProps) {
         .custom-dots li.slick-active button:before {
           opacity: 1;
           color: #2563eb;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </div>

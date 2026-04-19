@@ -21,11 +21,11 @@ import { useEffect, useState, useRef } from "react";
 
 const navLinks = [
   { name: "كومبيوتر", href: "/computer", icon: PcCase },
-  { name: "موبايلات", href: "/mobiles", icon: Smartphone },
+  // { name: "موبايلات", href: "/mobiles", icon: Smartphone },
   { name: "اكسسوارات", href: "/accessories", icon: Headphones },
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
   { name: "بطاريات", href: "/batteries", icon: Battery },
-  { name: "كاميرات مراقبة", href: "/cameras", icon: Video },
+  // { name: "كاميرات مراقبة", href: "/cameras", icon: Video },
 ];
 
 // PWA install types
@@ -306,20 +306,54 @@ export default function TopNavbar() {
         `}
       >
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
-          {/* Left Button - Compare */}
-          <a
-            href="https://technical.city/en"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center text-blue-600 hover:scale-110 transition"
-            style={{ width: 76 }}
-          >
-            <MonitorIcon className="w-6 h-6" />
-            <span className="text-xs mt-1">مقارنة</span>
-          </a>
+          
+          {/* LEFT SIDE - Buttons Group */}
+          <div className="flex items-center gap-2">
+            {/* Compare Button */}
+            <a
+              href="https://technical.city/en"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center text-blue-600 hover:scale-110 transition"
+              style={{ width: 76 }}
+            >
+              <MonitorIcon className="w-6 h-6" />
+              <span className="text-xs mt-1">مقارنة</span>
+            </a>
 
-          {/* Logo */}
-          <a href="/">
+            {/* Install/Open App/PC Build Button */}
+            {showInstallButton && !isInstalled ? (
+              <button
+                onClick={handleInstallClick}
+                className="flex flex-col items-center text-green-600 hover:scale-110 transition"
+                style={{ width: 76 }}
+              >
+                <Download className="w-6 h-6" />
+                <span className="text-xs mt-1">تثبيت</span>
+              </button>
+            ) : isInstalled ? (
+              <button
+                onClick={handleOpenApp}
+                className="flex flex-col items-center text-green-600 hover:scale-110 transition"
+                style={{ width: 76 }}
+              >
+                <ExternalLink className="w-6 h-6" />
+                <span className="text-xs mt-1">فتح التطبيق</span>
+              </button>
+            ) : (
+              <a
+                href="/pc-build"
+                className="flex flex-col items-center text-red-600 hover:scale-110 transition"
+                style={{ width: 76 }}
+              >
+                <Wrench className="w-6 h-6" />
+                <span className="text-xs mt-1">جمع حاسوبك</span>
+              </a>
+            )}
+          </div>
+
+          {/* RIGHT SIDE - Logo */}
+          <a href="/" className="flex-shrink-0">
             <Image
               src="/logo.png"
               alt="Logo"
@@ -329,35 +363,6 @@ export default function TopNavbar() {
             />
           </a>
 
-          {/* Right Button - Show Install on BOTH Mobile & PC when available */}
-          {showInstallButton && !isInstalled ? (
-            <button
-              onClick={handleInstallClick}
-              className="flex flex-col items-center text-green-600 hover:scale-110 transition"
-              style={{ width: 76 }}
-            >
-              <Download className="w-6 h-6" />
-              <span className="text-xs mt-1">تثبيت</span>
-            </button>
-          ) : isInstalled ? (
-            <button
-              onClick={handleOpenApp}
-              className="flex flex-col items-center text-green-600 hover:scale-110 transition"
-              style={{ width: 76 }}
-            >
-              <ExternalLink className="w-6 h-6" />
-              <span className="text-xs mt-1">فتح التطبيق</span>
-            </button>
-          ) : (
-            <a
-              href="/pc-build"
-              className="flex flex-col items-center text-red-600 hover:scale-110 transition"
-              style={{ width: 76 }}
-            >
-              <Wrench className="w-6 h-6" />
-              <span className="text-xs mt-1">جمع حاسوبك</span>
-            </a>
-          )}
         </div>
       </nav>
 
@@ -378,7 +383,7 @@ export default function TopNavbar() {
           rounded-full
           border border-white/40
           px-4 py-3
-          w-[90%] max-w-[500px]
+          w-[%] max-w-[500px]
           overflow-x-auto
           flex gap-1
           scrollbar-hide

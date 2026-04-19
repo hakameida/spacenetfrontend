@@ -49,7 +49,7 @@ const CardAbout = ({
         </div>
         {icons ? (
           <div className="card-icons w-full bg-[#dbdbdb] opacity-45 z-40 h-[70px] flex items-center justify-start px-4 gap-x-4">
-            <Link href={`products/${id}`}>
+            <Link href={`laptops/${id}`}>
               <div className="flex items-center justify-center gap-2 border-[2px] rounded p-2 border-main_color">
                  معلومات المنتج
                 <IoArrowBack className="mt-[4px]"/>
