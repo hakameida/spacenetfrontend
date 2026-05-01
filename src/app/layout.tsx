@@ -47,7 +47,7 @@ export default function LocaleLayout({
         <ProviderComponent>
           <TopNavbar />
           <WhatsappButton />
-          <ScrollToTopButton />
+          {/* <ScrollToTopButton /> */}
           {children}
         </ProviderComponent>
 

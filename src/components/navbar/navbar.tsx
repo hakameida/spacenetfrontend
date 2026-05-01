@@ -297,10 +297,10 @@ export default function TopNavbar() {
         </>
       )}
 
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar - REDUCED HEIGHT */}
       <nav 
         className={`
-          fixed top-0 w-full h-[80px] bg-white/30 backdrop-blur-md z-50 shadow-md
+          fixed top-0 w-full h-[56px] bg-white/30 backdrop-blur-md z-50 shadow-md
           transition-all duration-200 ease-out
           ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
         `}
@@ -308,46 +308,42 @@ export default function TopNavbar() {
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
           
           {/* LEFT SIDE - Buttons Group */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {/* Compare Button */}
             <a
               href="https://technical.city/en"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center text-blue-600 hover:scale-110 transition"
-              style={{ width: 76 }}
+              className="flex flex-col items-center text-blue-600 hover:scale-110 transition px-2"
             >
-              <MonitorIcon className="w-6 h-6" />
-              <span className="text-xs mt-1">مقارنة</span>
+              <MonitorIcon className="w-5 h-5 md:w-5 md:h-5" />
+              <span className="text-[10px] md:text-xs mt-0.5">مقارنة</span>
             </a>
 
             {/* Install/Open App/PC Build Button */}
             {showInstallButton && !isInstalled ? (
               <button
                 onClick={handleInstallClick}
-                className="flex flex-col items-center text-green-600 hover:scale-110 transition"
-                style={{ width: 76 }}
+                className="flex flex-col items-center text-green-600 hover:scale-110 transition px-2"
               >
-                <Download className="w-6 h-6" />
-                <span className="text-xs mt-1">تثبيت</span>
+                <Download className="w-5 h-5 md:w-5 md:h-5" />
+                <span className="text-[10px] md:text-xs mt-0.5">تثبيت</span>
               </button>
             ) : isInstalled ? (
               <button
                 onClick={handleOpenApp}
-                className="flex flex-col items-center text-green-600 hover:scale-110 transition"
-                style={{ width: 76 }}
+                className="flex flex-col items-center text-green-600 hover:scale-110 transition px-2"
               >
-                <ExternalLink className="w-6 h-6" />
-                <span className="text-xs mt-1">فتح التطبيق</span>
+                <ExternalLink className="w-5 h-5 md:w-5 md:h-5" />
+                <span className="text-[10px] md:text-xs mt-0.5">فتح التطبيق</span>
               </button>
             ) : (
               <a
                 href="/pc-build"
-                className="flex flex-col items-center text-red-600 hover:scale-110 transition"
-                style={{ width: 76 }}
+                className="flex flex-col items-center text-red-600 hover:scale-110 transition px-2"
               >
-                <Wrench className="w-6 h-6" />
-                <span className="text-xs mt-1">جمع حاسوبك</span>
+                <Wrench className="w-5 h-5 md:w-5 md:h-5" />
+                <span className="text-[10px] md:text-xs mt-0.5">جمع حاسوبك</span>
               </a>
             )}
           </div>
@@ -357,9 +353,9 @@ export default function TopNavbar() {
             <Image
               src="/logo.png"
               alt="Logo"
-              width={64}
-              height={64}
-              className="w-12 sm:w-14 md:w-16"
+              width={48}
+              height={48}
+              className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12"
             />
           </a>
 
@@ -382,7 +378,7 @@ export default function TopNavbar() {
           shadow-[0_4px_20px_rgba(0,0,0,0.15)]
           rounded-full
           border border-white/40
-          px-4 py-3
+          px-4 py-2.5
           w-[%] max-w-[500px]
           overflow-x-auto
           flex gap-1
@@ -400,21 +396,21 @@ export default function TopNavbar() {
               key={link.name}
               onClick={(e) => handleLinkClick(e, link.href)}
               className={`
-                flex flex-col items-center gap-1
-                px-3 py-2 rounded-full
+                flex flex-col items-center gap-0.5
+                px-3 py-1.5 rounded-full
                 transition-all duration-300
-                min-w-[70px]
+                min-w-[65px]
                 cursor-default
                 group
                 ${pathname === link.href ? "text-gray-900" : "text-gray-500 hover:text-gray-700"}
               `}
             >
               <IconComponent className={`
-                w-5 h-5 transition-all duration-300
+                w-4 h-4 md:w-5 md:h-5 transition-all duration-300
                 ${pathname === link.href ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600"}
               `} />
               <span className={`
-                text-xs font-medium whitespace-nowrap
+                text-[11px] md:text-xs font-medium whitespace-nowrap
                 ${pathname === link.href ? "text-gray-900 font-bold" : "text-gray-500"}
               `}>
                 {link.name}
@@ -426,16 +422,16 @@ export default function TopNavbar() {
 
       {/* Desktop Install Banner - Shows on PC when app is not installed */}
       {!isInstalled && showInstallButton && showDesktopBanner && !isMobileDevice && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[61] animate-in slide-in-from-top-2 duration-300">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3">
-            <Download className="w-5 h-5" />
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[61] animate-in slide-in-from-top-2 duration-300">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-xl shadow-xl flex items-center gap-3">
+            <Download className="w-4 h-4" />
             <div className="text-right">
-              <p className="text-sm font-bold">ثبّت التطبيق للوصول السريع</p>
-              <p className="text-xs opacity-90">استخدم موقعنا كتطبيق مستقل</p>
+              <p className="text-xs font-bold">ثبّت التطبيق للوصول السريع</p>
+              <p className="text-[10px] opacity-90">استخدم موقعنا كتطبيق مستقل</p>
             </div>
             <button 
               onClick={handleInstallClick}
-              className="bg-white text-green-700 px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-gray-100 transition shadow-md"
+              className="bg-white text-green-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-100 transition shadow-md"
             >
               تثبيت
             </button>
@@ -443,7 +439,7 @@ export default function TopNavbar() {
               onClick={dismissDesktopBanner}
               className="p-1 hover:bg-white/20 rounded-full transition"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3" />
             </button>
           </div>
         </div>

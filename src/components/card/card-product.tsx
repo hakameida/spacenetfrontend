@@ -137,7 +137,7 @@ const CardProduct = ({
                 <p className="text-[13px] font-bold text-red-600 leading-tight">
                   {priceInSYP} ل.س
                 </p>
-                <p className="text-[20px] text-gray-400 leading-tight">{priceInUSD.toFixed(2)}$</p>
+                <p className="text-[20px] text-green-600 leading-tight">{priceInUSD.toFixed(2)}$</p>
               </div>
             )}
 
