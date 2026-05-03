@@ -42,7 +42,7 @@ export default function LaptopPage() {
   };
 
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/00963998372756", "_blank");
+    window.open("https://wa.me/963998372756", "_blank");
   };
 
   return (

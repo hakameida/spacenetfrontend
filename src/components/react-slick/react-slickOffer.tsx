@@ -77,7 +77,7 @@ function MultipleItemsOffer({ productModule, limit = 10 }: MultipleItemsOfferPro
   console.log("Offers data:", data, "Loading:", isLoading, "Error:", error);
   const allOffers: Offer[] = data || [];
   let filteredOffers = productModule 
-    ? allOffers.filter(offer => offer.product_module === productModule)
+    ? allOffers.filter(offer => offer.productModule === productModule)
     : allOffers;
   
   filteredOffers = filteredOffers.slice(0, limit);
@@ -192,7 +192,7 @@ function MultipleItemsOffer({ productModule, limit = 10 }: MultipleItemsOfferPro
                   
                   {/* Module Badge */}
                   <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                    {getModuleName(offer.product_module)}
+                    {getModuleName(offer.productModule)}
                   </div>
                 </div>
                 

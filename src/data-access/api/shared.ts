@@ -16,7 +16,8 @@ export interface OfferResponse {
   description: string;
   url1: string;
   image1: string;
-  product_module: ProductModule;
+  productId: string;
+  productModule: ProductModule;
 }
 
 export interface Offer {
@@ -26,7 +27,7 @@ export interface Offer {
   price: string;
   description: string;
   image: string;
-  product_module: ProductModule;
+  productModule: ProductModule;
 }
 
 export interface YouTubeResponse {
@@ -94,7 +95,7 @@ const sharedApi = apiSlice.injectEndpoints({
       }),
       transformResponse: (response: { data: { allOffers: OfferResponse[] } }) => {
         if (!response?.data?.allOffers) return [];
-        
+
         return response.data.allOffers.map((obj) => ({
           id: obj?.id,
           name: obj?.name,
@@ -102,7 +103,7 @@ const sharedApi = apiSlice.injectEndpoints({
           price: obj?.price,
           description: obj?.description || "",
           image: obj?.url1 || obj?.image1 || "",
-          product_module: obj?.product_module,
+          productModule: obj?.productModule,
         })) as Offer[];
       },
     }),
@@ -122,7 +123,7 @@ const sharedApi = apiSlice.injectEndpoints({
                 price
                 status
                 productModule
-                product_id
+                productId
                 url1
                 url2
                 image1
