@@ -52,8 +52,8 @@ const getBadgeColor = (age: string | undefined): string => {
 
 const SpecItem = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div className="flex items-center justify-center gap-1 text-gray-600 bg-gray-50 rounded-lg px-1.5 py-1.5 min-w-0">
+    <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-left break-words min-w-0">{label}</span>
     <span className="shrink-0">{icon}</span>
-    <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-center break-words min-w-0 w-full">{label}</span>
   </div>
 );
 
@@ -140,7 +140,7 @@ const CardProduct = ({
 
           {/* Specs - 2 columns, CPU+GPU on row 1, RAM+Storage on row 2 */}
           {hasSpecs && (
-            <div className="grid grid-cols-2 gap-1 mt-auto pt-2 border-t border-gray-100 min-w-0 overflow-hidden">
+            <div className="grid grid-cols-2 gap-1 mt-auto pt-2 border-t border-gray-100 min-w-0 overflow-hidden ">
               {cpu     && <SpecItem icon={<CpuIcon />}     label={cpu} />}
               {gpu     && <SpecItem icon={<GpuIcon />}     label={gpu} />}
               {ram     && <SpecItem icon={<RamIcon />}     label={ram} />}
