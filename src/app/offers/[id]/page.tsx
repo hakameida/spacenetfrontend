@@ -41,10 +41,10 @@ const getAgeInArabic = (age: string | undefined): string => {
   }
 };
 
-// Helper to get discount percent
-const getDiscountPercent = (oldprice: string, price: string) => {
-  if (!oldprice || parseFloat(oldprice) === 0) return 0;
-  return Math.floor(((parseFloat(oldprice) - parseFloat(price)) / parseFloat(oldprice)) * 100);
+// Helper to get discount percent from original product price and offer price
+const getDiscountPercent = (originalPrice: string, offerPrice: string) => {
+  if (!originalPrice || parseFloat(originalPrice) === 0) return 0;
+  return Math.floor(((parseFloat(originalPrice) - parseFloat(offerPrice)) / parseFloat(originalPrice)) * 100);
 };
 
 export default function OfferPage({ params }: { params: { id: string } }) {
@@ -61,13 +61,13 @@ export default function OfferPage({ params }: { params: { id: string } }) {
   const [touchEnd, setTouchEnd] = useState(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // ✅ FIX: correctly extract offer from RTK Query response shape
+  // Extract offer from response - using simplified Offer model
   const offer = offerData?.data?.offerById ?? offerData?.offerById ?? null;
-
-  // ✅ FIX: productId is now returned by the fixed shared.ts query
+  
+  // Get productId from the simplified offer
   const productId: string | undefined = offer?.productId;
 
-  // Fetch laptop data - only if we have productId
+  // Fetch laptop data using the productId
   const { data: laptopData, isLoading: laptopLoading, error: laptopError } = useGetLaptopByIdQuery(
     { id: productId },
     { skip: !productId }
@@ -75,12 +75,15 @@ export default function OfferPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
-      setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);
+      setDollar(dollarData.data.dollarPriceByPk.dollar_price ?? 0);
     }
   }, [dollarData]);
 
   const laptop = laptopData?.data?.laptopById;
-  const discountPercent = offer ? getDiscountPercent(offer.oldprice, offer.price) : 0;
+  
+  // Calculate discount using original laptop price and offer price
+  const originalPrice = laptop?.price;
+  const discountPercent = originalPrice ? getDiscountPercent(originalPrice, offer?.price) : 0;
 
   // Get all images array from laptop
   const allImages = [
@@ -164,15 +167,18 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     if (!offer || !laptop) return;
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
-    let shareText = `🎉 *${offer.name}* 🎉\n\n💰 السعر بعد الخصم: $${formatPriceInUSD(offer.price)}`;
+    
+    // Use laptop name for the offer since offer has no name anymore
+    let shareText = `🎉 *عرض خاص: ${laptop.name}* 🎉\n\n💰 السعر بعد الخصم: $${formatPriceInUSD(offer.price)}`;
     if (discountPercent > 0) {
-      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(offer.oldprice)})`;
+      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(originalPrice)})`;
     }
     shareText += `\n📦 الحالة: ${getAgeInArabic(laptop.age)}${specsText}${warrantyText}\n\n🔗 الرابط:`;
     const shareUrl = `${window.location.origin}/offers/${id}`;
+    
     if (navigator.share) {
       try {
-        await navigator.share({ title: offer.name, text: shareText.replace(/\*/g, ''), url: shareUrl });
+        await navigator.share({ title: laptop.name, text: shareText.replace(/\*/g, ''), url: shareUrl });
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(`${shareText.replace(/\*/g, '')}\n${shareUrl}`);
@@ -193,11 +199,12 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     if (!offer || !laptop) return;
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
+    
     let message = `مرحباً، أريد الاستفسار عن هذا العرض:\n\n`;
-    message += `🎉 *${offer.name}* 🎉\n`;
+    message += `🎉 *عرض خاص: ${laptop.name}* 🎉\n`;
     message += `💰 السعر بعد الخصم: $${formatPriceInUSD(offer.price)}\n`;
     if (discountPercent > 0) {
-      message += `💰 السعر القديم: $${formatPriceInUSD(offer.oldprice)} (خصم ${discountPercent}%)\n`;
+      message += `💰 السعر القديم: $${formatPriceInUSD(originalPrice)} (خصم ${discountPercent}%)\n`;
     }
     message += `📦 الحالة: ${getAgeInArabic(laptop.age)}`;
     message += specsText;
@@ -229,9 +236,8 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     return { hardware: '-', software: '-', gifts: '-' };
   };
 
-  // ── Loading / error states ────────────────────────────────────────────────────
-
-  if (offerLoading) return <OfferSkeleton />;
+  // Loading / error states
+  if (offerLoading || (productId && laptopLoading)) return <OfferSkeleton />;
 
   if (!offer) {
     return (
@@ -302,16 +308,11 @@ export default function OfferPage({ params }: { params: { id: string } }) {
           عرض خاص
         </div>
         <h3 className="text-white text-xl font-bold">
-          🎉 {offer.name} 🎉
+          🎉 عرض خاص: {laptop.name} 🎉
         </h3>
         {discountPercent > 0 && (
           <p className="text-white/90 text-sm mt-1">
-            خصم {discountPercent}% - وفر {Math.floor(parseFloat(offer.oldprice) - parseFloat(offer.price))}$
-          </p>
-        )}
-        {offer.description && (
-          <p className="text-white/80 text-sm mt-2 max-w-md mx-auto">
-            {offer.description}
+            خصم {discountPercent}% - وفر {Math.floor(parseFloat(originalPrice) - parseFloat(offer.price))}$
           </p>
         )}
       </div>
@@ -330,7 +331,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
               {currentImage ? (
                 <Image
                   src={currentImage}
-                  alt={offer.name}
+                  alt={laptop.name}
                   fill
                   className="object-contain p-4"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -408,7 +409,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
         <div className="lg:w-1/2">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-              {offer.name}
+              {laptop.name}
             </h1>
             
             <div className="mb-4">
@@ -426,7 +427,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                   </p>
                   {discountPercent > 0 && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      كان: {formatPriceInSYP(offer.oldprice, dollar)} ل.س
+                      كان: {formatPriceInSYP(originalPrice, dollar)} ل.س
                     </p>
                   )}
                 </div>
@@ -437,7 +438,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                   </p>
                   {discountPercent > 0 && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      كان: ${formatPriceInUSD(offer.oldprice)}
+                      كان: ${formatPriceInUSD(originalPrice)}
                     </p>
                   )}
                 </div>
@@ -509,6 +510,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
                     <td className="py-3 px-4 text-gray-600">{getAgeInArabic(laptop.age)}</td>
                   </tr>
+                  
                   {laptop.cpu && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المعالج (CPU)</td>
@@ -551,12 +553,14 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                       <td className="py-3 px-4 text-gray-600">{laptop.os}</td>
                     </tr>
                   )}
+                  
                   {laptop.dynamicSpecs && laptop.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
                     <tr key={idx} className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
                       <td className="py-3 px-4 text-gray-600">{spec.value}</td>
                     </tr>
                   ))}
+                  
                   <tr className="border-b border-gray-100 bg-green-50/30">
                     <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">🎁 كفالة هاردوير</td>
                     <td className="py-3 px-4 text-gray-600">{warrantyInfo.hardware}</td>

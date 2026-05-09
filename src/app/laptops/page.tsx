@@ -55,10 +55,17 @@ export default function LaptopPage() {
       
       <LoadingScreen />
 
-{/* Main Container - Adjusted for shorter navbar */}
-<div className="w-full mx-auto mb-4 mt-1 pt-14 md:pt-16">        
-        {/* Hero Section with Background Image and Foggy Effect */}
-        <div className="relative w-full h-auto md:h-[600px] lg:h-[700px] overflow-hidden pb-8">
+      {/* Main Container - space for navbar, then image starts */}
+      <div className="w-full mx-auto mb-4 mt-14 md:mt-16">
+
+        {/* Hero Section - aspect ratio scales with image, no cropping */}
+        {/* 🎛️ TO CHANGE HEIGHT: adjust md:aspect-[16/6] below
+              aspect-[16/5]  → very short/wide (banner-like)
+              aspect-[16/6]  → short (current default)
+              aspect-[16/7]  → medium
+              aspect-[16/9]  → tall (standard widescreen)
+            Mobile uses aspect-[4/3] so it doesn't get too short on phones */}
+        <div className="relative w-full aspect-[4/3] md:aspect-[16/6] overflow-hidden pb-6">
           {/* Background Image */}
           <div className="absolute inset-0 w-full h-full">
             <Image
@@ -77,33 +84,32 @@ export default function LaptopPage() {
           {/* Additional gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
           
-          {/* Content Container */}
-          <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 md:py-0">
+          {/* Content Container - top padding accounts for navbar height */}
+          <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-8 md:py-0">
             
-            {/* Main Title */}
-            <div className="text-center mb-6 md:mb-8 animate-fadeInDown">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 md:mb-4 drop-shadow-lg">
+            {/* Main Title - tighter spacing */}
+            <div className="text-center mb-4 md:mb-5 animate-fadeInDown">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">
                 سبيس نت ستور
               </h1>
-              <p className="text-lg sm:text-xl md:text-3xl text-blue-200 font-light drop-shadow-md">
+              <p className="text-base sm:text-lg md:text-2xl text-blue-200 font-light drop-shadow-md">
                 وجهتك الأولى للابتوبات في سوريا
               </p>
             </div>
             
-            {/* Promo Slider */}
-            <div className="relative w-full max-w-3xl mx-auto">
-              {/* Slider Container */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-4 md:p-8">
+            {/* Promo Slider - more compact */}
+            <div className="relative w-full max-w-2xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-3 md:p-5">
                 {/* Slider Content */}
-                <div className="min-h-[100px] md:min-h-[120px] flex items-center justify-center">
+                <div className="min-h-[70px] md:min-h-[90px] flex items-center justify-center">
                   <div className="text-center animate-fadeIn">
-                    <div className="inline-block p-2 md:p-3 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 mb-3 md:mb-4">
-                      <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+                    <div className="inline-block p-1.5 md:p-2 rounded-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 mb-2 md:mb-3">
+                      <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />
                     </div>
-                    <p className="text-base md:text-xl lg:text-3xl font-bold text-white leading-relaxed px-2">
+                    <p className="text-sm md:text-lg lg:text-2xl font-bold text-white leading-relaxed px-2">
                       {promoMessages[currentSlide]}
                     </p>
-                    <div className="mt-3 md:mt-4 flex justify-center gap-2">
+                    <div className="mt-2 md:mt-3 flex justify-center gap-2">
                       <div className="w-8 md:w-12 h-0.5 bg-blue-400 rounded-full" />
                       <div className="w-4 md:w-6 h-0.5 bg-white/50 rounded-full" />
                     </div>
@@ -115,25 +121,25 @@ export default function LaptopPage() {
                   onClick={prevSlide}
                   className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 p-1 md:p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
                 >
-                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </button>
                 <button
                   onClick={nextSlide}
                   className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
                 >
-                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </button>
                 
                 {/* Dots Indicator */}
-                <div className="flex justify-center gap-1 md:gap-2 mt-4 md:mt-6">
+                <div className="flex justify-center gap-1 md:gap-2 mt-3 md:mt-4">
                   {promoMessages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentSlide(index)}
                       className={`transition-all duration-300 rounded-full ${
                         currentSlide === index
-                          ? "w-6 md:w-8 h-1.5 md:h-2 bg-blue-500"
-                          : "w-1.5 md:w-2 h-1.5 md:h-2 bg-white/50 hover:bg-white/80"
+                          ? "w-6 md:w-8 h-1.5 bg-blue-500"
+                          : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
                       }`}
                     />
                   ))}
@@ -141,15 +147,15 @@ export default function LaptopPage() {
               </div>
             </div>
             
-            {/* Floating Badges */}
-            <div className="relative z-10 flex flex-wrap justify-center gap-2 md:gap-3 mt-6 md:mt-8 mb-4 md:mb-0">
-              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+            {/* Floating Badges - tighter margin */}
+            <div className="relative z-10 flex flex-wrap justify-center gap-2 mt-4 md:mb-0">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1 md:px-4 md:py-1.5 text-xs md:text-sm text-white border border-white/20">
                 🚚 توصيل سريع
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1 md:px-4 md:py-1.5 text-xs md:text-sm text-white border border-white/20">
                 💎 كفالة ذهبية
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1 md:px-4 md:py-1.5 text-xs md:text-sm text-white border border-white/20">
                 ⭐ ضمان شامل
               </div>
             </div>

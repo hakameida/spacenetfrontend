@@ -30,35 +30,32 @@ const StorageIcon = () => (
   </svg>
 );
 
-// Helper function to convert backend age value to Arabic display
 const getAgeInArabic = (age: string | undefined): string => {
   if (!age) return "";
   switch (age.toLowerCase()) {
-    case 'jdyd':
-      return 'جديد';
-    case 'used':
-      return 'مستعمل';
-    case 'openbox':
-      return 'أوبن بوكس';
-    default:
-      return age;
+    case 'jdyd':    return 'جديد';
+    case 'used':    return 'مستعمل';
+    case 'openbox': return 'أوبن بوكس';
+    default:        return age;
   }
 };
 
-// Helper function to get badge color based on age
 const getBadgeColor = (age: string | undefined): string => {
   if (!age) return "bg-gray-600";
   switch (age.toLowerCase()) {
-    case 'jdyd':
-      return "bg-red-600";
-    case 'used':
-      return "bg-green-600";
-    case 'openbox':
-      return "bg-blue-700";
-    default:
-      return "bg-gray-600";
+    case 'jdyd':    return "bg-red-600";
+    case 'used':    return "bg-green-600";
+    case 'openbox': return "bg-blue-700";
+    default:        return "bg-gray-600";
   }
 };
+
+const SpecItem = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
+  <div className="flex items-center justify-center gap-1 text-gray-600 bg-gray-50 rounded-lg px-1.5 py-1.5 min-w-0">
+    <span className="shrink-0">{icon}</span>
+    <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-center break-words min-w-0 w-full">{label}</span>
+  </div>
+);
 
 const CardProduct = ({
   width,
@@ -95,95 +92,74 @@ const CardProduct = ({
 }) => {
   const ageInArabic = getAgeInArabic(age);
   const badgeColor = getBadgeColor(age);
-  
-  // Calculate SYP price: USD price × dollar exchange rate
+
   const priceInUSD = parseFloat(price);
-  const priceInSYP = !isNaN(priceInUSD) && priceInUSD > 0 
+  const priceInSYP = !isNaN(priceInUSD) && priceInUSD > 0
     ? Math.floor(priceInUSD * dollarPrice).toLocaleString()
     : 0;
-  
+
+  const hasSpecs = cpu || gpu || ram || storage;
+
   return (
-    <>
-      <a href={`/products/${id}`} className="block h-full">
-        <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
-          
-          {/* Image */}
-          <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
-            <img
-              className="w-full h-full object-contain p-2"
-              alt={`اشتر ${title} باحسن سعر من سبيس نت ستور`}
-              src={getImage(image, 400)}
-            />
-            {ageInArabic && (
-              <span className={`absolute top-2 right-2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>
-                {ageInArabic}
-              </span>
-            )}
-          </div>
+    
+      <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
 
-          {/* Body */}
-          <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
-
-            {/* Title - Centered */}
-            <p className="font-semibold text-[13px] sm:text-[14px] md:text-[15px] leading-snug text-gray-800 line-clamp-2 mb-2 text-center">
-              {title}
-            </p>
-
-            {/* Price - Centered */}
-            {price === "0.00" || priceInUSD === 0 ? (
-              <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
-            ) : (
-              <div className="mb-2 text-center">
-                <p className="text-[13px] font-bold text-red-600 leading-tight">
-                  {priceInSYP} ل.س
-                </p>
-                <p className="text-[20px] text-green-600 leading-tight">{priceInUSD.toFixed(2)}$</p>
-              </div>
-            )}
-
-            {/* Specs - Centered with Icon on RIGHT, Text on LEFT */}
-            {(cpu || gpu || ram || storage) && (
-              <div className="flex flex-col items-center gap-2 mt-auto pt-2 border-t border-gray-100">
-                {cpu && (
-                  <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{cpu}</span>
-                    <CpuIcon />
-                  </div>
-                )}
-                {gpu && (
-                  <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{gpu}</span>
-                    <GpuIcon />
-                  </div>
-                )}
-                {ram && (
-                  <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{ram}</span>
-                    <RamIcon />
-                  </div>
-                )}
-                {storage && (
-                  <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <span className="text-[12px] sm:text-[13px] font-medium truncate">{storage}</span>
-                    <StorageIcon />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-3 pb-3 pt-1.5">
-            <Link href={`/laptops/${id}`}>
-              <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
-                معلومات المنتج
-              </span>
-            </Link>
-          </div>
-
+        {/* Image */}
+        <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
+          <img
+            className="w-full h-full object-contain p-2"
+            alt={`اشتر ${title} باحسن سعر من سبيس نت ستور`}
+            src={getImage(image, 400)}
+          />
+          {ageInArabic && (
+            <span className={`absolute top-2 right-2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>
+              {ageInArabic}
+            </span>
+          )}
         </div>
-      </a>
-    </>
+
+        {/* Body */}
+        <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
+
+          {/* Title */}
+          <p className="font-semibold text-[13px] sm:text-[14px] md:text-[15px] leading-snug text-gray-800 line-clamp-2 mb-2 text-center">
+            {title}
+          </p>
+
+          {/* Price */}
+          {price === "0.00" || priceInUSD === 0 ? (
+            <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
+          ) : (
+            <div className="mb-2 text-center">
+              <p className="text-[13px] font-bold text-red-600 leading-tight">
+                {priceInSYP} ل.س
+              </p>
+              <p className="text-[20px] text-green-600 leading-tight">{priceInUSD.toFixed(2)}$</p>
+            </div>
+          )}
+
+          {/* Specs - 2 columns, CPU+GPU on row 1, RAM+Storage on row 2 */}
+          {hasSpecs && (
+            <div className="grid grid-cols-2 gap-1 mt-auto pt-2 border-t border-gray-100 min-w-0 overflow-hidden">
+              {cpu     && <SpecItem icon={<CpuIcon />}     label={cpu} />}
+              {gpu     && <SpecItem icon={<GpuIcon />}     label={gpu} />}
+              {ram     && <SpecItem icon={<RamIcon />}     label={ram} />}
+              {storage && <SpecItem icon={<StorageIcon />} label={storage} />}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-3 pb-3 pt-1.5">
+          <Link href={`/laptops/${id}`}>
+            <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
+              معلومات المنتج
+            </span>
+          </Link>
+        </div>
+
+      </div>
+    
   );
 };
 

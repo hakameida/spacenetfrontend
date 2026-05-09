@@ -1,3 +1,4 @@
+// shared.ts
 import { apiSlice } from "../api/api";
 
 export interface DollarResponse {
@@ -10,23 +11,16 @@ export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY";
 
 export interface OfferResponse {
   id: string;
-  name: string;
-  oldprice: string;
-  price: string;
-  description: string;
-  url1: string;
-  image1: string;
   productId: string;
+  price: string;
+  status: boolean;
   productModule: ProductModule;
 }
 
 export interface Offer {
   id: string;
-  name: string;
-  oldprice: string;
+  productId: string;
   price: string;
-  description: string;
-  image: string;
   productModule: ProductModule;
 }
 
@@ -80,13 +74,10 @@ const sharedApi = apiSlice.injectEndpoints({
             query GetOffersList($status: Boolean) {
               allOffers(status: $status) {
                 id
-                name
-                oldprice
+                productId
                 price
-                description
-                url1
-                image1
                 productModule
+                status
               }
             }
           `,
@@ -95,14 +86,11 @@ const sharedApi = apiSlice.injectEndpoints({
       }),
       transformResponse: (response: { data: { allOffers: OfferResponse[] } }) => {
         if (!response?.data?.allOffers) return [];
-
+        
         return response.data.allOffers.map((obj) => ({
           id: obj?.id,
-          name: obj?.name,
-          oldprice: obj?.oldprice || "0",
+          productId: obj?.productId,
           price: obj?.price,
-          description: obj?.description || "",
-          image: obj?.url1 || obj?.image1 || "",
           productModule: obj?.productModule,
         })) as Offer[];
       },
@@ -117,19 +105,10 @@ const sharedApi = apiSlice.injectEndpoints({
             query GetOfferById($id: ID!) {
               offerById(id: $id) {
                 id
-                name
-                description
-                oldprice
-                price
-                status
-                productModule
                 productId
-                url1
-                url2
-                image1
-                image2
-                image3
-                image4
+                price
+                productModule
+                status
               }
             }
           `,

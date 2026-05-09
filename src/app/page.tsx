@@ -11,21 +11,21 @@ const sections = [
   { 
     name: "لابتوبات", 
     href: "/laptops", 
-    img: "/111.jpg",
+    img: "/Design27.jpeg",
     description: "أسعار جملة وكفالة حقيقية وهدايا مميزة",
     color: "from-blue-600 to-indigo-600"
   },
   { 
     name: "كومبيوتر", 
     href: "/computer", 
-    img: "/al.jpg",
+    img: "/Design28.jpeg",
     description: "جميع قطع الكومبيوتر مع أحدث الشاشات",
     color: "from-purple-600 to-pink-600"
   },
   { 
     name: "اكسسوارات", 
     href: "/accessories", 
-    img: "/1234.webp",
+    img: "/Design29.jpeg",
     description: "اكسسوارات مميزة لجميع الأجهزة",
     color: "from-emerald-600 to-teal-600"
   },
@@ -98,7 +98,7 @@ export default function HomePage() {
                   className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
                 >
                   {/* Image Container */}
-                  <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                  <div className="relative h-64 overflow-hidden bg-gradient-to-br ">
                     <Image
                       src={section.img}
                       alt={section.name}
