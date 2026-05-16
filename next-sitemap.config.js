@@ -9,7 +9,7 @@ module.exports = {
   generateRobotsTxt: true,
   exclude: [
     '/search/[searchWord]',
-    '/products/[productId]',
+    '/laptops/[laptopId]',
     '/offers/[id]',
   ],
   additionalPaths: async () => {
@@ -22,7 +22,7 @@ module.exports = {
 
     const query = gql`
       query MyQuery {
-        allProducts {
+        allLaptops {
           id
         }
         allOffers {
@@ -34,8 +34,8 @@ module.exports = {
     try {
       const data = await client.request(query);
 
-      const productPaths = data.allProducts.map((product) => ({
-        loc: `/products/${product.id}`,
+      const laptopPaths = data.allLaptops.map((laptop) => ({
+        loc: `/laptops/${laptop.id}`,
         lastmod: new Date().toISOString(),
       }));
 
@@ -44,7 +44,7 @@ module.exports = {
         lastmod: new Date().toISOString(),
       }));
 
-      return [...productPaths, ...offerPaths];
+      return [...laptopPaths, ...offerPaths];
     } catch (err) {
       console.error('❌ Failed to fetch data for sitemap:', err.message);
       return [];
