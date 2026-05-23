@@ -5,7 +5,7 @@ const MARKET_SECRET_TOKEN = "sk_live_2f48cae0f7d94b3e9b75a32e61d1ab8a";
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://38.143.19.151:8000/graphql/",
+    baseUrl: "https://api.spacenetstore.com/graphql/",
     prepareHeaders: (headers) => {
       headers.set("Content-Type", "application/json");
       headers.set("Authorization", `Bearer ${MARKET_SECRET_TOKEN}`); 
