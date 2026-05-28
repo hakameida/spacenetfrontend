@@ -8,6 +8,7 @@
   import Image from "next/image";
   import Link from "next/link";
   import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getImage } from "@/util/get-image-url";
 
   // Helper to format price in SYP
   const formatPriceInSYP = (price: string, dollar: number) => {
@@ -281,7 +282,7 @@
               >
                 {currentImage ? (
                   <Image
-                    src={currentImage}
+                    src={getImage(currentImage)}
                     alt={laptop.name}
                     fill
                     className="object-contain p-4"
@@ -348,7 +349,7 @@
                         ${currentImage === url ? 'border-blue-600 shadow-md' : 'border-gray-200 hover:border-blue-300'}`}
                     >
                       <Image
-                        src={url!}
+                        src={getImage(url!)}
                         alt={`Thumbnail ${index + 1}`}
                         fill
                         className="object-cover"
