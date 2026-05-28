@@ -1,14 +1,7 @@
 "use client";
-
-import MultipleItems from "@/components/react-slick/react-slick";
 import React, { useEffect, useState } from "react";
-import { selectLaptopListList } from "@/data-access/slices/product-list";
-import { useAppSelector } from "@/store";
-import Image from "next/image";
 import CardProduct from "@/components/card/card-product";
-
 import { Skeleton } from "@mui/material";
-import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 
 interface ProductList {
   description?: string;

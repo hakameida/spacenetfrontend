@@ -15,13 +15,13 @@ export const getImage = (rawURL: string | undefined, size = 800): string => {
   }
 
   
-  const containsProducts = rawURL.includes("products/");
+  const containsProducts = rawURL.includes("laptops");
   if (containsProducts) {
-    return `https://dockergqlserver.onrender.com/media/${rawURL}`;
+    return `https://api.spacenetstore.com/media/${rawURL}`;
   }
   const containsOffers= rawURL.includes("offers/");
   if (containsOffers) {
-    return `https://dockergqlserver.onrender.com/media/${rawURL}`;
+    return `https://api.spacenetstore.com/media/${rawURL}`;
   }
 
  
