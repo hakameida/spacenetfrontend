@@ -381,7 +381,7 @@ export default function TopNavbar() {
           rounded-full
           border border-white/40
           py-1.5
-          w-[70%] max-w-[500px]
+          w-[75%] max-w-[500px]
           overflow-x-auto
           scrollbar-hide
           transition-all duration-200 ease-out
