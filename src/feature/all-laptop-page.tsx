@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { useGetLaptopsListQuery } from "@/data-access/api/laptop";
 import { useAppSelector } from "@/store";
@@ -19,6 +19,28 @@ interface FilterState {
   minPrice: string;
   maxPrice: string;
   manualSearch: string;
+}
+
+// Track expanded state for each filter section
+interface FilterSectionsState {
+  brands: boolean;
+  cpu: boolean;
+  gpu: boolean;
+  ram: boolean;
+  storage: boolean;
+  screenSize: boolean;
+  age: boolean;
+}
+
+// Track showAll state for each filter section
+interface ShowAllState {
+  brands: boolean;
+  cpu: boolean;
+  gpu: boolean;
+  ram: boolean;
+  storage: boolean;
+  screenSize: boolean;
+  age: boolean;
 }
 
 // Extract unique values from laptop data
@@ -130,20 +152,26 @@ const sortProductsByPrice = (products: LaptopItem[], direction: "asc" | "desc") 
   });
 };
 
+// Fixed FilterSectionWithShowMore - now accepts showAll state from parent
 const FilterSectionWithShowMore = ({ 
   title, 
   options, 
   selectedValues, 
   onToggle,
-  defaultShowCount = 5
+  showAll,
+  onToggleShowAll,
+  defaultShowCount = 5,
+  sectionKey
 }: { 
   title: string; 
   options: string[]; 
   selectedValues: string[];
   onToggle: (value: string) => void;
+  showAll: boolean;
+  onToggleShowAll: (key: string) => void;
   defaultShowCount?: number;
+  sectionKey: string;
 }) => {
-  const [showAll, setShowAll] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   
   const visibleOptions = showAll ? options : options.slice(0, defaultShowCount);
@@ -181,7 +209,11 @@ const FilterSectionWithShowMore = ({
           
           {hasMore && (
             <button
-              onClick={() => setShowAll(!showAll)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleShowAll(sectionKey);
+              }}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2"
             >
               {showAll ? "عرض أقل" : `عرض ${options.length - defaultShowCount} المزيد`}
@@ -198,6 +230,17 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     price: true,
+  });
+
+  // State for "Show More" in each filter section - moved to parent to prevent re-renders from resetting
+  const [showAllState, setShowAllState] = useState<ShowAllState>({
+    brands: false,
+    cpu: false,
+    gpu: false,
+    ram: false,
+    storage: false,
+    screenSize: false,
+    age: false,
   });
 
   const { isLoading } = useGetLaptopsListQuery({ status: true });
@@ -222,11 +265,15 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
   useEffect(() => {
     if (showMobileFilters) {
       document.body.style.overflow = 'hidden';
+      // Also add a class to the html element to ensure no scrolling
+      document.documentElement.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
     }
     return () => {
       document.body.style.overflow = 'unset';
+      document.documentElement.style.overflow = 'unset';
     };
   }, [showMobileFilters]);
 
@@ -275,6 +322,13 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
       maxPrice: "",
       manualSearch: ""
     });
+  };
+
+  const handleToggleShowAll = (sectionKey: string) => {
+    setShowAllState(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey as keyof ShowAllState]
+    }));
   };
 
   const activeFiltersCount = useMemo(() => {
@@ -360,6 +414,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
     </span>
   );
 
+  // Fixed FilterContent - price inputs now properly contained
   const FilterContent = () => (
     <div className="space-y-1">
       <div className="border-b border-gray-200 py-3">
@@ -373,79 +428,104 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         
         {expandedSections.price && (
           <div className="mt-3 space-y-3">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="من"
-                value={filters.minPrice}
-                onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
-                className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-              <input
-                type="number"
-                placeholder="إلى"
-                value={filters.maxPrice}
-                onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
-                className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+            <div className="flex gap-2 w-full">
+              <div className="flex-1 min-w-0">
+                <input
+                  type="number"
+                  placeholder="من"
+                  value={filters.minPrice}
+                  onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <input
+                  type="number"
+                  placeholder="إلى"
+                  value={filters.maxPrice}
+                  onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
             </div>
           </div>
         )}
       </div>
 
       <FilterSectionWithShowMore 
+        sectionKey="brands"
         title="العلامة التجارية" 
         options={availableFilters.brands} 
         selectedValues={filters.brands}
         onToggle={(value) => handleFilterToggle("brands", value)}
+        showAll={showAllState.brands}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={5}
       />
 
       <FilterSectionWithShowMore 
+        sectionKey="age"
         title="الحالة" 
         options={['جديد', 'مستعمل', 'اوبن بوكس']} 
         selectedValues={filters.age}
         onToggle={(value) => handleFilterToggle("age", value)}
+        showAll={showAllState.age}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={3}
       />
 
       <FilterSectionWithShowMore 
+        sectionKey="cpu"
         title="المعالج (CPU)" 
         options={availableFilters.cpus} 
         selectedValues={filters.cpu}
         onToggle={(value) => handleFilterToggle("cpu", value)}
+        showAll={showAllState.cpu}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={5}
       />
 
       <FilterSectionWithShowMore 
+        sectionKey="gpu"
         title="كرت الشاشة (GPU)" 
         options={availableFilters.gpus} 
         selectedValues={filters.gpu}
         onToggle={(value) => handleFilterToggle("gpu", value)}
+        showAll={showAllState.gpu}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={5}
       />
 
       <FilterSectionWithShowMore 
+        sectionKey="ram"
         title="الذاكرة (RAM)" 
         options={availableFilters.rams} 
         selectedValues={filters.ram}
         onToggle={(value) => handleFilterToggle("ram", value)}
+        showAll={showAllState.ram}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={5}
       />
 
       <FilterSectionWithShowMore 
+        sectionKey="storage"
         title="التخزين (Storage)" 
         options={availableFilters.storages} 
         selectedValues={filters.storage}
         onToggle={(value) => handleFilterToggle("storage", value)}
+        showAll={showAllState.storage}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={5}
       />
 
       <FilterSectionWithShowMore 
+        sectionKey="screenSize"
         title="حجم الشاشة" 
         options={availableFilters.screenSizes} 
         selectedValues={filters.screenSize}
         onToggle={(value) => handleFilterToggle("screenSize", value)}
+        showAll={showAllState.screenSize}
+        onToggleShowAll={handleToggleShowAll}
         defaultShowCount={5}
       />
     </div>
@@ -462,7 +542,6 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm py-3 mb-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex-1 relative">
-            {/* <FiSearch className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400" size={50} /> */}
             <input
               type="text"
               placeholder="ابحث..."
@@ -547,17 +626,19 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         )}
       </div>
 
-      {/* Mobile Filter Drawer - Fixed positioning and scroll lock */}
+      {/* Mobile Filter Drawer - Now covers everything including navbar with higher z-index */}
       {showMobileFilters && (
         <div 
-          className="fixed inset-0 z-50 lg:hidden"
+          className="fixed inset-0 z-[9999] lg:hidden"
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
         >
+          {/* Backdrop with higher z-index */}
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => setShowMobileFilters(false)}
           />
           
+          {/* Filter drawer */}
           <div 
             className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col"
             style={{ height: '100vh', maxHeight: '100vh' }}
@@ -566,7 +647,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
               <h3 className="text-lg font-bold">تصفية النتائج</h3>
               <button
                 onClick={() => setShowMobileFilters(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <FiX size={24} />
               </button>
@@ -577,7 +658,6 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
               style={{ 
                 overflowY: 'auto',
                 WebkitOverflowScrolling: 'touch',
-                height: 'calc(100vh - 140px)'
               }}
             >
               <FilterContent />

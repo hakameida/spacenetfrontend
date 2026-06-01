@@ -29,14 +29,28 @@ const sections = [
     description: "اكسسوارات مميزة لجميع الأجهزة",
     color: "from-emerald-600 to-teal-600"
   },
+  { 
+    name: "كاميرات", 
+    href: "/cameras", 
+    img: "/Design31.png",
+    description: "كاميرات احترافية وتصوير عالي الجودة",
+    color: "from-red-600 to-orange-600"
+  },
+  { 
+    name: "بلايستيشن", 
+    href: "/playstation", 
+    img: "/Design30.png",
+    description: "ألعاب وبلايستيشن بأحدث الإصدارات",
+    color: "from-green-600 to-teal-600"
+  },
 ];
 
 export const metadata = {
   title: "سبيس نت ستور سوريا بحصة",
   description:
-    "اسعار اللابتوبات والاكسسوارات وقطع الكومبيوتر في دمشق - سوق البحصة",
+    "اسعار اللابتوبات والاكسسوارات وقطع الكومبيوتر والكاميرات والبلايستيشن في دمشق - سوق البحصة",
   keywords:
-    "اسعار الابتوبات في سوريا, اسعار الاكسسوارات في دمشق, اسعار قطع الكومبيوتر في سوريا, سوق البحصة, لابتوبات البحصه",
+    "اسعار الابتوبات في سوريا, اسعار الاكسسوارات في دمشق, اسعار قطع الكومبيوتر في سوريا, سوق البحصة, لابتوبات البحصه, كاميرات في سوريا, بلايستيشن في سوريا",
 };
 
 export default function HomePage() {
@@ -90,7 +104,7 @@ export default function HomePage() {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
               {sections.map((section) => (
                 <Link
                   key={section.name}

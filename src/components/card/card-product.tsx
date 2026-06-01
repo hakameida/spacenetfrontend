@@ -103,7 +103,7 @@ const CardProduct = ({
   return (
     
       <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
-
+<Link href={`/laptops/${id}`}>
         {/* Image */}
         <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
           <img
@@ -117,7 +117,7 @@ const CardProduct = ({
             </span>
           )}
         </div>
-
+</Link>
         {/* Body */}
         <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
 

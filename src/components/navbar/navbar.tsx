@@ -13,19 +13,21 @@ import {
   Download,
   Wrench,
   ExternalLink,
-  X
+  X,
+  Gamepad2,
+  Camera
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 
 const navLinks = [
-  { name: "كومبيوتر", href: "/computer", icon: PcCase },
-  // { name: "موبايلات", href: "/mobiles", icon: Smartphone },
+  { name: "كمبيوتر", href: "/computer", icon: PcCase },
   { name: "اكسسوارات", href: "/accessories", icon: Headphones },
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
+  { name: "بلايستيشن", href: "/playstation", icon: Gamepad2 },
+  { name: "كاميرات", href: "/cameras", icon: Camera },
   { name: "بطاريات", href: "/batteries", icon: Battery },
-  // { name: "كاميرات مراقبة", href: "/cameras", icon: Video },
 ];
 
 // PWA install types
@@ -275,7 +277,7 @@ export default function TopNavbar() {
               </p>
               <button
                 onClick={dismissOnboarding}
-                className="bg-gradient-to-r from-red-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold hover:scale-105 transition"
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-2 rounded-full text-sm font-bold hover:scale-105 transition"
               >
                 فهمت!
               </button>
@@ -362,7 +364,7 @@ export default function TopNavbar() {
         </div>
       </nav>
 
-      {/* Floating Bottom Categories Bar */}
+      {/* Floating Bottom Categories Bar - Made smaller to fit all items */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}
@@ -372,22 +374,24 @@ export default function TopNavbar() {
         onMouseLeave={handleMouseLeave}
         className={`
           fixed left-1/2 -translate-x-1/2
-          bottom-6
+          bottom-4
           z-[60]
-          bg-white/90 backdrop-blur-md
+          bg-white/95 backdrop-blur-md
           shadow-[0_4px_20px_rgba(0,0,0,0.15)]
           rounded-full
           border border-white/40
-          px-4 py-2.5
-          w-[%] max-w-[500px]
+          px-2 py-1.5
+          w-[96%] max-w-[600px]
           overflow-x-auto
-          flex gap-1
+          flex gap-0.5
           scrollbar-hide
           transition-all duration-200 ease-out
           ${visible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}
           ${showOnboarding ? 'z-[101]' : ''}
           select-none
+          justify-center
         `}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {navLinks.map((link) => {
           const IconComponent = link.icon;
@@ -396,21 +400,22 @@ export default function TopNavbar() {
               key={link.name}
               onClick={(e) => handleLinkClick(e, link.href)}
               className={`
-                flex flex-col items-center gap-0.5
-                px-3 py-1.5 rounded-full
+                flex flex-col items-center gap-0
+                px-1.5 py-1 rounded-full
                 transition-all duration-300
-                min-w-[65px]
-                cursor-default
+                min-w-[48px]
+                cursor-pointer
                 group
-                ${pathname === link.href ? "text-gray-900" : "text-gray-500 hover:text-gray-700"}
+                hover:bg-gray-100
+                ${pathname === link.href ? "bg-gray-100 text-gray-900" : "text-gray-500"}
               `}
             >
               <IconComponent className={`
-                w-4 h-4 md:w-5 md:h-5 transition-all duration-300
-                ${pathname === link.href ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600"}
+                w-3.5 h-3.5 transition-all duration-300
+                ${pathname === link.href ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}
               `} />
               <span className={`
-                text-[11px] md:text-xs font-medium whitespace-nowrap
+                text-[9px] font-medium whitespace-nowrap
                 ${pathname === link.href ? "text-gray-900 font-bold" : "text-gray-500"}
               `}>
                 {link.name}
