@@ -299,7 +299,7 @@ export default function TopNavbar() {
         </>
       )}
 
-      {/* Top Navigation Bar - REDUCED HEIGHT */}
+      {/* Top Navigation Bar */}
       <nav 
         className={`
           fixed top-0 w-full h-[56px] bg-white/30 backdrop-blur-md z-50 shadow-md
@@ -364,7 +364,7 @@ export default function TopNavbar() {
         </div>
       </nav>
 
-      {/* Floating Bottom Categories Bar - Made smaller to fit all items */}
+      {/* Floating Bottom Categories Bar - More space on both ends */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}
@@ -380,52 +380,51 @@ export default function TopNavbar() {
           shadow-[0_4px_20px_rgba(0,0,0,0.15)]
           rounded-full
           border border-white/40
-          px-2 py-1.5
-          w-[96%] max-w-[600px]
+          py-1.5
+          w-[70%] max-w-[500px]
           overflow-x-auto
-          flex gap-0.5
           scrollbar-hide
           transition-all duration-200 ease-out
           ${visible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}
           ${showOnboarding ? 'z-[101]' : ''}
           select-none
-          justify-center
         `}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {navLinks.map((link) => {
-          const IconComponent = link.icon;
-          return (
-            <div
-              key={link.name}
-              onClick={(e) => handleLinkClick(e, link.href)}
-              className={`
-                flex flex-col items-center gap-0
-                px-1.5 py-1 rounded-full
-                transition-all duration-300
-                min-w-[48px]
-                cursor-pointer
-                group
-                hover:bg-gray-100
-                ${pathname === link.href ? "bg-gray-100 text-gray-900" : "text-gray-500"}
-              `}
-            >
-              <IconComponent className={`
-                w-3.5 h-3.5 transition-all duration-300
-                ${pathname === link.href ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}
-              `} />
-              <span className={`
-                text-[9px] font-medium whitespace-nowrap
-                ${pathname === link.href ? "text-gray-900 font-bold" : "text-gray-500"}
-              `}>
-                {link.name}
-              </span>
-            </div>
-          );
-        })}
+        <div className="flex justify-around items-center gap-1 px-1">
+          {navLinks.map((link) => {
+            const IconComponent = link.icon;
+            return (
+              <div
+                key={link.name}
+                onClick={(e) => handleLinkClick(e, link.href)}
+                className={`
+                  flex flex-col items-center gap-0
+                  py-1 px-1.5 rounded-full
+                  transition-all duration-300
+                  cursor-pointer
+                  group
+                  hover:bg-gray-100
+                  ${pathname === link.href ? "bg-gray-100 text-gray-900" : "text-gray-500"}
+                `}
+              >
+                <IconComponent className={`
+                  w-4 h-4 transition-all duration-300
+                  ${pathname === link.href ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}
+                `} />
+                <span className={`
+                  text-[9px] font-medium whitespace-nowrap
+                  ${pathname === link.href ? "text-gray-900 font-bold" : "text-gray-500"}
+                `}>
+                  {link.name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Desktop Install Banner - Shows on PC when app is not installed */}
+      {/* Desktop Install Banner */}
       {!isInstalled && showInstallButton && showDesktopBanner && !isMobileDevice && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[61] animate-in slide-in-from-top-2 duration-300">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-xl shadow-xl flex items-center gap-3">
