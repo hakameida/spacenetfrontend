@@ -25,7 +25,7 @@ const navLinks = [
   { name: "كمبيوتر", href: "/computer", icon: PcCase },
   { name: "اكسسوارات", href: "/accessories", icon: Headphones },
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
-  { name: "بلايستيشن", href: "/playstation", icon: Gamepad2 },
+  { name: "بلايستيشن", href: "/playstations", icon: Gamepad2 },
   { name: "كاميرات", href: "/cameras", icon: Camera },
   { name: "بطاريات", href: "/batteries", icon: Battery },
 ];

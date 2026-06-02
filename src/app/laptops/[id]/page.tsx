@@ -231,15 +231,15 @@ import { getImage } from "@/util/get-image-url";
       
       if (laptop.age?.toLowerCase() === 'jdyd') {
         return {
-          hardware: '3 شهور',
-          software: '6 شهور',
-          gifts: 'حقيبة + ماوس + ستاند معدني + ماوس باد'
+          hardware: '✨ إسبوع استبدال فوري: في حال وجود أي عذر مصنعي أو خلل بالقطع  🛠️ كفالة 6 أشهر: تشمل أي عيوب أو سوء صنع.',
+          software: '💻 سنة كاملة: دعم كامل وتحديثات للسوفتوير (البرمجيات).',
+          gifts: 'حقيبة + ماوس + ستاند معدني + ماوس باد+لصاقات تعريب'
         };
       } else if (laptop.age?.toLowerCase() === 'used' || laptop.age?.toLowerCase() === 'openbox') {
         return {
-          hardware: 'شهر واحد',
-          software: '3 شهور',
-          gifts: 'حقيبة + ماوس + ماوس باد'
+          hardware: '✨ إسبوع استبدال فوري: في حال وجود أي عذر مصنعي أو خلل بالقطع  🛠️ كفالةشهر: تشمل أي عيوب أو سوء صنع.',
+          software: '💻 شهر كامل: دعم كامل وتحديثات للسوفتوير (البرمجيات).',
+          gifts: 'حقيبة + ماوس + ماوس باد+لصاقات تعريب'
         };
       }
       return { hardware: '-', software: '-', gifts: '-' };

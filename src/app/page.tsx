@@ -38,7 +38,7 @@ const sections = [
   },
   { 
     name: "بلايستيشن", 
-    href: "/playstation", 
+    href: "/playstations", 
     img: "/Design30.png",
     description: "ألعاب وبلايستيشن بأحدث الإصدارات",
     color: "from-green-600 to-teal-600"
