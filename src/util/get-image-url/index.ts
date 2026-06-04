@@ -15,7 +15,7 @@ export const getImage = (rawURL: string | undefined, size = 800): string => {
   }
 
   
-  const containsProducts = rawURL.includes("laptops");
+  const containsProducts = rawURL.includes("laptops") || rawURL.includes("accessories") || rawURL.includes("computers"); 
   if (containsProducts) {
     return `https://api.spacenetstore.com/media/${rawURL}`;
   }

@@ -1,102 +1,312 @@
+// app/computer/page.tsx
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { AllComputerPage } from "@/feature/all-computer-page";
+import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
+import VideoCarousel from "@/components/youtubevideo/VideoCarousel";
+import LoadingScreen from "@/components/loading/LoadingScreen";
+import { Play, Tag, Sparkles, ChevronLeft, ChevronRight, Shield, Phone, MessageCircle, ZoomIn, Monitor } from "lucide-react";
+import Image from "next/image";
+import Head from "next/head";
 
-export default function Home() {
+const promoMessages = [
+  "يوجد لدينا توصيل لكافة المحافظات",
+  "افضل الاجهزة وبافضل الاسعار",
+  "كفالة ذهبية على جميع الاجهزة",
+  "تشمل هارد وير وسوفت وير",
+  "توصيل لجميع مناطق دمشق",
+  "شحن امن لجميع المحافظات",
+  "تخديم كامل و مميز بعد البيع",
+];
+
+export default function ComputerPage() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % promoMessages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % promoMessages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + promoMessages.length) % promoMessages.length);
+  };
+
+  const handleWhatsAppClick = () => {
+    window.open("https://wa.me/963998372756", "_blank");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-20 md:pt-24">
-      <div className="text-center px-4 py-8">
-        {/* Animated Maintenance Icon */}
-        <div className="mb-8 animate-bounce">
-          <div className="w-32 h-32 md:w-40 md:h-40 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-            <svg className="w-16 h-16 md:w-20 md:h-20 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+    <>
+      <Head>
+        <title>اسعار كمبيوتر في سوريا بحصة</title>
+        <meta name="description" content="كمبيوتر جيمينغ ومكتبي بارخص الاسعار وافضل الانواع في سبيس ستور" />
+        <meta name="keywords" content="بيع كمبيوتر جيمينغ, كمبيوتر بحصة, كمبيوتر بارخص الاسعار بحصه" />
+      </Head>
+      
+      <LoadingScreen />
+
+      <div className="w-full mx-auto mb-4 mt-1 pt-14 md:pt-16">        
+        <div className="relative w-full h-auto md:h-[600px] lg:h-[700px] overflow-hidden pb-8">
+          <div className="absolute inset-0 w-full h-full">
+            <Image
+              src="/computermain.png"
+              alt="Computer Hero"
+              fill
+              className="object-cover object-center"
+              priority
+              quality={100}
+            />
+          </div>
+          
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-green-900/40 to-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+          
+          <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 md:py-0">
+            
+            <div className="text-center mb-6 md:mb-8 animate-fadeInDown">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 md:mb-4 drop-shadow-lg">
+                سبيس نت ستور
+              </h1>
+              <p className="text-lg sm:text-xl md:text-3xl text-green-200 font-light drop-shadow-md">
+                أفضل أجهزة الكمبيوتر في سوريا
+              </p>
+            </div>
+            
+            <div className="relative w-full max-w-3xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-4 md:p-8">
+                <div className="min-h-[100px] md:min-h-[120px] flex items-center justify-center">
+                  <div className="text-center animate-fadeIn">
+                    <div className="inline-block p-2 md:p-3 rounded-full bg-gradient-to-r from-green-500/30 to-teal-500/30 mb-3 md:mb-4">
+                      <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+                    </div>
+                    <p className="text-base md:text-xl lg:text-3xl font-bold text-white leading-relaxed px-2">
+                      {promoMessages[currentSlide]}
+                    </p>
+                    <div className="mt-3 md:mt-4 flex justify-center gap-2">
+                      <div className="w-8 md:w-12 h-0.5 bg-green-400 rounded-full" />
+                      <div className="w-4 md:w-6 h-0.5 bg-white/50 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 p-1 md:p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </button>
+                
+                <div className="flex justify-center gap-1 md:gap-2 mt-4 md:mt-6">
+                  {promoMessages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`transition-all duration-300 rounded-full ${
+                        currentSlide === index
+                          ? "w-6 md:w-8 h-1.5 md:h-2 bg-green-500"
+                          : "w-1.5 md:w-2 h-1.5 md:h-2 bg-white/50 hover:bg-white/80"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative z-10 flex flex-wrap justify-center gap-2 md:gap-3 mt-6 md:mt-8 mb-4 md:mb-0">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+                🚚 توصيل سريع
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+                💎 كفالة ذهبية
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+                ⭐ ضمان شامل
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Maintenance Title */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent">
-          🔧 تحت الصيانة 🔧
-        </h1>
-        
-        {/* Maintenance Message */}
-        <div className="space-y-3 mb-8">
-          <p className="text-xl md:text-2xl lg:text-3xl text-gray-700 font-semibold">
-            الموقع قيد التطوير والتحديث
-          </p>
-          <p className="text-base md:text-lg text-gray-500 max-w-md mx-auto">
-            نعتذر عن أي إزعاج، نحن نعمل على تحسين الموقع لتقديم أفضل الخدمات
-          </p>
-          <p className="text-sm text-gray-400">
-            سنعود قريباً بإذن الله
-          </p>
-        </div>
-
-        {/* Progress Bar Animation */}
-        <div className="max-w-md mx-auto mb-8">
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 h-2 rounded-full animate-progress"></div>
+        <div className="sm:container w-[90%] mx-auto">
+          <div className="flex items-center gap-3 mb-2 mt-8">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur-sm">
+              <Tag className="w-7 h-7 md:w-9 md:h-9" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <div>
+              <h2
+                className="md:text-[42px] text-[28px] font-extrabold tracking-tight leading-tight"
+                style={{ color: "rgba(34,82,154,1)" }}
+              >
+                عروض الاسبوع
+              </h2>
+              <span
+                className="text-[16px] md:text-[18px] font-medium block mt-1"
+                style={{ color: "rgba(34,82,154,0.8)" }}
+              >
+                عروض كل اسبوع شكل
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-gray-400 mt-2">جاري التحديث...</p>
-        </div>
+          <MultipleItemsOffer productModule="COMPUTER" />
 
-        {/* Estimated Time */}
-        <div className="inline-block bg-blue-50 rounded-full px-6 py-2 mb-8">
-          <p className="text-sm text-blue-600">
-            ⏳ المتوقع: قريباً جداً
-          </p>
-        </div>
-
-        {/* Contact Support */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <p className="text-sm text-gray-500 mb-4">
-            للاستفسار أو المساعدة:
-          </p>
-          <div className="flex justify-center gap-4">
-            <a
-              href="tel:0956958013"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
+          <div className="my-6 md:my-8">
+            <div 
+              className="relative rounded-xl overflow-hidden shadow-lg cursor-pointer transition-all duration-500 transform hover:scale-[1.02] active:scale-[0.98]"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              onTouchStart={() => setIsHovered(true)}
+              onTouchEnd={() => setIsHovered(false)}
+              onClick={handleWhatsAppClick}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              اتصل بنا
-            </a>
-            <a
-              href="http://wa.me/963956958013"
-              target="_blank"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.032 2.012c-5.514 0-9.996 4.48-9.996 9.99 0 1.76.458 3.484 1.325 5.002L2 22.001l5.21-1.354c1.46.792 3.102 1.21 4.802 1.21 5.514 0 9.996-4.48 9.996-9.99 0-5.51-4.482-9.99-9.996-9.99zm0 18.38c-1.49 0-2.957-.4-4.24-1.156l-.304-.18-3.09.802.826-3.01-.198-.316c-.84-1.326-1.284-2.85-1.284-4.42 0-4.618 3.76-8.376 8.38-8.376 4.62 0 8.38 3.758 8.38 8.376 0 4.618-3.76 8.376-8.38 8.376zm4.59-6.27c-.252-.126-1.49-.735-1.72-.82-.23-.084-.398-.126-.566.126-.168.252-.654.82-.802.99-.147.168-.294.188-.546.063-.252-.126-1.064-.392-2.028-1.252-.75-.67-1.256-1.496-1.403-1.75-.147-.252-.016-.388.11-.513.113-.113.252-.294.378-.44.126-.147.168-.252.252-.42.084-.168.042-.315-.02-.44-.063-.126-.566-1.36-.776-1.862-.204-.49-.41-.424-.566-.43-.147-.007-.315-.007-.483-.007-.168 0-.44.063-.672.315-.232.252-.884.864-.884 2.108 0 1.244.906 2.446 1.032 2.614.126.168 1.78 2.72 4.314 3.814.602.26 1.072.416 1.438.532.604.192 1.154.165 1.588.1.484-.074 1.49-.61 1.7-1.198.21-.588.21-1.092.147-1.198-.063-.105-.232-.168-.484-.294z"/>
-              </svg>
-              واتساب
-            </a>
-          </div>
-        </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-green-600 via-green-700 to-teal-700" />
+              
+              <div className="relative w-full h-56 overflow-hidden">
+                <div 
+                  className={`relative w-full h-full transition-all duration-700 ${
+                    isHovered ? 'scale-125 md:scale-150' : 'scale-100'
+                  }`}
+                >
+                  <Image
+                    src="/itsupport.png"
+                    alt="الدعم التقني"
+                    fill
+                    className="object-contain transition-all duration-700"
+                    style={{ objectPosition: "center" }}
+                  />
+                </div>
+                
+                <div className={`absolute top-2 right-2 transition-all duration-300 ${
+                  isHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+                }`}>
+                  <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5 md:p-2">
+                    <ZoomIn className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                  </div>
+                </div>
+                
+                <div className={`absolute inset-0 transition-all duration-500 ${
+                  isHovered ? 'bg-black/70 backdrop-blur-sm' : 'bg-black/40'
+                }`} />
+                
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 transition-all duration-500 ${
+                  isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                }`}>
+                  <div className="mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center shadow-lg animate-bounce">
+                      <MessageCircle className="w-5 h-5 md:w-7 md:h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <Shield className="w-4 h-4 md:w-5 md:h-5 text-yellow-300" />
+                      <h3 className="text-sm md:text-lg font-bold text-white">
+                        الدعم التقني لديكم
+                      </h3>
+                    </div>
+                    <p className="text-base md:text-xl font-bold text-yellow-300 mb-1">
+                      لا خوف عليكم
+                    </p>
+                    <p className="text-white/90 text-xs md:text-sm">
+                      فريق دعم متخصص على مدار الساعة
+                    </p>
+                    
+                    <div className="mt-2 md:mt-3 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 rounded-full px-3 py-1.5 md:px-4 md:py-2 transition-all duration-300">
+                      <Phone className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                      <span className="text-white text-xs md:text-sm font-semibold">واتساب: 0998372756</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className={`absolute inset-0 flex items-center justify-center gap-1.5 md:gap-2 px-2 transition-all duration-500 ${
+                  isHovered ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+                }`}>
+                  <div className="bg-black/50 backdrop-blur-md rounded-full px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white border border-white/20 shadow-lg">
+                    🎧 24/7
+                  </div>
+                  <div className="bg-black/50 backdrop-blur-md rounded-full px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white border border-white/20 shadow-lg">
+                    ⚡ سريع
+                  </div>
+                  <div className="bg-black/50 backdrop-blur-md rounded-full px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white border border-white/20 shadow-lg">
+                    🛡️ شامل
+                  </div>
+                </div>
 
-        {/* Decorative Elements */}
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-200/30 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl -z-10"></div>
+                <div className={`absolute bottom-2 left-0 right-0 text-center transition-all duration-500 ${
+                  isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                }`}>
+                  <p className="text-white/80 text-[10px] md:text-xs bg-black/40 backdrop-blur-sm inline-block px-2 py-0.5 rounded-full mx-auto">
+                    🔍 اضغط للتكبير والتواصل
+                  </p>
+                </div>
+              </div>
+              
+              <div className="relative z-10 h-0.5 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 mb-4 mt-12">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur-sm">
+              <Monitor className="w-8 h-8 md:w-10 md:h-10" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <h2
+              className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
+              style={{ color: "rgba(34,82,154,1)" }}
+            >
+              كمبيوتر
+            </h2>
+          </div>
+
+          <AllComputerPage title="" />
+          
+          <div className="flex items-center gap-3 mb-4 mt-12">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-red-500/20 backdrop-blur-sm">
+              <Play className="w-7 h-7 md:w-9 md:h-9" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <h2
+              className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
+              style={{ color: "rgba(34,82,154,1)" }}
+            >
+              فيديوهات سبيس نت ستور
+            </h2>
+          </div>
+          <VideoCarousel />
+        </div>
       </div>
 
-      <style jsx>{`
-        @keyframes progress {
-          0% {
-            width: 0%;
+      <style jsx global>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-30px);
           }
-          50% {
-            width: 70%;
-          }
-          100% {
-            width: 100%;
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
-        .animate-progress {
-          animation: progress 2s ease-in-out infinite;
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
         
         @keyframes bounce {
@@ -104,13 +314,22 @@ export default function Home() {
             transform: translateY(0);
           }
           50% {
-            transform: translateY(-20px);
+            transform: translateY(-10px);
           }
         }
+        
+        .animate-fadeInDown {
+          animation: fadeInDown 0.8s ease-out;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out;
+        }
+        
         .animate-bounce {
-          animation: bounce 1s ease-in-out infinite;
+          animation: bounce 1s infinite;
         }
       `}</style>
-    </div>
+    </>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import CardAccessory from "@/feature/card-accessory";
+import CardComputer from "@/feature/card-computer";
 import { Skeleton } from "@mui/material";
-import { AccessoryItem } from "@/data-access/slices/accessory-list";
+import { ComputerItem } from "@/data-access/slices/computer-list";
 
-export const AccessoryList = ({
+export const ComputerList = ({
   isLoading,
   selectedList,
   dollarPrice,
@@ -13,7 +13,7 @@ export const AccessoryList = ({
 }: {
   dollarPrice: number;
   isLoading: boolean;
-  selectedList: AccessoryItem[];
+  selectedList: ComputerItem[];
   title?: string;
   gridClassName?: string;
 }) => {
@@ -47,22 +47,21 @@ export const AccessoryList = ({
           <div className="my-[40px]">
             <div className={gridClassName}>
               {selectedList && selectedList.length > 0 ? (
-                selectedList.map((accessoryItem, key) => (
+                selectedList.map((computerItem, key) => (
                   <div key={key} className="w-full min-w-0">
-                    <CardAccessory
+                    <CardComputer
                       height="180px"
                       rounded="10px"
                       width="100%"
-                      image={accessoryItem.image ?? ""}
-                      title={accessoryItem.name ?? ""}
-                      price={accessoryItem.price ?? ""}
-                      description={accessoryItem.description ?? ""}
+                      image={computerItem.image ?? ""}
+                      title={computerItem.name ?? ""}
+                      price={computerItem.price ?? ""}
+                      description={computerItem.description ?? ""}
                       dollarPrice={dollarPrice}
-                      id={accessoryItem.id ?? ""}
-                      age={accessoryItem.age ?? ""}
-                      brand={accessoryItem.brand ?? ""}
-                      type_name={accessoryItem.type_name ?? ""}
-                      dynamicSpecs={accessoryItem.dynamicSpecs ?? []}
+                      id={computerItem.id ?? ""}
+                      age={computerItem.age ?? ""}
+                      type_name={computerItem.type_name ?? ""}
+                      dynamicSpecs={computerItem.dynamicSpecs ?? []}
                     />
                   </div>
                 ))
@@ -79,4 +78,4 @@ export const AccessoryList = ({
   );
 };
 
-export default AccessoryList;
+export default ComputerList;

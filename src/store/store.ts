@@ -1,6 +1,9 @@
+// src/store/store.ts
+
 import { apiSlice } from "@/data-access/api/api";
 import { laptopList } from "@/data-access/slices/product-list";
-import { accessoryList } from "@/data-access/slices/Accessory-list";
+import { accessoryList } from "@/data-access/slices/accessory-list";
+import { computerList } from "@/data-access/slices/computer-list"; // ADD THIS
 
 import { configureStore } from "@reduxjs/toolkit";
 import { allProductsList } from "@/data-access/slices/all-products-list";
@@ -12,6 +15,7 @@ export const store = configureStore({
     [apiSlice.reducerPath]: apiSlice.reducer,
     laptopList,
     accessoryList,
+    computerList,      // ADD THIS
     allProductsList,
     productsTypeList,
     searchList,
@@ -19,5 +23,6 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),
 });
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
