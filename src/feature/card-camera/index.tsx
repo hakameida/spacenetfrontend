@@ -1,0 +1,158 @@
+"use client";
+
+import Link from "next/link";
+import React from "react";
+import { getImage } from "@/util/get-image-url";
+import { Camera, Image, Video, Settings } from "lucide-react";
+
+const getAgeInArabic = (age: string | undefined): string => {
+  if (!age) return "";
+  const ageLower = age.toLowerCase();
+  if (ageLower === 'jdyd' || ageLower === 'new' || ageLower === 'جديد') return 'جديد';
+  if (ageLower === 'used' || ageLower === 'مستعمل') return 'مستعمل';
+  if (ageLower === 'openbox' || ageLower === 'اوبن بوكس') return 'اوبن بوكس';
+  return age;
+};
+
+const getBadgeColor = (age: string | undefined): string => {
+  if (!age) return "bg-gray-600";
+  const ageLower = age.toLowerCase();
+  if (ageLower === 'jdyd' || ageLower === 'new' || ageLower === 'جديد') return "bg-red-600";
+  if (ageLower === 'used' || ageLower === 'مستعمل') return "bg-green-600";
+  if (ageLower === 'openbox' || ageLower === 'اوبن بوكس') return "bg-blue-700";
+  return "bg-gray-600";
+};
+
+const CardCamera = ({
+  width,
+  height,
+  rounded,
+  image,
+  title,
+  price,
+  dollarPrice,
+  description,
+  id,
+  age,
+  type_name,
+  brand,
+  megapixels,
+  sensor_type,
+  dynamicSpecs,
+}: {
+  width: string;
+  height: string;
+  rounded: string;
+  title: string;
+  image: string;
+  price: string;
+  dollarPrice: number;
+  description?: string;
+  id?: string;
+  age?: string;
+  type_name?: string;
+  brand?: string;
+  megapixels?: string;
+  sensor_type?: string;
+  dynamicSpecs?: Array<{ key: string; value: string }>;
+}) => {
+  const ageInArabic = getAgeInArabic(age);
+  const badgeColor = getBadgeColor(age);
+
+  const priceInUSD = parseFloat(price);
+  const priceInSYP = !isNaN(priceInUSD) && priceInUSD > 0
+    ? Math.floor(priceInUSD * dollarPrice).toLocaleString()
+    : 0;
+
+  // Get first 2 dynamic specs to display
+  const displaySpecs = dynamicSpecs?.slice(0, 2) || [];
+
+  return (
+    <div className="card-camera h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
+      <Link href={`/cameras/${id}`}>
+        <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
+          <img
+            className="w-full h-full object-contain p-2"
+            alt={`اشتر ${title} باحسن سعر من سبيس نت ستور`}
+            src={getImage(image, 400)}
+          />
+          {ageInArabic && (
+            <span className={`absolute top-2 right-2 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md ${badgeColor}`}>
+              {ageInArabic}
+            </span>
+          )}
+        </div>
+      </Link>
+
+      <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
+        <p className="font-semibold text-[13px] sm:text-[14px] md:text-[15px] leading-snug text-gray-800 line-clamp-2 mb-2 text-center">
+          {title}
+        </p>
+
+        {/* Type and Brand */}
+        <div className="flex justify-center gap-2 mb-3 flex-wrap">
+          {type_name && (
+            <span className="text-[10px] bg-purple-100 px-2 py-0.5 rounded-full text-purple-700 font-medium">
+              {type_name}
+            </span>
+          )}
+          {brand && (
+            <span className="text-[10px] bg-blue-100 px-2 py-0.5 rounded-full text-blue-700 font-medium">
+              {brand}
+            </span>
+          )}
+        </div>
+
+        {/* Key Specs */}
+        <div className="flex justify-center gap-2 mb-3 flex-wrap">
+          {megapixels && (
+            <span className="text-[9px] bg-gray-100 px-2 py-0.5 rounded-full text-gray-700 font-medium flex items-center gap-1">
+              <Image className="w-3 h-3" />
+              {megapixels}
+            </span>
+          )}
+          {sensor_type && (
+            <span className="text-[9px] bg-gray-100 px-2 py-0.5 rounded-full text-gray-700 font-medium flex items-center gap-1">
+              <Settings className="w-3 h-3" />
+              {sensor_type}
+            </span>
+          )}
+        </div>
+
+        {/* Price */}
+        {price === "0.00" || priceInUSD === 0 ? (
+          <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
+        ) : (
+          <div className="mb-2 text-center">
+            <p className="text-[13px] font-bold text-red-600 leading-tight">
+              {priceInSYP} ل.س
+            </p>
+            <p className="text-[18px] font-bold text-green-600 leading-tight">{priceInUSD.toFixed(2)}$</p>
+          </div>
+        )}
+
+        {/* Dynamic Specs */}
+        {displaySpecs.length > 0 && (
+          <div className="grid grid-cols-2 gap-1 mt-auto pt-2 border-t border-gray-100">
+            {displaySpecs.map((spec, index) => (
+              <div key={index} className="flex items-center justify-between gap-1 bg-gray-50 rounded-lg px-1.5 py-1">
+                <span className="text-[9px] font-medium text-gray-500 truncate">{spec.key}:</span>
+                <span className="text-[9px] font-medium text-gray-700 truncate">{spec.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="px-3 pb-3 pt-1.5">
+        <Link href={`/cameras/${id}`}>
+          <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
+            معلومات المنتج
+          </span>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default CardCamera;

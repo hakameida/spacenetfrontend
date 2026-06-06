@@ -7,7 +7,7 @@ export interface DollarResponse {
 }
 
 // Define the exact product module types
-export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY";
+export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY"|"PLAYSTATION"|"CAMERA";
 
 export interface OfferResponse {
   id: string;

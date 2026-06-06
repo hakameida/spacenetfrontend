@@ -66,6 +66,7 @@ const getModuleName = (module: ProductModule) => {
     case 'LAPTOP': return 'لابتوب';
     case 'COMPUTER': return 'كمبيوتر';
     case 'ACCESSORY': return 'اكسسوارات';
+    case 'PLAYSTATION': return 'بلايستيشن';
     default: return '';
   }
 };

@@ -3,8 +3,9 @@
 import { apiSlice } from "@/data-access/api/api";
 import { laptopList } from "@/data-access/slices/product-list";
 import { accessoryList } from "@/data-access/slices/accessory-list";
-import { computerList } from "@/data-access/slices/computer-list"; // ADD THIS
-
+import { computerList } from "@/data-access/slices/computer-list"; 
+import { cameraList } from "@/data-access/slices/camera-list";
+import { playstationList } from "@/data-access/slices/playstation-list";
 import { configureStore } from "@reduxjs/toolkit";
 import { allProductsList } from "@/data-access/slices/all-products-list";
 import { productsTypeList } from "@/data-access/slices/products-types";
@@ -15,7 +16,9 @@ export const store = configureStore({
     [apiSlice.reducerPath]: apiSlice.reducer,
     laptopList,
     accessoryList,
-    computerList,      // ADD THIS
+    computerList,      
+    playstationList,
+    cameraList, 
     allProductsList,
     productsTypeList,
     searchList,
