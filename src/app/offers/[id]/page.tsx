@@ -7,10 +7,10 @@ import { useGetLaptopByIdQuery } from "@/data-access/api/laptop";
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
+import { AiOutlineConsoleSql } from "react-icons/ai";
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
@@ -76,10 +76,8 @@ export default function OfferPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
-      setDollar(dollarData.data.dollarPriceByPk.dollar_price ?? 0);
-    }
+setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
   }, [dollarData]);
-
   const laptop = laptopData?.data?.laptopById;
   
   // Calculate discount using original laptop price and offer price

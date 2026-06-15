@@ -244,7 +244,6 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
   });
 
   const { isLoading } = useGetLaptopsListQuery({ status: true });
-  console.log("Laptops loading:", isLoading);
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
 

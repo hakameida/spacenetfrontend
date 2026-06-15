@@ -244,17 +244,17 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
           <div className="flex items-center justify-center md:justify-start gap-3 mt-4">
             {hasDiscount && (
               <p className="text-lg text-red-500 font-bold line-through">
-                {originalPrice} ل.س
+                {originalPrice} $
               </p>
             )}
             <p className="text-3xl font-bold text-green-600">
-              {offer.price} <span className="text-sm">ل.س</span>
+              {offer.price} <span >$</span>
             </p>
           </div>
           
           {hasDiscount && (
             <p className="text-sm text-green-600 mt-1">
-              وفر {Math.floor(parseFloat(originalPrice) - parseFloat(offer.price))} ل.س
+              وفر {Math.floor(parseFloat(originalPrice) - parseFloat(offer.price))} $
             </p>
           )}
           
