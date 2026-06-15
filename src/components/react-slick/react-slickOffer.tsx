@@ -12,6 +12,7 @@ import { useGetLaptopByIdQuery } from "@/data-access/api/laptop";
 // import { useGetAccessoryByIdQuery } from "@/data-access/api/accessory";
 import Link from "next/link";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { getImage } from "@/util/get-image-url";
 
 interface ArrowButtonProps {
   direction: "prev" | "next";
@@ -104,7 +105,7 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
   const originalPrice = product?.price;
   const discountPercent = originalPrice ? Math.floor(((parseFloat(originalPrice) - parseFloat(offer.price)) / parseFloat(originalPrice)) * 100) : 0;
   const hasDiscount = discountPercent > 0;
-  const imageUrl = getImageUrl(product?.url1 || product?.image1);
+  const imageUrl = getImage(product?.url1 || product?.image1);
   
   if (loading) {
     return (

@@ -10,6 +10,7 @@ import { Skeleton } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getImage } from "@/util/get-image-url";
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
@@ -329,11 +330,10 @@ export default function OfferPage({ params }: { params: { id: string } }) {
               onTouchEnd={handleTouchEnd}
             >
               {currentImage ? (
-                <Image
-                  src={currentImage}
+                <img
+                  src={getImage(currentImage)}
                   alt={laptop.name}
-                  fill
-                  className="object-contain p-4"
+                  className="absolute inset-0 w-full h-full object-contain p-4"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
               ) : (
@@ -392,10 +392,10 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                     className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0
                       ${currentImage === url ? 'border-blue-600 shadow-md' : 'border-gray-200 hover:border-blue-300'}`}
                   >
-                    <Image
-                      src={url}
+                    <img
+                      src={getImage(url)}
                       alt={`Thumbnail ${index + 1}`}
-                      fill
+                      
                       className="object-cover"
                     />
                   </button>
