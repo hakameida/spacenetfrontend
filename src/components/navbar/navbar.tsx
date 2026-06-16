@@ -15,11 +15,60 @@ import {
   ExternalLink,
   X,
   Gamepad2,
-  Camera
+  Camera,
+  Search
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
+
+// ============ IMPORTS FROM YOUR REDUX ============
+import { useAppSelector } from "@/store";
+import { selectLaptopListList } from "@/data-access/slices/product-list";
+import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
+import { selectComputerListList } from "@/data-access/slices/computer-list";
+import { selectPlayStationListList } from "@/data-access/slices/playstation-list";
+import { selectCameraListList } from "@/data-access/slices/camera-list";
+
+// ============ IMPORT API HOOKS TO FETCH PRODUCTS ============
+import { useGetLaptopsListQuery } from "@/data-access/api/laptop";
+import { useGetAccessoriesListQuery } from "@/data-access/api/accessory";
+import { useGetComputersListQuery } from "@/data-access/api/computer";
+import { useGetPlayStationsListQuery } from "@/data-access/api/playstation";
+import { useGetCamerasListQuery } from "@/data-access/api/camera";
+
+// ============ IMPORT getImage UTILITY ============
+import { getImage } from "@/util/get-image-url";
+
+// ============ DEFINE THE PRODUCT TYPE ============
+interface SearchableProduct {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  image?: string;
+  image1?: string;
+  url1?: string;
+  brand?: string;
+  cpu?: string;
+  gpu?: string;
+  ram?: string;
+  hard?: string;
+  screen?: string;
+  color?: string;
+  os?: string;
+  type_name?: string;
+  type_id?: string;
+  sensor_type?: string;
+  megapixels?: string;
+  video_resolution?: string;
+  lens_mount?: string;
+  storage?: string;
+  model_number?: string;
+  compatibility?: string;
+  dynamicSpecs?: Array<{ key: string; value: string }>;
+  [key: string]: any;
+}
 
 const navLinks = [
   { name: "كمبيوتر", href: "/computer", icon: PcCase },
@@ -38,11 +87,18 @@ interface BeforeInstallPromptEvent extends Event {
 
 export default function TopNavbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [visible, setVisible] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hintDirection, setHintDirection] = useState<"left" | "right" | null>(null);
   const lastScrollY = useRef(0);
   const categoriesRef = useRef<HTMLDivElement>(null);
+  
+  // Search states
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchableProduct[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   // Drag to scroll state
   const [isDragging, setIsDragging] = useState(false);
@@ -59,6 +115,169 @@ export default function TopNavbar() {
   // Check if device is mobile
   const [isMobileDevice, setIsMobileDevice] = useState(false);
 
+  // ============ FETCH ALL PRODUCTS ============
+  const { isLoading: isLoadingLaptops } = useGetLaptopsListQuery({ status: true });
+  const { isLoading: isLoadingAccessories } = useGetAccessoriesListQuery({ status: true });
+  const { isLoading: isLoadingComputers } = useGetComputersListQuery({ status: true });
+  const { isLoading: isLoadingPlaystations } = useGetPlayStationsListQuery({ status: true });
+  const { isLoading: isLoadingCameras } = useGetCamerasListQuery({ status: true });
+
+  // ============ GET PRODUCTS FROM REDUX ============
+  const laptopList = useAppSelector(selectLaptopListList);
+  const accessoryList = useAppSelector(selectAccessoryListList);
+  const computerList = useAppSelector(selectComputerListList);
+  const playstationList = useAppSelector(selectPlayStationListList);
+  const cameraList = useAppSelector(selectCameraListList);
+
+  // ============ COMBINE ALL PRODUCTS WITH TYPE CASTING ============
+  const allProducts: SearchableProduct[] = [
+    ...(Array.isArray(laptopList) ? (laptopList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(accessoryList) ? (accessoryList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(computerList) ? (computerList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(playstationList) ? (playstationList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(cameraList) ? (cameraList as unknown as SearchableProduct[]) : []),
+  ];
+
+  // ============ DEBUG: LOG ALL PRODUCTS ============
+  useEffect(() => {
+    const totalProducts = (laptopList?.length || 0) + 
+                          (accessoryList?.length || 0) + 
+                          (computerList?.length || 0) + 
+                          (playstationList?.length || 0) + 
+                          (cameraList?.length || 0);
+    
+    console.log("===== SEARCH DEBUG =====");
+    console.log("Loading states:", {
+      laptops: isLoadingLaptops,
+      accessories: isLoadingAccessories,
+      computers: isLoadingComputers,
+      playstations: isLoadingPlaystations,
+      cameras: isLoadingCameras
+    });
+    console.log("Laptop List:", laptopList?.length || 0, "items");
+    console.log("Accessory List:", accessoryList?.length || 0, "items");
+    console.log("Computer List:", computerList?.length || 0, "items");
+    console.log("PlayStation List:", playstationList?.length || 0, "items");
+    console.log("Camera List:", cameraList?.length || 0, "items");
+    console.log("TOTAL PRODUCTS:", totalProducts);
+    
+    // Log first item of each list to see structure
+    if (laptopList && laptopList.length > 0) {
+      console.log("Sample Laptop:", laptopList[0]);
+    }
+    if (accessoryList && accessoryList.length > 0) {
+      console.log("Sample Accessory:", accessoryList[0]);
+    }
+    if (computerList && computerList.length > 0) {
+      console.log("Sample Computer:", computerList[0]);
+    }
+    if (playstationList && playstationList.length > 0) {
+      console.log("Sample PlayStation:", playstationList[0]);
+    }
+    if (cameraList && cameraList.length > 0) {
+      console.log("Sample Camera:", cameraList[0]);
+    }
+  }, [laptopList, accessoryList, computerList, playstationList, cameraList, 
+      isLoadingLaptops, isLoadingAccessories, isLoadingComputers, isLoadingPlaystations, isLoadingCameras]);
+
+  // ============ SEARCH FUNCTION ============
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    console.log("Searching for:", query);
+    console.log("Total products available:", allProducts.length);
+    
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const searchTerm = query.toLowerCase().trim();
+    
+    const results = allProducts.filter((product: SearchableProduct) => {
+      // Get all possible searchable fields
+      const searchableFields = [
+        product.name,
+        product.brand,
+        product.cpu,
+        product.gpu,
+        product.ram,
+        product.hard,
+        product.screen,
+        product.color,
+        product.os,
+        product.type_name,
+        product.description,
+        product.model_number,
+        product.compatibility,
+        product.sensor_type,
+        product.megapixels,
+        product.video_resolution,
+        product.lens_mount,
+        product.storage,
+        // Also check any dynamic specs if they exist
+        ...(product.dynamicSpecs?.map((spec: any) => spec.value) || [])
+      ].filter(Boolean);
+      
+      // Check if any field contains the search term
+      return searchableFields.some(field => 
+        String(field).toLowerCase().includes(searchTerm)
+      );
+    });
+    
+    console.log("Search results found:", results.length);
+    setSearchResults(results.slice(0, 10));
+  };
+
+  // ============ HANDLE SEARCH SUBMIT ============
+  const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      router.push(`/search/${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+      setSearchResults([]);
+    }
+  };
+
+  // ============ OPEN SEARCH ============
+  const openSearch = () => {
+    setIsSearchOpen(true);
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+  };
+
+  // ============ CLOSE SEARCH ============
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  // ============ HANDLE RESULT CLICK ============
+  const handleResultClick = (product: SearchableProduct) => {
+    let path = "";
+    if (product.cpu !== undefined) path = `/laptops/${product.id}`;
+    else if (product.brand && product.type_name) path = `/accessories/${product.id}`;
+    else if (product.type_name) path = `/computer/${product.id}`;
+    else if (product.storage) path = `/playstations/${product.id}`;
+    else if (product.sensor_type || product.megapixels) path = `/cameras/${product.id}`;
+    else path = `/search/${encodeURIComponent(searchQuery)}`;
+    
+    router.push(path);
+    closeSearch();
+  };
+
+  // ============ GET IMAGE FOR PRODUCT ============
+  const getProductImage = (product: SearchableProduct) => {
+    // Try different image fields
+    const imageUrl = product.image || product.image1 || product.url1 || "";
+    return getImage(imageUrl);
+  };
+
+  // ... REST OF YOUR EXISTING CODE (keep everything the same from here) ...
+
+  // ============ THE REST OF YOUR COMPONENT CODE ============
   useEffect(() => {
     const checkMobile = () => {
       setIsMobileDevice(window.innerWidth < 768);
@@ -66,7 +285,6 @@ export default function TopNavbar() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // Listen for beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -75,14 +293,12 @@ export default function TopNavbar() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Check if already installed (standalone mode)
     if (window.matchMedia('(display-mode: standalone)').matches || 
         (window.navigator as any).standalone === true) {
       setIsInstalled(true);
       setShowInstallButton(false);
     }
 
-    // Check for installed apps
     const checkInstalled = async () => {
       if ('getInstalledRelatedApps' in navigator) {
         try {
@@ -104,7 +320,6 @@ export default function TopNavbar() {
     };
   }, []);
 
-  // Check if first visit
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("hasSeenNavbarOnboarding");
     const isMobile = window.innerWidth < 768;
@@ -122,22 +337,18 @@ export default function TopNavbar() {
       }, 100);
     }
 
-    // Check if desktop banner should be shown
     const bannerDismissed = localStorage.getItem("desktopInstallBannerDismissed");
     if (bannerDismissed) {
       setShowDesktopBanner(false);
     }
   }, []);
 
-  // Handle PWA Install
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
-      // Fallback: Show manual install instructions
       showManualInstallInstructions();
       return;
     }
 
-    // Show the install prompt
     await deferredPrompt.prompt();
     
     const { outcome } = await deferredPrompt.userChoice;
@@ -151,7 +362,6 @@ export default function TopNavbar() {
     setDeferredPrompt(null);
   };
 
-  // Manual install instructions for browsers without prompt
   const showManualInstallInstructions = () => {
     const isMobile = window.innerWidth < 768;
     let message = '';
@@ -169,18 +379,15 @@ export default function TopNavbar() {
     alert(message);
   };
 
-  // Dismiss desktop banner
   const dismissDesktopBanner = () => {
     setShowDesktopBanner(false);
     localStorage.setItem("desktopInstallBannerDismissed", "true");
   };
 
-  // Handle Open in App (for desktop)
   const handleOpenApp = () => {
     window.open(window.location.origin, '_blank');
   };
 
-  // Drag to scroll functionality
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!categoriesRef.current) return;
     setIsDragging(true);
@@ -241,7 +448,6 @@ export default function TopNavbar() {
     localStorage.setItem("hasSeenNavbarOnboarding", "true");
   };
 
-  // Scroll behavior
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -299,7 +505,7 @@ export default function TopNavbar() {
         </>
       )}
 
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar with Search */}
       <nav 
         className={`
           fixed top-0 w-full h-[56px] bg-white/30 backdrop-blur-md z-50 shadow-md
@@ -311,7 +517,6 @@ export default function TopNavbar() {
           
           {/* LEFT SIDE - Buttons Group */}
           <div className="flex items-center gap-1 md:gap-2">
-            {/* Compare Button */}
             <a
               href="https://technical.city/en"
               target="_blank"
@@ -322,7 +527,6 @@ export default function TopNavbar() {
               <span className="text-[10px] md:text-xs mt-0.5">مقارنة</span>
             </a>
 
-            {/* Install/Open App/PC Build Button */}
             {showInstallButton && !isInstalled ? (
               <button
                 onClick={handleInstallClick}
@@ -350,6 +554,113 @@ export default function TopNavbar() {
             )}
           </div>
 
+          {/* CENTER - Search */}
+          <div className="flex-1 flex justify-center">
+            {!isSearchOpen ? (
+              <button
+                onClick={openSearch}
+                className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Search className="w-5 h-5 text-gray-600" />
+              </button>
+            ) : (
+              <div className="relative w-full max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    onKeyDown={handleSearchSubmit}
+                    placeholder="ابحث عن منتج..."
+                    className="w-full px-10 py-2 text-sm bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                    dir="rtl"
+                  />
+                  <button
+                    onClick={closeSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 hover:bg-gray-200 rounded-full p-1 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Loading State */}
+                {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras) && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-4 text-center z-50">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                      <span className="text-gray-500 text-sm">جاري تحميل المنتجات...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Search Results Dropdown */}
+                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && 
+                 searchQuery.length >= 2 && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 max-h-80 overflow-y-auto z-50">
+                    {searchResults.map((product, index) => {
+                      const imageUrl = getProductImage(product);
+                      return (
+                        <div
+                          key={product.id || index}
+                          onClick={() => handleResultClick(product)}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
+                        >
+                          {imageUrl && (
+                            <img
+                              src={imageUrl}
+                              alt={product.name}
+                              className="w-10 h-10 object-contain rounded"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              {product.price && <span>${parseFloat(product.price).toFixed(2)}</span>}
+                              {product.brand && <span className="text-blue-600">{product.brand}</span>}
+                              {product.type_name && <span className="text-purple-600">{product.type_name}</span>}
+                              {product.cpu && <span className="text-gray-400">{product.cpu}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    <div className="px-4 py-2 border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          router.push(`/search/${encodeURIComponent(searchQuery)}`);
+                          closeSearch();
+                        }}
+                        className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        عرض جميع النتائج ({searchResults.length})
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* No results message */}
+                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras &&
+                 searchQuery.length >= 2 && searchResults.length === 0 && allProducts.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-6 text-center z-50">
+                    <p className="text-gray-500">لا توجد نتائج مطابقة لـ "{searchQuery}"</p>
+                    <button
+                      onClick={() => {
+                        router.push(`/search/${encodeURIComponent(searchQuery)}`);
+                        closeSearch();
+                      }}
+                      className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      البحث عن "{searchQuery}" في جميع المنتجات
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* RIGHT SIDE - Logo */}
           <a href="/" className="flex-shrink-0">
             <Image
@@ -364,7 +675,15 @@ export default function TopNavbar() {
         </div>
       </nav>
 
-      {/* Floating Bottom Categories Bar - More space on both ends */}
+      {/* Search Overlay */}
+      {isSearchOpen && (
+        <div 
+          className="fixed inset-0 z-[45] bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+          onClick={closeSearch}
+        />
+      )}
+
+      {/* Floating Bottom Categories Bar */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}
