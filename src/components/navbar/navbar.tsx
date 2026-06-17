@@ -138,54 +138,9 @@ export default function TopNavbar() {
     ...(Array.isArray(cameraList) ? (cameraList as unknown as SearchableProduct[]) : []),
   ];
 
-  // ============ DEBUG: LOG ALL PRODUCTS ============
-  useEffect(() => {
-    const totalProducts = (laptopList?.length || 0) + 
-                          (accessoryList?.length || 0) + 
-                          (computerList?.length || 0) + 
-                          (playstationList?.length || 0) + 
-                          (cameraList?.length || 0);
-    
-    console.log("===== SEARCH DEBUG =====");
-    console.log("Loading states:", {
-      laptops: isLoadingLaptops,
-      accessories: isLoadingAccessories,
-      computers: isLoadingComputers,
-      playstations: isLoadingPlaystations,
-      cameras: isLoadingCameras
-    });
-    console.log("Laptop List:", laptopList?.length || 0, "items");
-    console.log("Accessory List:", accessoryList?.length || 0, "items");
-    console.log("Computer List:", computerList?.length || 0, "items");
-    console.log("PlayStation List:", playstationList?.length || 0, "items");
-    console.log("Camera List:", cameraList?.length || 0, "items");
-    console.log("TOTAL PRODUCTS:", totalProducts);
-    
-    // Log first item of each list to see structure
-    if (laptopList && laptopList.length > 0) {
-      console.log("Sample Laptop:", laptopList[0]);
-    }
-    if (accessoryList && accessoryList.length > 0) {
-      console.log("Sample Accessory:", accessoryList[0]);
-    }
-    if (computerList && computerList.length > 0) {
-      console.log("Sample Computer:", computerList[0]);
-    }
-    if (playstationList && playstationList.length > 0) {
-      console.log("Sample PlayStation:", playstationList[0]);
-    }
-    if (cameraList && cameraList.length > 0) {
-      console.log("Sample Camera:", cameraList[0]);
-    }
-  }, [laptopList, accessoryList, computerList, playstationList, cameraList, 
-      isLoadingLaptops, isLoadingAccessories, isLoadingComputers, isLoadingPlaystations, isLoadingCameras]);
-
   // ============ SEARCH FUNCTION ============
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    
-    console.log("Searching for:", query);
-    console.log("Total products available:", allProducts.length);
     
     if (query.trim().length < 2) {
       setSearchResults([]);
@@ -195,7 +150,6 @@ export default function TopNavbar() {
     const searchTerm = query.toLowerCase().trim();
     
     const results = allProducts.filter((product: SearchableProduct) => {
-      // Get all possible searchable fields
       const searchableFields = [
         product.name,
         product.brand,
@@ -215,17 +169,14 @@ export default function TopNavbar() {
         product.video_resolution,
         product.lens_mount,
         product.storage,
-        // Also check any dynamic specs if they exist
         ...(product.dynamicSpecs?.map((spec: any) => spec.value) || [])
       ].filter(Boolean);
       
-      // Check if any field contains the search term
       return searchableFields.some(field => 
         String(field).toLowerCase().includes(searchTerm)
       );
     });
     
-    console.log("Search results found:", results.length);
     setSearchResults(results.slice(0, 10));
   };
 
@@ -270,12 +221,9 @@ export default function TopNavbar() {
 
   // ============ GET IMAGE FOR PRODUCT ============
   const getProductImage = (product: SearchableProduct) => {
-    // Try different image fields
     const imageUrl = product.image || product.image1 || product.url1 || "";
     return getImage(imageUrl);
   };
-
-  // ... REST OF YOUR EXISTING CODE (keep everything the same from here) ...
 
   // ============ THE REST OF YOUR COMPONENT CODE ============
   useEffect(() => {
@@ -589,7 +537,7 @@ export default function TopNavbar() {
                 {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras) && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-4 text-center z-50">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
                       <span className="text-gray-500 text-sm">جاري تحميل المنتجات...</span>
                     </div>
                   </div>
@@ -641,11 +589,11 @@ export default function TopNavbar() {
                   </div>
                 )}
 
-                {/* No results message */}
+                {/* No results message - FIXED UNESCAPED QUOTES */}
                 {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras &&
                  searchQuery.length >= 2 && searchResults.length === 0 && allProducts.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-6 text-center z-50">
-                    <p className="text-gray-500">لا توجد نتائج مطابقة لـ "{searchQuery}"</p>
+                    <p className="text-gray-500">لا توجد نتائج مطابقة لـ &quot;{searchQuery}&quot;</p>
                     <button
                       onClick={() => {
                         router.push(`/search/${encodeURIComponent(searchQuery)}`);
@@ -653,7 +601,7 @@ export default function TopNavbar() {
                       }}
                       className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      البحث عن "{searchQuery}" في جميع المنتجات
+                      البحث عن &quot;{searchQuery}&quot; في جميع المنتجات
                     </button>
                   </div>
                 )}

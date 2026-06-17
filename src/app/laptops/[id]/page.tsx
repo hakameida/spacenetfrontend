@@ -7,7 +7,6 @@ import { useAppSelector } from "@/store";
 import { selectLaptopListList } from "@/data-access/slices/product-list";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { getImage } from "@/util/get-image-url";

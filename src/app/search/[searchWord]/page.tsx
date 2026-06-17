@@ -1,4 +1,5 @@
 // src/app/search/[searchWord]/page.tsx
+
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
@@ -192,7 +193,7 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-            نتائج البحث عن: <span className="text-blue-600">"{searchQuery}"</span>
+            نتائج البحث عن: <span className="text-blue-600">&quot;{searchQuery}&quot;</span>
           </h1>
           <p className="text-gray-500 mt-1">
             تم العثور على <span className="font-bold text-blue-600">{results.length}</span> منتج
@@ -253,7 +254,7 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
           </div>
           <h2 className="text-2xl font-bold text-gray-600 mb-2">لا توجد نتائج</h2>
           <p className="text-gray-500 mb-6">
-            لم نتمكن من العثور على منتجات تطابق "<span className="font-bold">{searchQuery}</span>"
+            لم نتمكن من العثور على منتجات تطابق &quot;<span className="font-bold">{searchQuery}</span>&quot;
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <button
@@ -282,7 +283,25 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors"
             >
               تصفح الكمبيوتر
-              </button>
+            </button>
+            <button
+              onClick={() => {
+                setSearchInput("");
+                router.push("/playstations");
+              }}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
+            >
+              تصفح البلايستيشن
+            </button>
+            <button
+              onClick={() => {
+                setSearchInput("");
+                router.push("/cameras");
+              }}
+              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
+            >
+              تصفح الكاميرات
+            </button>
           </div>
         </div>
       )}
