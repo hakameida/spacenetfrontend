@@ -193,14 +193,16 @@ export default function TopNavbar() {
   // ============ OPEN SEARCH ============
   const openSearch = () => {
     setIsSearchOpen(true);
+    document.body.style.overflow = 'hidden';
     setTimeout(() => {
       searchInputRef.current?.focus();
-    }, 100);
+    }, 300);
   };
 
   // ============ CLOSE SEARCH ============
   const closeSearch = () => {
     setIsSearchOpen(false);
+    document.body.style.overflow = 'unset';
     setSearchQuery("");
     setSearchResults([]);
   };
@@ -413,6 +415,13 @@ export default function TopNavbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Clean up body overflow on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   return (
     <>
       {/* Onboarding Overlay */}
@@ -453,7 +462,7 @@ export default function TopNavbar() {
         </>
       )}
 
-      {/* Top Navigation Bar with Search */}
+      {/* Top Navigation Bar */}
       <nav 
         className={`
           fixed top-0 w-full h-[56px] bg-white/30 backdrop-blur-md z-50 shadow-md
@@ -502,113 +511,6 @@ export default function TopNavbar() {
             )}
           </div>
 
-          {/* CENTER - Search */}
-          <div className="flex-1 flex justify-center">
-            {!isSearchOpen ? (
-              <button
-                onClick={openSearch}
-                className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <Search className="w-5 h-5 text-gray-600" />
-              </button>
-            ) : (
-              <div className="relative w-full max-w-md">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    onKeyDown={handleSearchSubmit}
-                    placeholder="ابحث عن منتج..."
-                    className="w-full px-10 py-2 text-sm bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-                    dir="rtl"
-                  />
-                  <button
-                    onClick={closeSearch}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 hover:bg-gray-200 rounded-full p-1 transition-colors"
-                  >
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-
-                {/* Loading State */}
-                {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras) && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-4 text-center z-50">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
-                      <span className="text-gray-500 text-sm">جاري تحميل المنتجات...</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Search Results Dropdown */}
-                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && 
-                 searchQuery.length >= 2 && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 max-h-80 overflow-y-auto z-50">
-                    {searchResults.map((product, index) => {
-                      const imageUrl = getProductImage(product);
-                      return (
-                        <div
-                          key={product.id || index}
-                          onClick={() => handleResultClick(product)}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-50 last:border-0"
-                        >
-                          {imageUrl && (
-                            <img
-                              src={imageUrl}
-                              alt={product.name}
-                              className="w-10 h-10 object-contain rounded"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              {product.price && <span>${parseFloat(product.price).toFixed(2)}</span>}
-                              {product.brand && <span className="text-blue-600">{product.brand}</span>}
-                              {product.type_name && <span className="text-purple-600">{product.type_name}</span>}
-                              {product.cpu && <span className="text-gray-400">{product.cpu}</span>}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    <div className="px-4 py-2 border-t border-gray-100">
-                      <button
-                        onClick={() => {
-                          router.push(`/search/${encodeURIComponent(searchQuery)}`);
-                          closeSearch();
-                        }}
-                        className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        عرض جميع النتائج ({searchResults.length})
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* No results message - FIXED UNESCAPED QUOTES */}
-                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras &&
-                 searchQuery.length >= 2 && searchResults.length === 0 && allProducts.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-6 text-center z-50">
-                    <p className="text-gray-500">لا توجد نتائج مطابقة لـ &quot;{searchQuery}&quot;</p>
-                    <button
-                      onClick={() => {
-                        router.push(`/search/${encodeURIComponent(searchQuery)}`);
-                        closeSearch();
-                      }}
-                      className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      البحث عن &quot;{searchQuery}&quot; في جميع المنتجات
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           {/* RIGHT SIDE - Logo */}
           <a href="/" className="flex-shrink-0">
             <Image
@@ -623,12 +525,202 @@ export default function TopNavbar() {
         </div>
       </nav>
 
-      {/* Search Overlay */}
+      {/* FLOATING SEARCH BUTTON - Left side, above everything */}
+      <button
+        onClick={openSearch}
+        className={`
+          fixed z-[70] transition-all duration-300 ease-out
+          ${visible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}
+          left-4 top-[70px]
+          flex items-center gap-2 px-4 py-2.5
+          bg-white/80 backdrop-blur-md
+          border border-white/20
+          rounded-full shadow-lg
+          hover:bg-white/90 hover:shadow-xl
+          transition-all duration-300
+          group
+        `}
+      >
+        <Search className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+        <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors hidden sm:inline">
+          ابحث عن منتج...
+        </span>
+        <span className="text-xs text-gray-400 hidden sm:inline">⌘K</span>
+      </button>
+
+      {/* SEARCH OVERLAY - Full screen with foggy effect */}
       {isSearchOpen && (
-        <div 
-          className="fixed inset-0 z-[45] bg-black/40 backdrop-blur-sm transition-opacity duration-300"
-          onClick={closeSearch}
-        />
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 px-4">
+          {/* Backdrop with blur */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            onClick={closeSearch}
+          />
+          
+          {/* Search Modal */}
+          <div className="relative w-full max-w-2xl animate-in slide-in-from-top-4 duration-300">
+            {/* Search Input */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
+              <div className="p-4">
+                <div className="relative">
+                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    onKeyDown={handleSearchSubmit}
+                    placeholder="ابحث عن منتج..."
+                    className="w-full px-12 py-3.5 text-lg text-white bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent placeholder:text-white/40"
+                    dir="rtl"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSearchResults([]);
+                      }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 hover:bg-white/10 rounded-full p-1 transition-colors"
+                    >
+                      <X className="w-5 h-5 text-white/60" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Results */}
+              <div className="max-h-[60vh] overflow-y-auto">
+                {/* Loading State */}
+                {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras) && (
+                  <div className="p-6 text-center">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/30 border-t-white" />
+                      <span className="text-white/70">جاري البحث...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results */}
+                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && 
+                 searchQuery.length >= 2 && searchResults.length > 0 && (
+                  <>
+                    {searchResults.map((product, index) => {
+                      const imageUrl = getProductImage(product);
+                      return (
+                        <div
+                          key={product.id || index}
+                          onClick={() => handleResultClick(product)}
+                          className="flex items-center gap-4 px-4 py-3 hover:bg-white/10 cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                        >
+                          {imageUrl && (
+                            <div className="w-12 h-12 bg-white/10 rounded-lg overflow-hidden flex-shrink-0">
+                              <img
+                                src={imageUrl}
+                                alt={product.name}
+                                className="w-full h-full object-contain p-1"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{product.name}</p>
+                            <div className="flex items-center gap-3 text-xs text-white/60">
+                              {product.price && <span>${parseFloat(product.price).toFixed(2)}</span>}
+                              {product.brand && <span className="text-blue-300">{product.brand}</span>}
+                              {product.type_name && <span className="text-purple-300">{product.type_name}</span>}
+                            </div>
+                          </div>
+                          <ChevronLeft className="w-4 h-4 text-white/30" />
+                        </div>
+                      );
+                    })}
+                    
+                    <div className="px-4 py-3 border-t border-white/10">
+                      <button
+                        onClick={() => {
+                          router.push(`/search/${encodeURIComponent(searchQuery)}`);
+                          closeSearch();
+                        }}
+                        className="w-full text-center text-sm text-white/70 hover:text-white font-medium py-2 rounded-lg hover:bg-white/5 transition-colors"
+                      >
+                        عرض جميع النتائج ({searchResults.length})
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* No results */}
+                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras &&
+                 searchQuery.length >= 2 && searchResults.length === 0 && allProducts.length > 0 && (
+                  <div className="p-8 text-center">
+                    <p className="text-white/60">لا توجد نتائج مطابقة لـ &quot;{searchQuery}&quot;</p>
+                    <button
+                      onClick={() => {
+                        router.push(`/search/${encodeURIComponent(searchQuery)}`);
+                        closeSearch();
+                      }}
+                      className="mt-3 text-sm text-blue-400 hover:text-blue-300 font-medium"
+                    >
+                      البحث عن &quot;{searchQuery}&quot; في جميع المنتجات
+                    </button>
+                  </div>
+                )}
+
+                {/* Initial state - show suggestions */}
+                {searchQuery.length < 2 && (
+                  <div className="p-6 text-center text-white/40 text-sm">
+                    <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>ابحث عن منتجات، ماركات، أو تصنيفات</p>
+                    <div className="flex flex-wrap justify-center gap-2 mt-4">
+                      <button 
+                        onClick={() => {
+                          setSearchQuery("لابتوب");
+                          handleSearch("لابتوب");
+                        }}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-xs text-white/60 transition-colors"
+                      >
+                        💻 لابتوب
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery("ماوس");
+                          handleSearch("ماوس");
+                        }}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-xs text-white/60 transition-colors"
+                      >
+                        🖱️ ماوس
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery("كيبورد");
+                          handleSearch("كيبورد");
+                        }}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-xs text-white/60 transition-colors"
+                      >
+                        ⌨️ كيبورد
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery("بلايستيشن");
+                          handleSearch("بلايستيشن");
+                        }}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-xs text-white/60 transition-colors"
+                      >
+                        🎮 بلايستيشن
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Close hint */}
+              <div className="p-3 border-t border-white/5 text-center">
+                <p className="text-white/30 text-xs">
+                  اضغط ESC أو انقر خارج النافذة للإغلاق
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Floating Bottom Categories Bar */}
@@ -738,7 +830,20 @@ export default function TopNavbar() {
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
+        .slide-in-from-top-4 {
+          animation: slideInFromTop 0.3s ease-out;
+        }
+        @keyframes slideInFromTop {
+          from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
       `}</style>
     </>
   );
-}
+} 

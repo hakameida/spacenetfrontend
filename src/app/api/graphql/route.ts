@@ -5,9 +5,6 @@ const GRAPHQL_ENDPOINT = 'https://api.spacenetstore.com/graphql/';
 const MARKET_SECRET_TOKEN = process.env.MARKET_SECRET_TOKEN;
 
 export async function POST(request: NextRequest) {
-  console.log('🚀 API Route /api/graphql was called!');
-  console.log('🔑 Token exists:', !!MARKET_SECRET_TOKEN);
-  
   try {
     const body = await request.json();
     
