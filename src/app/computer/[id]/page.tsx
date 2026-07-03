@@ -1,17 +1,17 @@
-// app/accessories/[id]/page.tsx
+// app/computer/[id]/page.tsx
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useGetDollarQuery } from "@/data-access/api/shared";
-import { useGetAccessoryByIdQuery, useGetAccessoriesListQuery } from "@/data-access/api/accessory";
+import { useGetComputerByIdQuery, useGetComputersListQuery } from "@/data-access/api/computer";
 import { useAppSelector } from "@/store";
-import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
+import { selectComputerListList } from "@/data-access/slices/computer-list";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, Monitor } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
-import CardAccessory from "@/feature/card-accessory";
+import CardComputer from "@/feature/card-computer";
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
@@ -49,15 +49,8 @@ const getDiscountPercent = (originalPrice: string, discountPrice: string) => {
   return Math.floor(((parseFloat(originalPrice) - parseFloat(discountPrice)) / parseFloat(originalPrice)) * 100);
 };
 
-// Helper to extract brand from name
-const extractBrand = (name: string): string => {
-  if (!name) return "";
-  const firstWord = name.split(' ')[0];
-  return firstWord;
-};
-
-export default function AccessoryDetailPage({ params }: { params: { id: string } }) {
-  const { data, isLoading } = useGetAccessoryByIdQuery({ id: params.id });
+export default function ComputerDetailPage({ params }: { params: { id: string } }) {
+  const { data, isLoading } = useGetComputerByIdQuery({ id: params.id });
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -67,10 +60,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   const [touchEnd, setTouchEnd] = useState<number>(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Get all accessories for similar products
-  const { isLoading: isListLoading } = useGetAccessoriesListQuery({ status: true });
-  const accessoryListRaw = useAppSelector(selectAccessoryListList);
-  const accessoryList: any[] = Array.isArray(accessoryListRaw) ? accessoryListRaw : [];
+  // Get all computers for similar products
+  const { isLoading: isListLoading } = useGetComputersListQuery({ status: true });
+  const computerListRaw = useAppSelector(selectComputerListList);
+  const computerList: any[] = Array.isArray(computerListRaw) ? computerListRaw : [];
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
@@ -79,46 +72,43 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   }, [dollarData]);
 
   useEffect(() => {
-    const accessory = data;
-    if (accessory) {
+    const computer = data;
+    if (computer) {
       const firstImage = [
-        accessory.url1, accessory.url2, accessory.url3, accessory.url4, accessory.url5,
-        accessory.image1, accessory.image2, accessory.image3, accessory.image4, accessory.image5
+        computer.url1, computer.url2, computer.url3, computer.url4, computer.url5,
+        computer.image1, computer.image2, computer.image3, computer.image4, computer.image5
       ].find(Boolean);
       if (firstImage) setCurrentImage(firstImage);
     }
   }, [data]);
 
-  const accessory = data;
+  const computer = data;
 
   // Get all images array
   const allImages: string[] = [
-    accessory?.url1, accessory?.url2, accessory?.url3, accessory?.url4, accessory?.url5,
-    accessory?.image1, accessory?.image2, accessory?.image3, accessory?.image4, accessory?.image5
+    computer?.url1, computer?.url2, computer?.url3, computer?.url4, computer?.url5,
+    computer?.image1, computer?.image2, computer?.image3, computer?.image4, computer?.image5
   ].filter((img): img is string => Boolean(img));
 
   // Calculate discount
-  const discountPercent = accessory?.discount ? getDiscountPercent(accessory.price, accessory.discount) : 0;
+  const discountPercent = computer?.discount ? getDiscountPercent(computer.price, computer.discount) : 0;
   const hasDiscount = discountPercent > 0;
 
   // Find similar products
   const similarProducts = useMemo(() => {
-    if (!accessory || accessoryList.length === 0) return [];
+    if (!computer || computerList.length === 0) return [];
 
-    const currentPrice = parseFloat(accessory.price) || 0;
-    const currentBrand = accessory.brand || '';
-    const currentType = accessory.type_name || '';
+    const currentPrice = parseFloat(computer.price) || 0;
+    const currentType = computer.type_name || '';
 
-    const scored = accessoryList
-      .filter((item) => item.id !== accessory.id)
+    const scored = computerList
+      .filter((item) => item.id !== computer.id)
       .map((item) => {
         let score = 0;
         const itemPrice = parseFloat(item.price) || 0;
-        const itemBrand = item.brand || '';
         const itemType = item.type_name || '';
 
-        if (currentBrand && itemBrand === currentBrand) score += 50;
-        if (currentType && itemType === currentType) score += 40;
+        if (currentType && itemType === currentType) score += 50;
 
         const priceDiff = Math.abs(currentPrice - itemPrice);
         if (currentPrice > 0 && priceDiff <= 200) score += 25;
@@ -130,7 +120,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
       .slice(0, 6);
 
     return scored;
-  }, [accessory, accessoryList]);
+  }, [computer, computerList]);
 
   // Handle swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -181,15 +171,12 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // Build specs text for sharing/whatsapp
   const buildSpecsText = () => {
-    if (!accessory) return "";
+    if (!computer) return "";
     const specsList: string[] = [];
-    if (accessory.brand) specsList.push(`• الماركة: ${accessory.brand}`);
-    if (accessory.modelNumber) specsList.push(`• رقم الموديل: ${accessory.modelNumber}`);
-    if (accessory.compatibility) specsList.push(`• التوافق: ${accessory.compatibility}`);
-    if (accessory.type_name) specsList.push(`• النوع: ${accessory.type_name}`);
+    if (computer.type_name) specsList.push(`• النوع: ${computer.type_name}`);
     
-    if (accessory.dynamicSpecs) {
-      accessory.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
+    if (computer.dynamicSpecs) {
+      computer.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
         specsList.push(`• ${spec.key}: ${spec.value}`);
       });
     }
@@ -199,21 +186,21 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // Share function
   const handleShare = async () => {
-    if (!accessory) return;
+    if (!computer) return;
     
     const specsText = buildSpecsText();
     
-    let shareText = `🎧 *${accessory.name}*\n\n💰 السعر: $${formatPriceInUSD(accessory.discount || accessory.price)}`;
+    let shareText = `🖥️ *${computer.name}*\n\n💰 السعر: $${formatPriceInUSD(computer.discount || computer.price)}`;
     if (hasDiscount) {
-      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(accessory.price)})`;
+      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(computer.price)})`;
     }
-    shareText += `\n📦 الحالة: ${getAgeInArabic(accessory.age)}${specsText}\n\n🔗 الرابط:`;
-    const shareUrl = `${window.location.origin}/accessories/${params.id}`;
+    shareText += `\n📦 الحالة: ${getAgeInArabic(computer.age)}${specsText}\n\n🔗 الرابط:`;
+    const shareUrl = `${window.location.origin}/computer/${params.id}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: accessory.name,
+          title: computer.name,
           text: shareText.replace(/\*/g, ''),
           url: shareUrl,
         });
@@ -235,19 +222,19 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // WhatsApp order function
   const handleWhatsAppOrder = () => {
-    if (!accessory) return;
+    if (!computer) return;
     
     const specsText = buildSpecsText();
     
     let message = `مرحباً، أريد الاستفسار عن هذا المنتج:\n\n`;
-    message += `🎧 *${accessory.name}*\n`;
-    message += `💰 السعر: $${formatPriceInUSD(accessory.discount || accessory.price)}`;
+    message += `🖥️ *${computer.name}*\n`;
+    message += `💰 السعر: $${formatPriceInUSD(computer.discount || computer.price)}`;
     if (hasDiscount) {
-      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(accessory.price)})`;
+      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(computer.price)})`;
     }
-    message += `\n📦 الحالة: ${getAgeInArabic(accessory.age)}`;
+    message += `\n📦 الحالة: ${getAgeInArabic(computer.age)}`;
     message += specsText;
-    message += `\n\n🔗 رابط المنتج: ${window.location.origin}/accessories/${params.id}`;
+    message += `\n\n🔗 رابط المنتج: ${window.location.origin}/computer/${params.id}`;
     
     if (currentImage) {
       message += `\n\n📸 صورة المنتج: ${currentImage}`;
@@ -274,24 +261,24 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   };
 
   if (isLoading) {
-    return <AccessoryDetailsSkeleton />;
+    return <ComputerDetailsSkeleton />;
   }
 
-  if (!accessory) {
+  if (!computer) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8">
           <h2 className="text-2xl font-bold text-red-600 mb-2">عذراً!</h2>
           <p className="text-gray-600">المنتج غير متوفر أو تم حذفه</p>
-          <Link href="/accessories" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            العودة إلى الاكسسوارات
+          <Link href="/computer" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            العودة إلى الكمبيوتر
           </Link>
         </div>
       </div>
     );
   }
 
-  const ageDisplay = getAgeDisplay(accessory.age);
+  const ageDisplay = getAgeDisplay(computer.age);
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
@@ -302,10 +289,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
             عرض خاص
           </div>
           <h3 className="text-white text-xl font-bold">
-            🎉 خصم {discountPercent}% على {accessory.name} 🎉
+            🎉 خصم {discountPercent}% على {computer.name} 🎉
           </h3>
           <p className="text-white/90 text-sm mt-1">
-            وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+            وفر {Math.floor(parseFloat(computer.price) - parseFloat(computer.discount))}$
           </p>
         </div>
       )}
@@ -324,7 +311,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
               {currentImage ? (
                 <img
                   src={getImage(currentImage)}
-                  alt={accessory.name}
+                  alt={computer.name}
                   className="absolute inset-0 w-full h-full object-contain p-4"
                 />
               ) : (
@@ -406,7 +393,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         <div className="lg:w-1/2">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-              {accessory.name}
+              {computer.name}
             </h1>
             
             <div className="flex flex-wrap gap-2 mb-4">
@@ -426,55 +413,45 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
                   {hasDiscount && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      {formatPriceInSYP(accessory.price, dollar)} ل.س
+                      {formatPriceInSYP(computer.price, dollar)} ل.س
                     </p>
                   )}
                   <p className="text-2xl md:text-3xl font-bold text-red-600">
-                    {formatPriceInSYP(accessory.discount || accessory.price, dollar)} <span className="text-sm">ل.س</span>
+                    {formatPriceInSYP(computer.discount || computer.price, dollar)} <span className="text-sm">ل.س</span>
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">السعر بالدولار</span>
                   {hasDiscount && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      ${formatPriceInUSD(accessory.price)}
+                      ${formatPriceInUSD(computer.price)}
                     </p>
                   )}
                   <p className="text-xl md:text-2xl font-bold text-green-600">
-                    ${formatPriceInUSD(accessory.discount || accessory.price)}
+                    ${formatPriceInUSD(computer.discount || computer.price)}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-              {accessory.brand && (
+              {computer.type_name && (
                 <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">الماركة</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.brand}</p>
-                </div>
-              )}
-              {accessory.type_name && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">النوع</p>
-                  <p className="text-sm font-medium text-gray-800">{accessory.type_name}</p>
-                </div>
-              )}
-              {accessory.modelNumber && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">رقم الموديل</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.modelNumber}</p>
-                </div>
-              )}
-              {accessory.compatibility && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">التوافق</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.compatibility}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><Monitor className="w-3 h-3" /> النوع</p>
+                  <p className="text-sm font-medium text-gray-800">{computer.type_name}</p>
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3">
+            {/* Dynamic Specs as quick view */}
+            {computer.dynamicSpecs && computer.dynamicSpecs.slice(0, 4).map((spec: { key: string; value: string }, idx: number) => (
+              <div key={idx} className="bg-gray-50 rounded-lg p-2 mb-2">
+                <p className="text-xs text-gray-500">{spec.key}</p>
+                <p className="text-sm font-medium text-gray-800">{spec.value}</p>
+              </div>
+            ))}
+
+            <div className="flex gap-3 mt-4">
               <button
                 onClick={handleWhatsAppOrder}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
@@ -493,7 +470,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* المواصفات الكاملة Section - FIRST */}
+      {/* المواصفات الكاملة Section */}
       <div className="mt-8">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -506,11 +483,11 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                 <tbody>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700 w-1/3 rounded-r-lg">الاسم</td>
-                    <td className="py-3 px-4 text-gray-600">{accessory.name}</td>
+                    <td className="py-3 px-4 text-gray-600">{computer.name}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
-                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(accessory.age)}</td>
+                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(computer.age)}</td>
                   </tr>
                   
                   {/* Discount row */}
@@ -519,7 +496,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     <td className="py-3 px-4 text-gray-600">
                       {hasDiscount ? (
                         <span className="text-red-600 font-bold">
-                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(computer.price) - parseFloat(computer.discount))}$
                         </span>
                       ) : (
                         <span className="text-gray-500">لا يوجد خصم</span>
@@ -527,32 +504,14 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     </td>
                   </tr>
                   
-                  {accessory.brand && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.brand}</td>
-                    </tr>
-                  )}
-                  {accessory.type_name && (
+                  {computer.type_name && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.type_name}</td>
-                    </tr>
-                  )}
-                  {accessory.modelNumber && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.modelNumber}</td>
-                    </tr>
-                  )}
-                  {accessory.compatibility && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التوافق</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.compatibility}</td>
+                      <td className="py-3 px-4 text-gray-600">{computer.type_name}</td>
                     </tr>
                   )}
                   
-                  {accessory.dynamicSpecs && accessory.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
+                  {computer.dynamicSpecs && computer.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
                     <tr key={idx} className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
                       <td className="py-3 px-4 text-gray-600">{spec.value}</td>
@@ -565,7 +524,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* الوصف Section - SECOND (below specs) */}
+      {/* الوصف Section */}
       <div className="mt-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -575,7 +534,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
           <div className="p-6">
             <div className="prose max-w-none">
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {accessory.description || "لا يوجد وصف لهذا المنتج"}
+                {computer.description || "لا يوجد وصف لهذا المنتج"}
               </p>
             </div>
           </div>
@@ -603,7 +562,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
             {similarProducts.map((product) => {
               const productImage = product.image || product.image1 || product.url1 || "";
               return (
-                <CardAccessory
+                <CardComputer
                   key={product.id}
                   height="160px"
                   rounded="10px"
@@ -616,7 +575,6 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   dollarPrice={dollar}
                   id={product.id || ""}
                   age={product.age || ""}
-                  brand={product.brand || ""}
                   type_name={product.type_name || ""}
                   dynamicSpecs={product.dynamicSpecs || []}
                 />
@@ -640,7 +598,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 }
 
 // Skeleton Loader Component
-function AccessoryDetailsSkeleton() {
+function ComputerDetailsSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -663,7 +621,6 @@ function AccessoryDetailsSkeleton() {
         </div>
       </div>
       
-      {/* Skeleton for similar products */}
       <div className="mt-12">
         <Skeleton variant="text" width="200px" height={32} className="mb-4" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">

@@ -1,15 +1,15 @@
+// src/feature/all-computer-page/index.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { useGetComputersListQuery } from "@/data-access/api/computer";
-import { useAppSelector } from "@/store";
-import { selectComputerListList, ComputerItem } from "@/data-access/slices/computer-list";
+import { ComputerItem } from "@/data-access/slices/computer-list";
 import ComputerList from "../computer-list";
 import { FiX, FiSearch, FiChevronDown, FiChevronUp, FiSliders } from "react-icons/fi";
 
 interface FilterState {
-  types: string[];      // نوع الكمبيوتر (gaming, office, workstation)
+  types: string[];
   minPrice: string;
   maxPrice: string;
   manualSearch: string;
@@ -132,7 +132,8 @@ export const AllComputerPage = ({ title }: { title: string }) => {
     types: false,
   });
 
-  const { isLoading } = useGetComputersListQuery({ status: true });
+  // Get data directly from API
+  const { data: apiData, isLoading } = useGetComputersListQuery({ status: true });
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
 
@@ -159,12 +160,12 @@ export const AllComputerPage = ({ title }: { title: string }) => {
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
-      setDollar(dollarData?.data?.dollarPriceByPk?.dollarPrice ?? 0);
+      setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);
     }
   }, [dollarData]);
 
-  const computerListRaw = useAppSelector(selectComputerListList);
-  const computerList: ComputerItem[] = Array.isArray(computerListRaw) ? computerListRaw : [];
+  // Use API data directly instead of Redux
+  const computerList: ComputerItem[] = Array.isArray(apiData) ? apiData : [];
   const sortedComputerList = sortProductsByPrice(computerList, sortDirection);
   
   const availableFilters = useExtractedFilters(sortedComputerList);

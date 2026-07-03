@@ -1,17 +1,17 @@
-// app/accessories/[id]/page.tsx
+// app/cameras/[id]/page.tsx
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useGetDollarQuery } from "@/data-access/api/shared";
-import { useGetAccessoryByIdQuery, useGetAccessoriesListQuery } from "@/data-access/api/accessory";
+import { useGetCameraByIdQuery, useGetCamerasListQuery } from "@/data-access/api/camera";
 import { useAppSelector } from "@/store";
-import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
+import { selectCameraListList } from "@/data-access/slices/camera-list";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, Camera, Image as ImageIcon, Video, Settings } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
-import CardAccessory from "@/feature/card-accessory";
+import CardCamera from "@/feature/card-camera";
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
@@ -49,15 +49,8 @@ const getDiscountPercent = (originalPrice: string, discountPrice: string) => {
   return Math.floor(((parseFloat(originalPrice) - parseFloat(discountPrice)) / parseFloat(originalPrice)) * 100);
 };
 
-// Helper to extract brand from name
-const extractBrand = (name: string): string => {
-  if (!name) return "";
-  const firstWord = name.split(' ')[0];
-  return firstWord;
-};
-
-export default function AccessoryDetailPage({ params }: { params: { id: string } }) {
-  const { data, isLoading } = useGetAccessoryByIdQuery({ id: params.id });
+export default function CameraDetailPage({ params }: { params: { id: string } }) {
+  const { data, isLoading } = useGetCameraByIdQuery({ id: params.id });
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -67,10 +60,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   const [touchEnd, setTouchEnd] = useState<number>(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Get all accessories for similar products
-  const { isLoading: isListLoading } = useGetAccessoriesListQuery({ status: true });
-  const accessoryListRaw = useAppSelector(selectAccessoryListList);
-  const accessoryList: any[] = Array.isArray(accessoryListRaw) ? accessoryListRaw : [];
+  // Get all cameras for similar products
+  const { isLoading: isListLoading } = useGetCamerasListQuery({ status: true });
+  const cameraListRaw = useAppSelector(selectCameraListList);
+  const cameraList: any[] = Array.isArray(cameraListRaw) ? cameraListRaw : [];
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
@@ -79,46 +72,49 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   }, [dollarData]);
 
   useEffect(() => {
-    const accessory = data;
-    if (accessory) {
+    const camera = data;
+    if (camera) {
       const firstImage = [
-        accessory.url1, accessory.url2, accessory.url3, accessory.url4, accessory.url5,
-        accessory.image1, accessory.image2, accessory.image3, accessory.image4, accessory.image5
+        camera.url1, camera.url2, camera.url3, camera.url4, camera.url5,
+        camera.image1, camera.image2, camera.image3, camera.image4, camera.image5
       ].find(Boolean);
       if (firstImage) setCurrentImage(firstImage);
     }
   }, [data]);
 
-  const accessory = data;
+  const camera = data;
 
   // Get all images array
   const allImages: string[] = [
-    accessory?.url1, accessory?.url2, accessory?.url3, accessory?.url4, accessory?.url5,
-    accessory?.image1, accessory?.image2, accessory?.image3, accessory?.image4, accessory?.image5
+    camera?.url1, camera?.url2, camera?.url3, camera?.url4, camera?.url5,
+    camera?.image1, camera?.image2, camera?.image3, camera?.image4, camera?.image5
   ].filter((img): img is string => Boolean(img));
 
   // Calculate discount
-  const discountPercent = accessory?.discount ? getDiscountPercent(accessory.price, accessory.discount) : 0;
+  const discountPercent = camera?.discount ? getDiscountPercent(camera.price, camera.discount) : 0;
   const hasDiscount = discountPercent > 0;
 
   // Find similar products
   const similarProducts = useMemo(() => {
-    if (!accessory || accessoryList.length === 0) return [];
+    if (!camera || cameraList.length === 0) return [];
 
-    const currentPrice = parseFloat(accessory.price) || 0;
-    const currentBrand = accessory.brand || '';
-    const currentType = accessory.type_name || '';
+    const currentPrice = parseFloat(camera.price) || 0;
+    const currentBrand = camera.brand || '';
+    const currentType = camera.type_name || '';
+    const currentMegapixels = camera.megapixels || '';
 
-    const scored = accessoryList
-      .filter((item) => item.id !== accessory.id)
+    const scored = cameraList
+      .filter((item) => item.id !== camera.id)
       .map((item) => {
         let score = 0;
         const itemPrice = parseFloat(item.price) || 0;
         const itemBrand = item.brand || '';
         const itemType = item.type_name || '';
+        const itemMegapixels = item.megapixels || '';
 
         if (currentBrand && itemBrand === currentBrand) score += 50;
         if (currentType && itemType === currentType) score += 40;
+        if (currentMegapixels && itemMegapixels === currentMegapixels) score += 20;
 
         const priceDiff = Math.abs(currentPrice - itemPrice);
         if (currentPrice > 0 && priceDiff <= 200) score += 25;
@@ -130,7 +126,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
       .slice(0, 6);
 
     return scored;
-  }, [accessory, accessoryList]);
+  }, [camera, cameraList]);
 
   // Handle swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -181,15 +177,18 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // Build specs text for sharing/whatsapp
   const buildSpecsText = () => {
-    if (!accessory) return "";
+    if (!camera) return "";
     const specsList: string[] = [];
-    if (accessory.brand) specsList.push(`• الماركة: ${accessory.brand}`);
-    if (accessory.modelNumber) specsList.push(`• رقم الموديل: ${accessory.modelNumber}`);
-    if (accessory.compatibility) specsList.push(`• التوافق: ${accessory.compatibility}`);
-    if (accessory.type_name) specsList.push(`• النوع: ${accessory.type_name}`);
+    if (camera.brand) specsList.push(`• الماركة: ${camera.brand}`);
+    if (camera.modelNumber) specsList.push(`• رقم الموديل: ${camera.modelNumber}`);
+    if (camera.type_name) specsList.push(`• النوع: ${camera.type_name}`);
+    if (camera.sensorType) specsList.push(`• نوع المستشعر: ${camera.sensorType}`);
+    if (camera.megapixels) specsList.push(`• الدقة: ${camera.megapixels}`);
+    if (camera.videoResolution) specsList.push(`• دقة الفيديو: ${camera.videoResolution}`);
+    if (camera.lensMount) specsList.push(`• نوع العدسة: ${camera.lensMount}`);
     
-    if (accessory.dynamicSpecs) {
-      accessory.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
+    if (camera.dynamicSpecs) {
+      camera.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
         specsList.push(`• ${spec.key}: ${spec.value}`);
       });
     }
@@ -199,21 +198,21 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // Share function
   const handleShare = async () => {
-    if (!accessory) return;
+    if (!camera) return;
     
     const specsText = buildSpecsText();
     
-    let shareText = `🎧 *${accessory.name}*\n\n💰 السعر: $${formatPriceInUSD(accessory.discount || accessory.price)}`;
+    let shareText = `📷 *${camera.name}*\n\n💰 السعر: $${formatPriceInUSD(camera.discount || camera.price)}`;
     if (hasDiscount) {
-      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(accessory.price)})`;
+      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(camera.price)})`;
     }
-    shareText += `\n📦 الحالة: ${getAgeInArabic(accessory.age)}${specsText}\n\n🔗 الرابط:`;
-    const shareUrl = `${window.location.origin}/accessories/${params.id}`;
+    shareText += `\n📦 الحالة: ${getAgeInArabic(camera.age)}${specsText}\n\n🔗 الرابط:`;
+    const shareUrl = `${window.location.origin}/cameras/${params.id}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: accessory.name,
+          title: camera.name,
           text: shareText.replace(/\*/g, ''),
           url: shareUrl,
         });
@@ -235,19 +234,19 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // WhatsApp order function
   const handleWhatsAppOrder = () => {
-    if (!accessory) return;
+    if (!camera) return;
     
     const specsText = buildSpecsText();
     
     let message = `مرحباً، أريد الاستفسار عن هذا المنتج:\n\n`;
-    message += `🎧 *${accessory.name}*\n`;
-    message += `💰 السعر: $${formatPriceInUSD(accessory.discount || accessory.price)}`;
+    message += `📷 *${camera.name}*\n`;
+    message += `💰 السعر: $${formatPriceInUSD(camera.discount || camera.price)}`;
     if (hasDiscount) {
-      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(accessory.price)})`;
+      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(camera.price)})`;
     }
-    message += `\n📦 الحالة: ${getAgeInArabic(accessory.age)}`;
+    message += `\n📦 الحالة: ${getAgeInArabic(camera.age)}`;
     message += specsText;
-    message += `\n\n🔗 رابط المنتج: ${window.location.origin}/accessories/${params.id}`;
+    message += `\n\n🔗 رابط المنتج: ${window.location.origin}/cameras/${params.id}`;
     
     if (currentImage) {
       message += `\n\n📸 صورة المنتج: ${currentImage}`;
@@ -274,24 +273,24 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   };
 
   if (isLoading) {
-    return <AccessoryDetailsSkeleton />;
+    return <CameraDetailsSkeleton />;
   }
 
-  if (!accessory) {
+  if (!camera) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8">
           <h2 className="text-2xl font-bold text-red-600 mb-2">عذراً!</h2>
           <p className="text-gray-600">المنتج غير متوفر أو تم حذفه</p>
-          <Link href="/accessories" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            العودة إلى الاكسسوارات
+          <Link href="/cameras" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            العودة إلى الكاميرات
           </Link>
         </div>
       </div>
     );
   }
 
-  const ageDisplay = getAgeDisplay(accessory.age);
+  const ageDisplay = getAgeDisplay(camera.age);
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
@@ -302,10 +301,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
             عرض خاص
           </div>
           <h3 className="text-white text-xl font-bold">
-            🎉 خصم {discountPercent}% على {accessory.name} 🎉
+            🎉 خصم {discountPercent}% على {camera.name} 🎉
           </h3>
           <p className="text-white/90 text-sm mt-1">
-            وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+            وفر {Math.floor(parseFloat(camera.price) - parseFloat(camera.discount))}$
           </p>
         </div>
       )}
@@ -324,7 +323,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
               {currentImage ? (
                 <img
                   src={getImage(currentImage)}
-                  alt={accessory.name}
+                  alt={camera.name}
                   className="absolute inset-0 w-full h-full object-contain p-4"
                 />
               ) : (
@@ -406,7 +405,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         <div className="lg:w-1/2">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-              {accessory.name}
+              {camera.name}
             </h1>
             
             <div className="flex flex-wrap gap-2 mb-4">
@@ -426,50 +425,50 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
                   {hasDiscount && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      {formatPriceInSYP(accessory.price, dollar)} ل.س
+                      {formatPriceInSYP(camera.price, dollar)} ل.س
                     </p>
                   )}
                   <p className="text-2xl md:text-3xl font-bold text-red-600">
-                    {formatPriceInSYP(accessory.discount || accessory.price, dollar)} <span className="text-sm">ل.س</span>
+                    {formatPriceInSYP(camera.discount || camera.price, dollar)} <span className="text-sm">ل.س</span>
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">السعر بالدولار</span>
                   {hasDiscount && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      ${formatPriceInUSD(accessory.price)}
+                      ${formatPriceInUSD(camera.price)}
                     </p>
                   )}
                   <p className="text-xl md:text-2xl font-bold text-green-600">
-                    ${formatPriceInUSD(accessory.discount || accessory.price)}
+                    ${formatPriceInUSD(camera.discount || camera.price)}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-              {accessory.brand && (
+              {camera.brand && (
                 <div className="bg-gray-50 rounded-lg p-2">
                   <p className="text-xs text-gray-500">الماركة</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.brand}</p>
+                  <p className="text-sm font-medium text-gray-800">{camera.brand}</p>
                 </div>
               )}
-              {accessory.type_name && (
+              {camera.type_name && (
                 <div className="bg-gray-50 rounded-lg p-2">
                   <p className="text-xs text-gray-500">النوع</p>
-                  <p className="text-sm font-medium text-gray-800">{accessory.type_name}</p>
+                  <p className="text-sm font-medium text-gray-800">{camera.type_name}</p>
                 </div>
               )}
-              {accessory.modelNumber && (
+              {camera.megapixels && (
                 <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">رقم الموديل</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.modelNumber}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><ImageIcon className="w-3 h-3" /> الدقة</p>
+                  <p className="text-sm font-medium text-gray-800">{camera.megapixels}</p>
                 </div>
               )}
-              {accessory.compatibility && (
+              {camera.sensorType && (
                 <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">التوافق</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.compatibility}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><Settings className="w-3 h-3" /> المستشعر</p>
+                  <p className="text-sm font-medium text-gray-800">{camera.sensorType}</p>
                 </div>
               )}
             </div>
@@ -493,7 +492,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* المواصفات الكاملة Section - FIRST */}
+      {/* المواصفات الكاملة Section */}
       <div className="mt-8">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -506,11 +505,11 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                 <tbody>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700 w-1/3 rounded-r-lg">الاسم</td>
-                    <td className="py-3 px-4 text-gray-600">{accessory.name}</td>
+                    <td className="py-3 px-4 text-gray-600">{camera.name}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
-                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(accessory.age)}</td>
+                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(camera.age)}</td>
                   </tr>
                   
                   {/* Discount row */}
@@ -519,7 +518,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     <td className="py-3 px-4 text-gray-600">
                       {hasDiscount ? (
                         <span className="text-red-600 font-bold">
-                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(camera.price) - parseFloat(camera.discount))}$
                         </span>
                       ) : (
                         <span className="text-gray-500">لا يوجد خصم</span>
@@ -527,32 +526,50 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     </td>
                   </tr>
                   
-                  {accessory.brand && (
+                  {camera.brand && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.brand}</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.brand}</td>
                     </tr>
                   )}
-                  {accessory.type_name && (
+                  {camera.type_name && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.type_name}</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.type_name}</td>
                     </tr>
                   )}
-                  {accessory.modelNumber && (
+                  {camera.modelNumber && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.modelNumber}</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.modelNumber}</td>
                     </tr>
                   )}
-                  {accessory.compatibility && (
+                  {camera.sensorType && (
                     <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التوافق</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.compatibility}</td>
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نوع المستشعر</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.sensorType}</td>
+                    </tr>
+                  )}
+                  {camera.megapixels && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الدقة</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.megapixels}</td>
+                    </tr>
+                  )}
+                  {camera.videoResolution && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">دقة الفيديو</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.videoResolution}</td>
+                    </tr>
+                  )}
+                  {camera.lensMount && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نوع العدسة</td>
+                      <td className="py-3 px-4 text-gray-600">{camera.lensMount}</td>
                     </tr>
                   )}
                   
-                  {accessory.dynamicSpecs && accessory.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
+                  {camera.dynamicSpecs && camera.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
                     <tr key={idx} className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
                       <td className="py-3 px-4 text-gray-600">{spec.value}</td>
@@ -565,7 +582,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* الوصف Section - SECOND (below specs) */}
+      {/* الوصف Section */}
       <div className="mt-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -575,7 +592,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
           <div className="p-6">
             <div className="prose max-w-none">
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {accessory.description || "لا يوجد وصف لهذا المنتج"}
+                {camera.description || "لا يوجد وصف لهذا المنتج"}
               </p>
             </div>
           </div>
@@ -603,7 +620,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
             {similarProducts.map((product) => {
               const productImage = product.image || product.image1 || product.url1 || "";
               return (
-                <CardAccessory
+                <CardCamera
                   key={product.id}
                   height="160px"
                   rounded="10px"
@@ -616,8 +633,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   dollarPrice={dollar}
                   id={product.id || ""}
                   age={product.age || ""}
-                  brand={product.brand || ""}
                   type_name={product.type_name || ""}
+                  brand={product.brand || ""}
+                  megapixels={product.megapixels || ""}
+                  sensor_type={product.sensor_type || ""}
                   dynamicSpecs={product.dynamicSpecs || []}
                 />
               );
@@ -640,7 +659,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 }
 
 // Skeleton Loader Component
-function AccessoryDetailsSkeleton() {
+function CameraDetailsSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -663,7 +682,6 @@ function AccessoryDetailsSkeleton() {
         </div>
       </div>
       
-      {/* Skeleton for similar products */}
       <div className="mt-12">
         <Skeleton variant="text" width="200px" height={32} className="mb-4" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">

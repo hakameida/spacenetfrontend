@@ -89,7 +89,7 @@ export default function HomePage() {
               <p className="text-gray-500 mt-1">عروض كل أسبوع شكل</p>
             </div>
           </div>
-          <MultipleItemsOffer productModule="LAPTOP" />
+          <MultipleItemsOffer  />
         </div>
 
         {/* Categories Grid */}

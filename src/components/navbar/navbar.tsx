@@ -16,7 +16,8 @@ import {
   X,
   Gamepad2,
   Camera,
-  Search
+  Search,
+  HardDrive
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -70,12 +71,14 @@ interface SearchableProduct {
   [key: string]: any;
 }
 
-const navLinks = [
+// All nav links with their paths
+const allNavLinks = [
   { name: "كمبيوتر", href: "/computer", icon: PcCase },
   { name: "اكسسوارات", href: "/accessories", icon: Headphones },
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
   { name: "بلايستيشن", href: "/playstations", icon: Gamepad2 },
   { name: "كاميرات", href: "/cameras", icon: Camera },
+  { name: "وسائط تخزين", href: "/storage", icon: HardDrive },
   { name: "بطاريات", href: "/batteries", icon: Battery },
 ];
 
@@ -422,6 +425,9 @@ export default function TopNavbar() {
     };
   }, []);
 
+  // Filter navLinks to exclude the current page
+  const filteredNavLinks = allNavLinks.filter(link => link.href !== pathname);
+
   return (
     <>
       {/* Onboarding Overlay */}
@@ -525,7 +531,7 @@ export default function TopNavbar() {
         </div>
       </nav>
 
-      {/* FLOATING SEARCH BUTTON - Left side, above everything */}
+      {/* FLOATING SEARCH BUTTON */}
       <button
         onClick={openSearch}
         className={`
@@ -548,18 +554,15 @@ export default function TopNavbar() {
         <span className="text-xs text-gray-400 hidden sm:inline">⌘K</span>
       </button>
 
-      {/* SEARCH OVERLAY - Full screen with foggy effect */}
+      {/* SEARCH OVERLAY */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 px-4">
-          {/* Backdrop with blur */}
           <div 
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={closeSearch}
           />
           
-          {/* Search Modal */}
           <div className="relative w-full max-w-2xl animate-in slide-in-from-top-4 duration-300">
-            {/* Search Input */}
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
               <div className="p-4">
                 <div className="relative">
@@ -588,9 +591,7 @@ export default function TopNavbar() {
                 </div>
               </div>
 
-              {/* Results */}
               <div className="max-h-[60vh] overflow-y-auto">
-                {/* Loading State */}
                 {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras) && (
                   <div className="p-6 text-center">
                     <div className="flex items-center justify-center gap-3">
@@ -600,7 +601,6 @@ export default function TopNavbar() {
                   </div>
                 )}
 
-                {/* Results */}
                 {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && 
                  searchQuery.length >= 2 && searchResults.length > 0 && (
                   <>
@@ -648,7 +648,6 @@ export default function TopNavbar() {
                   </>
                 )}
 
-                {/* No results */}
                 {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras &&
                  searchQuery.length >= 2 && searchResults.length === 0 && allProducts.length > 0 && (
                   <div className="p-8 text-center">
@@ -665,7 +664,6 @@ export default function TopNavbar() {
                   </div>
                 )}
 
-                {/* Initial state - show suggestions */}
                 {searchQuery.length < 2 && (
                   <div className="p-6 text-center text-white/40 text-sm">
                     <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -712,7 +710,6 @@ export default function TopNavbar() {
                 )}
               </div>
 
-              {/* Close hint */}
               <div className="p-3 border-t border-white/5 text-center">
                 <p className="text-white/30 text-xs">
                   اضغط ESC أو انقر خارج النافذة للإغلاق
@@ -723,7 +720,7 @@ export default function TopNavbar() {
         </div>
       )}
 
-      {/* Floating Bottom Categories Bar */}
+      {/* Floating Bottom Categories Bar - Extended width to fit all items */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}
@@ -740,7 +737,8 @@ export default function TopNavbar() {
           rounded-full
           border border-white/40
           py-1.5
-          w-[75%] max-w-[500px]
+          px-2
+          w-[95%] max-w-[700px]
           overflow-x-auto
           scrollbar-hide
           transition-all duration-200 ease-out
@@ -750,8 +748,8 @@ export default function TopNavbar() {
         `}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="flex justify-around items-center gap-1 px-1">
-          {navLinks.map((link) => {
+        <div className="flex justify-around items-center gap-0.5">
+          {filteredNavLinks.map((link) => {
             const IconComponent = link.icon;
             return (
               <div
@@ -764,16 +762,17 @@ export default function TopNavbar() {
                   cursor-pointer
                   group
                   hover:bg-gray-100
-                  ${pathname === link.href ? "bg-gray-100 text-gray-900" : "text-gray-500"}
+                  text-gray-500
+                  min-w-[50px]
                 `}
               >
                 <IconComponent className={`
-                  w-4 h-4 transition-all duration-300
-                  ${pathname === link.href ? "text-gray-900" : "text-gray-500 group-hover:text-gray-700"}
+                  w-3.5 h-3.5 transition-all duration-300
+                  text-gray-500 group-hover:text-gray-700
                 `} />
                 <span className={`
-                  text-[9px] font-medium whitespace-nowrap
-                  ${pathname === link.href ? "text-gray-900 font-bold" : "text-gray-500"}
+                  text-[8px] font-medium whitespace-nowrap
+                  text-gray-500
                 `}>
                   {link.name}
                 </span>
@@ -846,4 +845,4 @@ export default function TopNavbar() {
       `}</style>
     </>
   );
-} 
+}

@@ -4,17 +4,20 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useGetOfferByIdQuery } from "@/data-access/api/shared";
 import { useGetLaptopByIdQuery } from "@/data-access/api/laptop";
+import { useGetComputerByIdQuery } from "@/data-access/api/computer";
+import { useGetAccessoryByIdQuery } from "@/data-access/api/accessory";
+import { useGetPlayStationByIdQuery } from "@/data-access/api/playstation";
+import { useGetCameraByIdQuery } from "@/data-access/api/camera";
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
-import { AiOutlineConsoleSql } from "react-icons/ai";
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
-  const priceNum = parseFloat(price);
+  const priceNum = parseFloat(price || "0");
   if (isNaN(priceNum)) return "0";
   const dollarPrice = dollar > 0 ? dollar : 1;
   return Math.floor(priceNum * dollarPrice).toLocaleString();
@@ -22,7 +25,7 @@ const formatPriceInSYP = (price: string, dollar: number) => {
 
 // Helper to format price in USD
 const formatPriceInUSD = (price: string) => {
-  const priceNum = parseFloat(price);
+  const priceNum = parseFloat(price || "0");
   if (isNaN(priceNum)) return "0";
   return priceNum.toFixed(2);
 };
@@ -42,53 +45,150 @@ const getAgeInArabic = (age: string | undefined): string => {
   }
 };
 
-// Helper to get discount percent from original product price and offer price
+// Helper to get discount percent
 const getDiscountPercent = (originalPrice: string, offerPrice: string) => {
   if (!originalPrice || parseFloat(originalPrice) === 0) return 0;
   return Math.floor(((parseFloat(originalPrice) - parseFloat(offerPrice)) / parseFloat(originalPrice)) * 100);
 };
 
+// Helper to get module name
+const getModuleName = (module: string | undefined) => {
+  if (!module) return '';
+  switch (module.toUpperCase()) {
+    case 'LAPTOP': return 'لابتوب';
+    case 'COMPUTER': return 'كمبيوتر';
+    case 'ACCESSORY': return 'اكسسوارات';
+    case 'PLAYSTATION': return 'بلايستيشن';
+    case 'CAMERA': return 'كاميرا';
+    default: return '';
+  }
+};
+
+// Define a type for the product
+interface ProductType {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  age: string;
+  url1?: string;
+  url2?: string;
+  url3?: string;
+  url4?: string;
+  url5?: string;
+  image1?: string;
+  image2?: string;
+  image3?: string;
+  image4?: string;
+  image5?: string;
+  image?: string;
+  dynamicSpecs?: Array<{ key: string; value: string }>;
+  cpu?: string;
+  gpu?: string;
+  ram?: string;
+  hard?: string;
+  screen?: string;
+  color?: string;
+  os?: string;
+  brand?: string;
+  model_number?: string;
+  compatibility?: string;
+  type_name?: string;
+  storage?: string;
+  modelNumber?: string;
+  sensorType?: string;
+  megapixels?: string;
+  videoResolution?: string;
+  lensMount?: string;
+  controllerCount?: number;
+  [key: string]: any;
+}
+
 export default function OfferPage({ params }: { params: { id: string } }) {
   const { id } = params;
   
   // Fetch offer data
-  const { data: offerData, isLoading: offerLoading, error: offerError } = useGetOfferByIdQuery({ id });
+  const { data: offerData, isLoading: offerLoading } = useGetOfferByIdQuery({ id });
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
-  const [currentImage, setCurrentImage] = useState("");
+  const [currentImage, setCurrentImage] = useState<string>("");
   
   // Swipe state
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const [touchStart, setTouchStart] = useState<number>(0);
+  const [touchEnd, setTouchEnd] = useState<number>(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Extract offer from response - using simplified Offer model
+  // Extract offer from response
   const offer = offerData?.data?.offerById ?? offerData?.offerById ?? null;
   
-  // Get productId from the simplified offer
+  // Get productId and productModule from the offer
   const productId: string | undefined = offer?.productId;
+  const productModule: string | undefined = offer?.productModule;
 
-  // Fetch laptop data using the productId
-  const { data: laptopData, isLoading: laptopLoading, error: laptopError } = useGetLaptopByIdQuery(
+  // Fetch product based on module type
+  const { data: laptopData, isLoading: laptopLoading } = useGetLaptopByIdQuery(
     { id: productId },
-    { skip: !productId }
+    { skip: !productId || productModule?.toUpperCase() !== 'LAPTOP' }
+  );
+
+  const { data: computerData, isLoading: computerLoading } = useGetComputerByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'COMPUTER' }
+  );
+
+  const { data: accessoryData, isLoading: accessoryLoading } = useGetAccessoryByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'ACCESSORY' }
+  );
+
+  const { data: playstationData, isLoading: playstationLoading } = useGetPlayStationByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'PLAYSTATION' }
+  );
+
+  const { data: cameraData, isLoading: cameraLoading } = useGetCameraByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'CAMERA' }
   );
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
-setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
+      setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);
+    }
   }, [dollarData]);
-  const laptop = laptopData?.data?.laptopById;
-  
-  // Calculate discount using original laptop price and offer price
-  const originalPrice = laptop?.price;
-  const discountPercent = originalPrice ? getDiscountPercent(originalPrice, offer?.price) : 0;
 
-  // Get all images array from laptop
-  const allImages = [
-    laptop?.url1, laptop?.url2, laptop?.url3, laptop?.url4, laptop?.url5,
-    laptop?.image1, laptop?.image2, laptop?.image3, laptop?.image4, laptop?.image5
-  ].filter(Boolean) as string[];
+  // Get the correct product based on module
+  let product: ProductType | null | undefined = null;
+  let isLoading = false;
+  
+  if (productModule?.toUpperCase() === 'LAPTOP') {
+    product = laptopData;
+    isLoading = laptopLoading;
+  } else if (productModule?.toUpperCase() === 'COMPUTER') {
+    product = computerData;
+    isLoading = computerLoading;
+  } else if (productModule?.toUpperCase() === 'ACCESSORY') {
+    product = accessoryData;
+    isLoading = accessoryLoading;
+  } else if (productModule?.toUpperCase() === 'PLAYSTATION') {
+    product = playstationData;
+    isLoading = playstationLoading;
+  } else if (productModule?.toUpperCase() === 'CAMERA') {
+    product = cameraData;
+    isLoading = cameraLoading;
+  }
+
+  // Calculate discount - FIXED: handle undefined values
+  const originalPrice = product?.price || '';
+  const offerPrice = offer?.price || '';
+  const discountPercent = originalPrice ? getDiscountPercent(originalPrice, offerPrice) : 0;
+
+  // Get all images array from product
+  const allImages: string[] = [
+    product?.url1, product?.url2, product?.url3, product?.url4, product?.url5,
+    product?.image1, product?.image2, product?.image3, product?.image4, product?.image5,
+    product?.image
+  ].filter((img): img is string => Boolean(img));
 
   useEffect(() => {
     if (allImages.length > 0 && !currentImage) {
@@ -109,11 +209,13 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const currentIndex = allImages.findIndex(img => img === currentImage);
-    if (distance > 50 && currentIndex < allImages.length - 1) {
-      setCurrentImage(allImages[currentIndex + 1]);
+    if (distance > 50 && currentIndex < allImages.length - 1 && currentIndex >= 0) {
+      const nextImg = allImages[currentIndex + 1];
+      if (nextImg) setCurrentImage(nextImg);
     }
-    if (distance < -50 && currentIndex > 0) {
-      setCurrentImage(allImages[currentIndex - 1]);
+    if (distance < -50 && currentIndex > 0 && currentIndex < allImages.length) {
+      const prevImg = allImages[currentIndex - 1];
+      if (prevImg) setCurrentImage(prevImg);
     }
     setTouchStart(0);
     setTouchEnd(0);
@@ -121,63 +223,103 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
 
   const nextImage = () => {
     const currentIndex = allImages.findIndex(img => img === currentImage);
-    if (currentIndex < allImages.length - 1) {
-      setCurrentImage(allImages[currentIndex + 1]);
+    if (currentIndex < allImages.length - 1 && currentIndex >= 0) {
+      const nextImg = allImages[currentIndex + 1];
+      if (nextImg) setCurrentImage(nextImg);
     }
   };
 
   const prevImage = () => {
     const currentIndex = allImages.findIndex(img => img === currentImage);
-    if (currentIndex > 0) {
-      setCurrentImage(allImages[currentIndex - 1]);
+    if (currentIndex > 0 && currentIndex < allImages.length) {
+      const prevImg = allImages[currentIndex - 1];
+      if (prevImg) setCurrentImage(prevImg);
     }
   };
 
-  // Build specs text for sharing/whatsapp
+  // Build specs text based on product type
   const buildSpecsText = () => {
-    if (!laptop) return "";
+    if (!product) return "";
     const specsList: string[] = [];
-    if (laptop.cpu) specsList.push(`• المعالج: ${laptop.cpu}`);
-    if (laptop.gpu) specsList.push(`• كرت الشاشة: ${laptop.gpu}`);
-    if (laptop.ram) specsList.push(`• الرام: ${laptop.ram}`);
-    if (laptop.hard) specsList.push(`• التخزين: ${laptop.hard}`);
-    if (laptop.screen) specsList.push(`• الشاشة: ${laptop.screen}`);
-    if (laptop.color) specsList.push(`• اللون: ${laptop.color}`);
-    if (laptop.os) specsList.push(`• نظام التشغيل: ${laptop.os}`);
-    if (laptop.dynamicSpecs) {
-      laptop.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
+    
+    // Laptop specs
+    if (productModule?.toUpperCase() === 'LAPTOP') {
+      if (product.cpu) specsList.push(`• المعالج: ${product.cpu}`);
+      if (product.gpu) specsList.push(`• كرت الشاشة: ${product.gpu}`);
+      if (product.ram) specsList.push(`• الرام: ${product.ram}`);
+      if (product.hard) specsList.push(`• التخزين: ${product.hard}`);
+      if (product.screen) specsList.push(`• الشاشة: ${product.screen}`);
+      if (product.color) specsList.push(`• اللون: ${product.color}`);
+      if (product.os) specsList.push(`• نظام التشغيل: ${product.os}`);
+    }
+    
+    // Accessory specs
+    if (productModule?.toUpperCase() === 'ACCESSORY') {
+      if (product.brand) specsList.push(`• الماركة: ${product.brand}`);
+      if (product.model_number) specsList.push(`• رقم الموديل: ${product.model_number}`);
+      if (product.compatibility) specsList.push(`• التوافق: ${product.compatibility}`);
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+    }
+    
+    // PlayStation specs
+    if (productModule?.toUpperCase() === 'PLAYSTATION') {
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+      if (product.storage) specsList.push(`• المساحة: ${product.storage}`);
+      if (product.color) specsList.push(`• اللون: ${product.color}`);
+      if (product.modelNumber) specsList.push(`• رقم الموديل: ${product.modelNumber}`);
+    }
+    
+    // Camera specs
+    if (productModule?.toUpperCase() === 'CAMERA') {
+      if (product.brand) specsList.push(`• الماركة: ${product.brand}`);
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+      if (product.megapixels) specsList.push(`• الدقة: ${product.megapixels}`);
+      if (product.sensorType) specsList.push(`• نوع المستشعر: ${product.sensorType}`);
+      if (product.videoResolution) specsList.push(`• دقة الفيديو: ${product.videoResolution}`);
+      if (product.lensMount) specsList.push(`• نوع العدسة: ${product.lensMount}`);
+    }
+    
+    // Computer specs
+    if (productModule?.toUpperCase() === 'COMPUTER') {
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+    }
+    
+    // Dynamic specs for all types
+    if (product.dynamicSpecs) {
+      product.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
         specsList.push(`• ${spec.key}: ${spec.value}`);
       });
     }
+    
     return specsList.length > 0 ? `\n\n*المواصفات:*\n${specsList.join('\n')}` : '';
   };
 
+  // Build warranty text (only for laptops)
   const buildWarrantyText = () => {
-    if (!laptop) return "";
-    if (laptop.age?.toLowerCase() === 'jdyd') {
+    if (!product || productModule?.toUpperCase() !== 'LAPTOP') return '';
+    if (product.age?.toLowerCase() === 'jdyd') {
       return '\n\n*الضمان والهدايا (جديد):*\n• كفالة هاردوير: 3 شهور\n• كفالة سوفتوير: 6 شهور\n• الهدايا: حقيبة + ماوس + ستاند معدني + ماوس باد';
-    } else if (laptop.age?.toLowerCase() === 'used' || laptop.age?.toLowerCase() === 'openbox') {
-      return `\n\n*الضمان والهدايا (${laptop.age?.toLowerCase() === 'used' ? 'مستعمل' : 'أوبن بوكس'}):*\n• كفالة هاردوير: شهر واحد\n• كفالة سوفتوير: 3 شهور\n• الهدايا: حقيبة + ماوس + ماوس باد`;
+    } else if (product.age?.toLowerCase() === 'used' || product.age?.toLowerCase() === 'openbox') {
+      return `\n\n*الضمان والهدايا (${product.age?.toLowerCase() === 'used' ? 'مستعمل' : 'أوبن بوكس'}):*\n• كفالة هاردوير: شهر واحد\n• كفالة سوفتوير: 3 شهور\n• الهدايا: حقيبة + ماوس + ماوس باد`;
     }
     return '';
   };
 
   const handleShare = async () => {
-    if (!offer || !laptop) return;
+    if (!offer || !product) return;
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
     
-    // Use laptop name for the offer since offer has no name anymore
-    let shareText = `🎉 *عرض خاص: ${laptop.name}* 🎉\n\n💰 السعر بعد الخصم: $${formatPriceInUSD(offer.price)}`;
-    if (discountPercent > 0) {
+    let shareText = `🎉 *عرض خاص: ${product.name}* 🎉\n\n💰 السعر بعد الخصم: $${formatPriceInUSD(offerPrice)}`;
+    if (discountPercent > 0 && originalPrice) {
       shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(originalPrice)})`;
     }
-    shareText += `\n📦 الحالة: ${getAgeInArabic(laptop.age)}${specsText}${warrantyText}\n\n🔗 الرابط:`;
+    shareText += `\n📦 الحالة: ${getAgeInArabic(product.age)}${specsText}${warrantyText}\n\n🔗 الرابط:`;
     const shareUrl = `${window.location.origin}/offers/${id}`;
     
     if (navigator.share) {
       try {
-        await navigator.share({ title: laptop.name, text: shareText.replace(/\*/g, ''), url: shareUrl });
+        await navigator.share({ title: product.name, text: shareText.replace(/\*/g, ''), url: shareUrl });
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(`${shareText.replace(/\*/g, '')}\n${shareUrl}`);
@@ -195,17 +337,17 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
   };
 
   const handleWhatsAppOrder = () => {
-    if (!offer || !laptop) return;
+    if (!offer || !product) return;
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
     
     let message = `مرحباً، أريد الاستفسار عن هذا العرض:\n\n`;
-    message += `🎉 *عرض خاص: ${laptop.name}* 🎉\n`;
-    message += `💰 السعر بعد الخصم: $${formatPriceInUSD(offer.price)}\n`;
-    if (discountPercent > 0) {
+    message += `🎉 *عرض خاص: ${product.name}* 🎉\n`;
+    message += `💰 السعر بعد الخصم: $${formatPriceInUSD(offerPrice)}\n`;
+    if (discountPercent > 0 && originalPrice) {
       message += `💰 السعر القديم: $${formatPriceInUSD(originalPrice)} (خصم ${discountPercent}%)\n`;
     }
-    message += `📦 الحالة: ${getAgeInArabic(laptop.age)}`;
+    message += `📦 الحالة: ${getAgeInArabic(product.age)}`;
     message += specsText;
     message += warrantyText;
     message += `\n\n🔗 رابط العرض: ${window.location.origin}/offers/${id}`;
@@ -226,68 +368,24 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
   };
 
   const getWarrantyInfo = () => {
-    if (!laptop) return { hardware: '', software: '', gifts: '' };
-    if (laptop.age?.toLowerCase() === 'jdyd') {
+    if (!product || productModule?.toUpperCase() !== 'LAPTOP') return { hardware: '-', software: '-', gifts: '-' };
+    if (product.age?.toLowerCase() === 'jdyd') {
       return { hardware: '3 شهور', software: '6 شهور', gifts: 'حقيبة + ماوس + ستاند معدني + ماوس باد' };
-    } else if (laptop.age?.toLowerCase() === 'used' || laptop.age?.toLowerCase() === 'openbox') {
+    } else if (product.age?.toLowerCase() === 'used' || product.age?.toLowerCase() === 'openbox') {
       return { hardware: 'شهر واحد', software: '3 شهور', gifts: 'حقيبة + ماوس + ماوس باد' };
     }
     return { hardware: '-', software: '-', gifts: '-' };
   };
 
-  // Loading / error states
-  if (offerLoading || (productId && laptopLoading)) return <OfferSkeleton />;
+  // Loading state
+  if (offerLoading || (productId && isLoading)) return <OfferSkeleton />;
 
-  if (!offer) {
-    return (
-      <div className="container mx-auto px-4 py-20 text-center">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-yellow-600 mb-4">Debug Information</h2>
-          <div className="text-left space-y-2">
-            <p><strong>Offer ID requested:</strong> {id}</p>
-            <p><strong>Offer Error:</strong> {offerError ? JSON.stringify(offerError, null, 2) : 'No error'}</p>
-            <p><strong>Full Response:</strong></p>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-xs">
-              {JSON.stringify(offerData, null, 2)}
-            </pre>
-          </div>
-          <Link href="/" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            العودة إلى الرئيسية
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (productId && laptopLoading) return <OfferSkeleton />;
-
-  if (!laptop && !laptopLoading && productId) {
-    return (
-      <div className="container mx-auto px-4 py-20 text-center">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-yellow-600 mb-4">Laptop Not Found</h2>
-          <div className="text-left space-y-2">
-            <p><strong>Product ID:</strong> {productId}</p>
-            <p><strong>Laptop Error:</strong> {laptopError ? JSON.stringify(laptopError, null, 2) : 'No error'}</p>
-            <p><strong>Laptop Data:</strong></p>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-xs">
-              {JSON.stringify(laptopData, null, 2)}
-            </pre>
-          </div>
-          <Link href="/" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            العودة إلى الرئيسية
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!offer || !laptop) {
+  if (!offer || !product) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto">
           <h2 className="text-2xl font-bold text-red-600 mb-2">عذراً!</h2>
-          <p className="text-gray-600">العرض أو اللابتوب غير متوفر</p>
+          <p className="text-gray-600">العرض أو المنتج غير متوفر</p>
           <Link href="/" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             العودة إلى الرئيسية
           </Link>
@@ -296,7 +394,7 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
     );
   }
 
-  const ageDisplay = getAgeDisplay(laptop.age);
+  const ageDisplay = getAgeDisplay(product.age);
   const warrantyInfo = getWarrantyInfo();
 
   return (
@@ -307,11 +405,14 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
           عرض خاص
         </div>
         <h3 className="text-white text-xl font-bold">
-          🎉 عرض خاص: {laptop.name} 🎉
+          🎉 عرض خاص: {product.name} 🎉
         </h3>
-        {discountPercent > 0 && (
+        <p className="text-white/90 text-sm mt-1">
+          {getModuleName(productModule)} - خصم {discountPercent}%
+        </p>
+        {discountPercent > 0 && originalPrice && (
           <p className="text-white/90 text-sm mt-1">
-            خصم {discountPercent}% - وفر {Math.floor(parseFloat(originalPrice) - parseFloat(offer.price))}$
+            وفر {Math.floor(parseFloat(originalPrice) - parseFloat(offerPrice))}$
           </p>
         )}
       </div>
@@ -330,9 +431,8 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
               {currentImage ? (
                 <img
                   src={getImage(currentImage)}
-                  alt={laptop.name}
+                  alt={product.name}
                   className="absolute inset-0 w-full h-full object-contain p-4"
-                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -393,8 +493,7 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
                     <img
                       src={getImage(url)}
                       alt={`Thumbnail ${index + 1}`}
-                      
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                   </button>
                 ))}
@@ -407,12 +506,15 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
         <div className="lg:w-1/2">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-              {laptop.name}
+              {product.name}
             </h1>
             
-            <div className="mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               <span className={`inline-block px-3 py-1 text-sm rounded-full ${ageDisplay.className}`}>
                 {ageDisplay.label}
+              </span>
+              <span className="inline-block px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700">
+                {getModuleName(productModule)}
               </span>
             </div>
 
@@ -421,9 +523,9 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
                 <div>
                   <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
                   <p className="text-2xl md:text-3xl font-bold text-red-600">
-                    {formatPriceInSYP(offer.price, dollar)} <span className="text-sm">ل.س</span>
+                    {formatPriceInSYP(offerPrice, dollar)} <span className="text-sm">ل.س</span>
                   </p>
-                  {discountPercent > 0 && (
+                  {discountPercent > 0 && originalPrice && (
                     <p className="text-xs text-gray-500 line-through mt-1">
                       كان: {formatPriceInSYP(originalPrice, dollar)} ل.س
                     </p>
@@ -432,9 +534,9 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
                 <div className="text-right">
                   <span className="text-sm text-gray-500">السعر بالدولار</span>
                   <p className="text-xl md:text-2xl font-bold text-green-600">
-                    ${formatPriceInUSD(offer.price)}
+                    ${formatPriceInUSD(offerPrice)}
                   </p>
-                  {discountPercent > 0 && (
+                  {discountPercent > 0 && originalPrice && (
                     <p className="text-xs text-gray-500 line-through mt-1">
                       كان: ${formatPriceInUSD(originalPrice)}
                     </p>
@@ -443,30 +545,120 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
               </div>
             </div>
 
+            {/* Product Specs - Dynamic based on type */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              {laptop.cpu && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">المعالج</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{laptop.cpu}</p>
-                </div>
+              {/* Laptop specs */}
+              {productModule?.toUpperCase() === 'LAPTOP' && (
+                <>
+                  {product.cpu && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">المعالج</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.cpu}</p>
+                    </div>
+                  )}
+                  {product.gpu && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">كرت الشاشة</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.gpu}</p>
+                    </div>
+                  )}
+                  {product.ram && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الرام</p>
+                      <p className="text-sm font-medium text-gray-800">{product.ram}</p>
+                    </div>
+                  )}
+                  {product.hard && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">التخزين</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.hard}</p>
+                    </div>
+                  )}
+                </>
               )}
-              {laptop.gpu && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">كرت الشاشة</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{laptop.gpu}</p>
-                </div>
+
+              {/* Accessory specs */}
+              {productModule?.toUpperCase() === 'ACCESSORY' && (
+                <>
+                  {product.brand && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الماركة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.brand}</p>
+                    </div>
+                  )}
+                  {product.type_name && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">النوع</p>
+                      <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                  {product.model_number && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">رقم الموديل</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.model_number}</p>
+                    </div>
+                  )}
+                </>
               )}
-              {laptop.ram && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">الرام</p>
-                  <p className="text-sm font-medium text-gray-800">{laptop.ram}</p>
-                </div>
+
+              {/* PlayStation specs */}
+              {productModule?.toUpperCase() === 'PLAYSTATION' && (
+                <>
+                  {product.type_name && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">النوع</p>
+                      <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                  {product.storage && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">المساحة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.storage}</p>
+                    </div>
+                  )}
+                  {product.color && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">اللون</p>
+                      <p className="text-sm font-medium text-gray-800">{product.color}</p>
+                    </div>
+                  )}
+                </>
               )}
-              {laptop.hard && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">التخزين</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{laptop.hard}</p>
-                </div>
+
+              {/* Camera specs */}
+              {productModule?.toUpperCase() === 'CAMERA' && (
+                <>
+                  {product.brand && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الماركة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.brand}</p>
+                    </div>
+                  )}
+                  {product.megapixels && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الدقة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.megapixels}</p>
+                    </div>
+                  )}
+                  {product.type_name && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">النوع</p>
+                      <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Computer specs */}
+              {productModule?.toUpperCase() === 'COMPUTER' && (
+                <>
+                  {product.type_name && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">النوع</p>
+                      <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -489,7 +681,7 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
         </div>
       </div>
 
-      {/* المواصفات الكاملة Section */}
+      {/* Full Specifications Section */}
       <div className="mt-8">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -502,75 +694,218 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
                 <tbody>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700 w-1/3 rounded-r-lg">الاسم</td>
-                    <td className="py-3 px-4 text-gray-600">{laptop.name}</td>
+                    <td className="py-3 px-4 text-gray-600">{product.name}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
-                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(laptop.age)}</td>
+                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(product.age)}</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                    <td className="py-3 px-4 text-gray-600">{getModuleName(productModule)}</td>
                   </tr>
                   
-                  {laptop.cpu && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المعالج (CPU)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.cpu}</td>
-                    </tr>
+                  {/* Dynamic specs based on product type */}
+                  {productModule?.toUpperCase() === 'LAPTOP' && (
+                    <>
+                      {product.cpu && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المعالج (CPU)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.cpu}</td>
+                        </tr>
+                      )}
+                      {product.gpu && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">كرت الشاشة (GPU)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.gpu}</td>
+                        </tr>
+                      )}
+                      {product.ram && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الذاكرة (RAM)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.ram}</td>
+                        </tr>
+                      )}
+                      {product.hard && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التخزين (Storage)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.hard}</td>
+                        </tr>
+                      )}
+                      {product.screen && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الشاشة (Screen)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.screen}</td>
+                        </tr>
+                      )}
+                      {product.color && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">اللون (Color)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.color}</td>
+                        </tr>
+                      )}
+                      {product.os && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نظام التشغيل (OS)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.os}</td>
+                        </tr>
+                      )}
+                    </>
                   )}
-                  {laptop.gpu && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">كرت الشاشة (GPU)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.gpu}</td>
-                    </tr>
+
+                  {productModule?.toUpperCase() === 'ACCESSORY' && (
+                    <>
+                      {product.brand && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.brand}</td>
+                        </tr>
+                      )}
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                      {product.model_number && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.model_number}</td>
+                        </tr>
+                      )}
+                      {product.compatibility && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التوافق</td>
+                          <td className="py-3 px-4 text-gray-600">{product.compatibility}</td>
+                        </tr>
+                      )}
+                    </>
                   )}
-                  {laptop.ram && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الذاكرة (RAM)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.ram}</td>
-                    </tr>
+
+                  {productModule?.toUpperCase() === 'PLAYSTATION' && (
+                    <>
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                      {product.brand && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.brand}</td>
+                        </tr>
+                      )}
+                      {product.modelNumber && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.modelNumber}</td>
+                        </tr>
+                      )}
+                      {product.storage && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المساحة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.storage}</td>
+                        </tr>
+                      )}
+                      {product.color && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">اللون</td>
+                          <td className="py-3 px-4 text-gray-600">{product.color}</td>
+                        </tr>
+                      )}
+                      {product.controllerCount && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">عدد أيدي التحكم</td>
+                          <td className="py-3 px-4 text-gray-600">{product.controllerCount}</td>
+                        </tr>
+                      )}
+                    </>
                   )}
-                  {laptop.hard && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التخزين (Storage)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.hard}</td>
-                    </tr>
+
+                  {productModule?.toUpperCase() === 'CAMERA' && (
+                    <>
+                      {product.brand && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.brand}</td>
+                        </tr>
+                      )}
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                      {product.modelNumber && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.modelNumber}</td>
+                        </tr>
+                      )}
+                      {product.sensorType && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نوع المستشعر</td>
+                          <td className="py-3 px-4 text-gray-600">{product.sensorType}</td>
+                        </tr>
+                      )}
+                      {product.megapixels && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الدقة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.megapixels}</td>
+                        </tr>
+                      )}
+                      {product.videoResolution && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">دقة الفيديو</td>
+                          <td className="py-3 px-4 text-gray-600">{product.videoResolution}</td>
+                        </tr>
+                      )}
+                      {product.lensMount && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نوع العدسة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.lensMount}</td>
+                        </tr>
+                      )}
+                    </>
                   )}
-                  {laptop.screen && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الشاشة (Screen)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.screen}</td>
-                    </tr>
-                  )}
-                  {laptop.color && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">اللون (Color)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.color}</td>
-                    </tr>
-                  )}
-                  {laptop.os && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نظام التشغيل (OS)</td>
-                      <td className="py-3 px-4 text-gray-600">{laptop.os}</td>
-                    </tr>
+
+                  {productModule?.toUpperCase() === 'COMPUTER' && (
+                    <>
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                    </>
                   )}
                   
-                  {laptop.dynamicSpecs && laptop.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
+                  {/* Dynamic specs for all types */}
+                  {product.dynamicSpecs && product.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
                     <tr key={idx} className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
                       <td className="py-3 px-4 text-gray-600">{spec.value}</td>
                     </tr>
                   ))}
                   
-                  <tr className="border-b border-gray-100 bg-green-50/30">
-                    <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">🎁 كفالة هاردوير</td>
-                    <td className="py-3 px-4 text-gray-600">{warrantyInfo.hardware}</td>
-                  </tr>
-                  <tr className="border-b border-gray-100 bg-green-50/30">
-                    <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">💻 كفالة سوفتوير</td>
-                    <td className="py-3 px-4 text-gray-600">{warrantyInfo.software}</td>
-                  </tr>
-                  <tr className="border-b border-gray-100 bg-green-50/30">
-                    <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">🎁 الهدايا</td>
-                    <td className="py-3 px-4 text-gray-600">{warrantyInfo.gifts}</td>
-                  </tr>
+                  {/* Warranty only for laptops */}
+                  {productModule?.toUpperCase() === 'LAPTOP' && (
+                    <>
+                      <tr className="border-b border-gray-100 bg-green-50/30">
+                        <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">🎁 كفالة هاردوير</td>
+                        <td className="py-3 px-4 text-gray-600">{warrantyInfo.hardware}</td>
+                      </tr>
+                      <tr className="border-b border-gray-100 bg-green-50/30">
+                        <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">💻 كفالة سوفتوير</td>
+                        <td className="py-3 px-4 text-gray-600">{warrantyInfo.software}</td>
+                      </tr>
+                      <tr className="border-b border-gray-100 bg-green-50/30">
+                        <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">🎁 الهدايا</td>
+                        <td className="py-3 px-4 text-gray-600">{warrantyInfo.gifts}</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -578,8 +913,8 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
         </div>
       </div>
 
-      {/* الوصف Section */}
-      {laptop.description && (
+      {/* Description Section */}
+      {product.description && (
         <div className="mt-6">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -587,7 +922,7 @@ setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);    }
             </div>
             <div className="p-6">
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {laptop.description}
+                {product.description}
               </p>
             </div>
           </div>

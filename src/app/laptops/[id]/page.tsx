@@ -1,3 +1,4 @@
+// app/laptops/[id]/page.tsx
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
@@ -40,6 +41,12 @@ const getAgeInArabic = (age: string | undefined): string => {
     default:
       return age;
   }
+};
+
+// Helper to calculate discount percent
+const getDiscountPercent = (originalPrice: string, discountPrice: string) => {
+  if (!originalPrice || parseFloat(originalPrice) === 0) return 0;
+  return Math.floor(((parseFloat(originalPrice) - parseFloat(discountPrice)) / parseFloat(originalPrice)) * 100);
 };
 
 // Helper to extract brand from name
@@ -128,6 +135,10 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     laptop?.image1, laptop?.image2, laptop?.image3, laptop?.image4, laptop?.image5
   ].filter(Boolean);
 
+  // Calculate discount
+  const discountPercent = laptop?.discount ? getDiscountPercent(laptop.price, laptop.discount) : 0;
+  const hasDiscount = discountPercent > 0;
+
   // Find similar products
   const similarProducts = useMemo(() => {
     if (!laptop || laptopList.length === 0) return [];
@@ -138,9 +149,8 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     const currentGpu = extractGpuSeries(laptop.gpu);
     const currentRam = laptop.ram || '';
 
-    // Score each laptop for similarity
     const scored = laptopList
-      .filter((item) => item.id !== laptop.id) // Exclude current product
+      .filter((item) => item.id !== laptop.id)
       .map((item) => {
         let score = 0;
         const itemPrice = parseFloat(item.price) || 0;
@@ -149,33 +159,19 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
         const itemGpu = extractGpuSeries(item.gpu);
         const itemRam = item.ram || '';
 
-        // Same brand: +50 points
         if (currentBrand && itemBrand === currentBrand) score += 50;
-
-        // Same CPU series: +30 points
         if (currentCpu && itemCpu === currentCpu) score += 30;
-
-        // Same GPU series: +30 points
         if (currentGpu && itemGpu === currentGpu) score += 30;
-
-        // Same RAM: +20 points
         if (currentRam && itemRam === currentRam) score += 20;
 
-        // Price similarity (within ±200 USD): +25 points
         const priceDiff = Math.abs(currentPrice - itemPrice);
-        if (currentPrice > 0 && priceDiff <= 200) {
-          score += 25;
-        }
-
-        // Price very close (within ±50 USD): +15 extra points
-        if (currentPrice > 0 && priceDiff <= 50) {
-          score += 15;
-        }
+        if (currentPrice > 0 && priceDiff <= 200) score += 25;
+        if (currentPrice > 0 && priceDiff <= 50) score += 15;
 
         return { ...item, score };
       })
-      .sort((a, b) => b.score - a.score) // Sort by score descending
-      .slice(0, 6); // Take top 6
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
 
     return scored;
   }, [laptop, laptopList]);
@@ -209,7 +205,6 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     setTouchEnd(0);
   };
 
-  // Handle next/previous buttons
   const nextImage = () => {
     const currentIndex = allImages.findIndex(img => img === currentImage);
     if (currentIndex < allImages.length - 1) {
@@ -264,7 +259,11 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
     
-    const shareText = `💻 *${laptop.name}*\n\n💰 السعر: $${formatPriceInUSD(laptop.price)}\n📦 الحالة: ${getAgeInArabic(laptop.age)}${specsText}${warrantyText}\n\n🔗 الرابط:`;
+    let shareText = `💻 *${laptop.name}*\n\n💰 السعر: $${formatPriceInUSD(laptop.discount || laptop.price)}`;
+    if (hasDiscount) {
+      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(laptop.price)})`;
+    }
+    shareText += `\n📦 الحالة: ${getAgeInArabic(laptop.age)}${specsText}${warrantyText}\n\n🔗 الرابط:`;
     const shareUrl = `${window.location.origin}/laptops/${params.id}`;
 
     if (navigator.share) {
@@ -299,8 +298,11 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     
     let message = `مرحباً، أريد الاستفسار عن هذا المنتج:\n\n`;
     message += `💻 *${laptop.name}*\n`;
-    message += `💰 السعر: $${formatPriceInUSD(laptop.price)}\n`;
-    message += `📦 الحالة: ${getAgeInArabic(laptop.age)}`;
+    message += `💰 السعر: $${formatPriceInUSD(laptop.discount || laptop.price)}`;
+    if (hasDiscount) {
+      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(laptop.price)})`;
+    }
+    message += `\n📦 الحالة: ${getAgeInArabic(laptop.age)}`;
     message += specsText;
     message += warrantyText;
     message += `\n\n🔗 رابط المنتج: ${window.location.origin}/laptops/${params.id}`;
@@ -372,6 +374,21 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
+      {/* Discount Banner */}
+      {hasDiscount && (
+        <div className="mb-6 bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-4 text-center relative">
+          <div className="absolute top-2 right-2 bg-yellow-400 text-red-600 px-2 py-1 rounded-full text-xs font-bold">
+            عرض خاص
+          </div>
+          <h3 className="text-white text-xl font-bold">
+            🎉 خصم {discountPercent}% على {laptop.name} 🎉
+          </h3>
+          <p className="text-white/90 text-sm mt-1">
+            وفر {Math.floor(parseFloat(laptop.price) - parseFloat(laptop.discount))}$
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left - Image Gallery with Swipe Support */}
         <div className="lg:w-1/2">
@@ -438,6 +455,13 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                   <span>👆 اسحب لليمين واليسار</span>
                 </div>
               )}
+
+              {/* Discount Badge on Image */}
+              {hasDiscount && (
+                <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                  خصم {discountPercent}%
+                </div>
+              )}
             </div>
             
             {/* Thumbnails */}
@@ -453,7 +477,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                     <img
                       src={getImage(url)}
                       alt={`Thumbnail ${index + 1}`}
-
+                      className="w-full h-full object-cover"
                     />
                   </button>
                 ))}
@@ -469,24 +493,39 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
               {laptop.name}
             </h1>
             
-            <div className="mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               <span className={`inline-block px-3 py-1 text-sm rounded-full ${ageDisplay.className}`}>
                 {ageDisplay.label}
               </span>
+              {hasDiscount && (
+                <span className="inline-block px-3 py-1 text-sm rounded-full bg-red-100 text-red-700">
+                  خصم {discountPercent}%
+                </span>
+              )}
             </div>
 
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-6">
+            <div className={`rounded-xl p-4 mb-6 ${hasDiscount ? 'bg-gradient-to-r from-red-50 to-orange-50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}>
               <div className="flex items-baseline justify-between flex-wrap gap-2">
                 <div>
                   <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
-                  <p className="text-2xl md:text-3xl font-bold text-blue-600">
-                    {formatPriceInSYP(laptop.price, dollar)} <span className="text-sm">ل.س</span>
+                  {hasDiscount && (
+                    <p className="text-xs text-gray-500 line-through mt-1">
+                      {formatPriceInSYP(laptop.price, dollar)} ل.س
+                    </p>
+                  )}
+                  <p className="text-2xl md:text-3xl font-bold text-red-600">
+                    {formatPriceInSYP(laptop.discount || laptop.price, dollar)} <span className="text-sm">ل.س</span>
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">السعر بالدولار</span>
+                  {hasDiscount && (
+                    <p className="text-xs text-gray-500 line-through mt-1">
+                      ${formatPriceInUSD(laptop.price)}
+                    </p>
+                  )}
                   <p className="text-xl md:text-2xl font-bold text-green-600">
-                    ${formatPriceInUSD(laptop.price)}
+                    ${formatPriceInUSD(laptop.discount || laptop.price)}
                   </p>
                 </div>
               </div>
@@ -538,7 +577,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
         </div>
       </div>
 
-      {/* المواصفات الكاملة Section - FIRST */}
+      {/* المواصفات الكاملة Section */}
       <div className="mt-8">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -556,6 +595,20 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
                     <td className="py-3 px-4 text-gray-600">{getAgeInArabic(laptop.age)}</td>
+                  </tr>
+                  
+                  {/* Discount row */}
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الخصم</td>
+                    <td className="py-3 px-4 text-gray-600">
+                      {hasDiscount ? (
+                        <span className="text-red-600 font-bold">
+                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(laptop.price) - parseFloat(laptop.discount))}$
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">لا يوجد خصم</span>
+                      )}
+                    </td>
                   </tr>
                   
                   {laptop.cpu && (
@@ -627,7 +680,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
         </div>
       </div>
 
-      {/* الوصف Section - SECOND (below specs) */}
+      {/* الوصف Section */}
       <div className="mt-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -663,7 +716,6 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">
             {similarProducts.map((product) => {
-              // Get the first available image
               const productImage = product.image || product.image1 || product.url1 || "";
               return (
                 <CardProduct
@@ -674,6 +726,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                   image={productImage}
                   title={product.name || ""}
                   price={product.price || "0"}
+                  discount={product.discount || ""}
                   description={product.description || ""}
                   dollarPrice={dollar}
                   icons={true}

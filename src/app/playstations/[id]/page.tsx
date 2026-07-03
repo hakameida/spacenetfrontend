@@ -1,17 +1,17 @@
-// app/accessories/[id]/page.tsx
+// app/playstations/[id]/page.tsx
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useGetDollarQuery } from "@/data-access/api/shared";
-import { useGetAccessoryByIdQuery, useGetAccessoriesListQuery } from "@/data-access/api/accessory";
+import { useGetPlayStationByIdQuery, useGetPlayStationsListQuery } from "@/data-access/api/playstation";
 import { useAppSelector } from "@/store";
-import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
+import { selectPlayStationListList } from "@/data-access/slices/playstation-list";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, HardDrive } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
-import CardAccessory from "@/feature/card-accessory";
+import CardPlayStation from "@/feature/card-playstation";
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
@@ -49,15 +49,8 @@ const getDiscountPercent = (originalPrice: string, discountPrice: string) => {
   return Math.floor(((parseFloat(originalPrice) - parseFloat(discountPrice)) / parseFloat(originalPrice)) * 100);
 };
 
-// Helper to extract brand from name
-const extractBrand = (name: string): string => {
-  if (!name) return "";
-  const firstWord = name.split(' ')[0];
-  return firstWord;
-};
-
-export default function AccessoryDetailPage({ params }: { params: { id: string } }) {
-  const { data, isLoading } = useGetAccessoryByIdQuery({ id: params.id });
+export default function PlayStationDetailPage({ params }: { params: { id: string } }) {
+  const { data, isLoading } = useGetPlayStationByIdQuery({ id: params.id });
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -67,10 +60,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   const [touchEnd, setTouchEnd] = useState<number>(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  // Get all accessories for similar products
-  const { isLoading: isListLoading } = useGetAccessoriesListQuery({ status: true });
-  const accessoryListRaw = useAppSelector(selectAccessoryListList);
-  const accessoryList: any[] = Array.isArray(accessoryListRaw) ? accessoryListRaw : [];
+  // Get all playstations for similar products
+  const { isLoading: isListLoading } = useGetPlayStationsListQuery({ status: true });
+  const playstationListRaw = useAppSelector(selectPlayStationListList);
+  const playstationList: any[] = Array.isArray(playstationListRaw) ? playstationListRaw : [];
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
@@ -79,46 +72,46 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   }, [dollarData]);
 
   useEffect(() => {
-    const accessory = data;
-    if (accessory) {
+    const playstation = data;
+    if (playstation) {
       const firstImage = [
-        accessory.url1, accessory.url2, accessory.url3, accessory.url4, accessory.url5,
-        accessory.image1, accessory.image2, accessory.image3, accessory.image4, accessory.image5
+        playstation.url1, playstation.url2, playstation.url3, playstation.url4, playstation.url5,
+        playstation.image1, playstation.image2, playstation.image3, playstation.image4, playstation.image5
       ].find(Boolean);
       if (firstImage) setCurrentImage(firstImage);
     }
   }, [data]);
 
-  const accessory = data;
+  const playstation = data;
 
   // Get all images array
   const allImages: string[] = [
-    accessory?.url1, accessory?.url2, accessory?.url3, accessory?.url4, accessory?.url5,
-    accessory?.image1, accessory?.image2, accessory?.image3, accessory?.image4, accessory?.image5
+    playstation?.url1, playstation?.url2, playstation?.url3, playstation?.url4, playstation?.url5,
+    playstation?.image1, playstation?.image2, playstation?.image3, playstation?.image4, playstation?.image5
   ].filter((img): img is string => Boolean(img));
 
   // Calculate discount
-  const discountPercent = accessory?.discount ? getDiscountPercent(accessory.price, accessory.discount) : 0;
+  const discountPercent = playstation?.discount ? getDiscountPercent(playstation.price, playstation.discount) : 0;
   const hasDiscount = discountPercent > 0;
 
   // Find similar products
   const similarProducts = useMemo(() => {
-    if (!accessory || accessoryList.length === 0) return [];
+    if (!playstation || playstationList.length === 0) return [];
 
-    const currentPrice = parseFloat(accessory.price) || 0;
-    const currentBrand = accessory.brand || '';
-    const currentType = accessory.type_name || '';
+    const currentPrice = parseFloat(playstation.price) || 0;
+    const currentType = playstation.type_name || '';
+    const currentStorage = playstation.storage || '';
 
-    const scored = accessoryList
-      .filter((item) => item.id !== accessory.id)
+    const scored = playstationList
+      .filter((item) => item.id !== playstation.id)
       .map((item) => {
         let score = 0;
         const itemPrice = parseFloat(item.price) || 0;
-        const itemBrand = item.brand || '';
         const itemType = item.type_name || '';
+        const itemStorage = item.storage || '';
 
-        if (currentBrand && itemBrand === currentBrand) score += 50;
-        if (currentType && itemType === currentType) score += 40;
+        if (currentType && itemType === currentType) score += 50;
+        if (currentStorage && itemStorage === currentStorage) score += 30;
 
         const priceDiff = Math.abs(currentPrice - itemPrice);
         if (currentPrice > 0 && priceDiff <= 200) score += 25;
@@ -130,7 +123,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
       .slice(0, 6);
 
     return scored;
-  }, [accessory, accessoryList]);
+  }, [playstation, playstationList]);
 
   // Handle swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -181,15 +174,17 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // Build specs text for sharing/whatsapp
   const buildSpecsText = () => {
-    if (!accessory) return "";
+    if (!playstation) return "";
     const specsList: string[] = [];
-    if (accessory.brand) specsList.push(`• الماركة: ${accessory.brand}`);
-    if (accessory.modelNumber) specsList.push(`• رقم الموديل: ${accessory.modelNumber}`);
-    if (accessory.compatibility) specsList.push(`• التوافق: ${accessory.compatibility}`);
-    if (accessory.type_name) specsList.push(`• النوع: ${accessory.type_name}`);
+    if (playstation.brand) specsList.push(`• الماركة: ${playstation.brand}`);
+    if (playstation.modelNumber) specsList.push(`• رقم الموديل: ${playstation.modelNumber}`);
+    if (playstation.storage) specsList.push(`• المساحة: ${playstation.storage}`);
+    if (playstation.color) specsList.push(`• اللون: ${playstation.color}`);
+    if (playstation.type_name) specsList.push(`• النوع: ${playstation.type_name}`);
+    if (playstation.controllerCount) specsList.push(`• عدد أيدي التحكم: ${playstation.controllerCount}`);
     
-    if (accessory.dynamicSpecs) {
-      accessory.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
+    if (playstation.dynamicSpecs) {
+      playstation.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
         specsList.push(`• ${spec.key}: ${spec.value}`);
       });
     }
@@ -199,21 +194,21 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // Share function
   const handleShare = async () => {
-    if (!accessory) return;
+    if (!playstation) return;
     
     const specsText = buildSpecsText();
     
-    let shareText = `🎧 *${accessory.name}*\n\n💰 السعر: $${formatPriceInUSD(accessory.discount || accessory.price)}`;
+    let shareText = `🎮 *${playstation.name}*\n\n💰 السعر: $${formatPriceInUSD(playstation.discount || playstation.price)}`;
     if (hasDiscount) {
-      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(accessory.price)})`;
+      shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(playstation.price)})`;
     }
-    shareText += `\n📦 الحالة: ${getAgeInArabic(accessory.age)}${specsText}\n\n🔗 الرابط:`;
-    const shareUrl = `${window.location.origin}/accessories/${params.id}`;
+    shareText += `\n📦 الحالة: ${getAgeInArabic(playstation.age)}${specsText}\n\n🔗 الرابط:`;
+    const shareUrl = `${window.location.origin}/playstations/${params.id}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: accessory.name,
+          title: playstation.name,
           text: shareText.replace(/\*/g, ''),
           url: shareUrl,
         });
@@ -235,19 +230,19 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   // WhatsApp order function
   const handleWhatsAppOrder = () => {
-    if (!accessory) return;
+    if (!playstation) return;
     
     const specsText = buildSpecsText();
     
     let message = `مرحباً، أريد الاستفسار عن هذا المنتج:\n\n`;
-    message += `🎧 *${accessory.name}*\n`;
-    message += `💰 السعر: $${formatPriceInUSD(accessory.discount || accessory.price)}`;
+    message += `🎮 *${playstation.name}*\n`;
+    message += `💰 السعر: $${formatPriceInUSD(playstation.discount || playstation.price)}`;
     if (hasDiscount) {
-      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(accessory.price)})`;
+      message += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(playstation.price)})`;
     }
-    message += `\n📦 الحالة: ${getAgeInArabic(accessory.age)}`;
+    message += `\n📦 الحالة: ${getAgeInArabic(playstation.age)}`;
     message += specsText;
-    message += `\n\n🔗 رابط المنتج: ${window.location.origin}/accessories/${params.id}`;
+    message += `\n\n🔗 رابط المنتج: ${window.location.origin}/playstations/${params.id}`;
     
     if (currentImage) {
       message += `\n\n📸 صورة المنتج: ${currentImage}`;
@@ -274,24 +269,24 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   };
 
   if (isLoading) {
-    return <AccessoryDetailsSkeleton />;
+    return <PlayStationDetailsSkeleton />;
   }
 
-  if (!accessory) {
+  if (!playstation) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8">
           <h2 className="text-2xl font-bold text-red-600 mb-2">عذراً!</h2>
           <p className="text-gray-600">المنتج غير متوفر أو تم حذفه</p>
-          <Link href="/accessories" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            العودة إلى الاكسسوارات
+          <Link href="/playstations" className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            العودة إلى البلايستيشن
           </Link>
         </div>
       </div>
     );
   }
 
-  const ageDisplay = getAgeDisplay(accessory.age);
+  const ageDisplay = getAgeDisplay(playstation.age);
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
@@ -302,10 +297,10 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
             عرض خاص
           </div>
           <h3 className="text-white text-xl font-bold">
-            🎉 خصم {discountPercent}% على {accessory.name} 🎉
+            🎉 خصم {discountPercent}% على {playstation.name} 🎉
           </h3>
           <p className="text-white/90 text-sm mt-1">
-            وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+            وفر {Math.floor(parseFloat(playstation.price) - parseFloat(playstation.discount))}$
           </p>
         </div>
       )}
@@ -324,7 +319,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
               {currentImage ? (
                 <img
                   src={getImage(currentImage)}
-                  alt={accessory.name}
+                  alt={playstation.name}
                   className="absolute inset-0 w-full h-full object-contain p-4"
                 />
               ) : (
@@ -406,7 +401,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         <div className="lg:w-1/2">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-              {accessory.name}
+              {playstation.name}
             </h1>
             
             <div className="flex flex-wrap gap-2 mb-4">
@@ -426,50 +421,50 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
                   {hasDiscount && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      {formatPriceInSYP(accessory.price, dollar)} ل.س
+                      {formatPriceInSYP(playstation.price, dollar)} ل.س
                     </p>
                   )}
                   <p className="text-2xl md:text-3xl font-bold text-red-600">
-                    {formatPriceInSYP(accessory.discount || accessory.price, dollar)} <span className="text-sm">ل.س</span>
+                    {formatPriceInSYP(playstation.discount || playstation.price, dollar)} <span className="text-sm">ل.س</span>
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">السعر بالدولار</span>
                   {hasDiscount && (
                     <p className="text-xs text-gray-500 line-through mt-1">
-                      ${formatPriceInUSD(accessory.price)}
+                      ${formatPriceInUSD(playstation.price)}
                     </p>
                   )}
                   <p className="text-xl md:text-2xl font-bold text-green-600">
-                    ${formatPriceInUSD(accessory.discount || accessory.price)}
+                    ${formatPriceInUSD(playstation.discount || playstation.price)}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-              {accessory.brand && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">الماركة</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.brand}</p>
-                </div>
-              )}
-              {accessory.type_name && (
+              {playstation.type_name && (
                 <div className="bg-gray-50 rounded-lg p-2">
                   <p className="text-xs text-gray-500">النوع</p>
-                  <p className="text-sm font-medium text-gray-800">{accessory.type_name}</p>
+                  <p className="text-sm font-medium text-gray-800">{playstation.type_name}</p>
                 </div>
               )}
-              {accessory.modelNumber && (
+              {playstation.storage && (
+                <div className="bg-gray-50 rounded-lg p-2">
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><HardDrive className="w-3 h-3" /> المساحة</p>
+                  <p className="text-sm font-medium text-gray-800">{playstation.storage}</p>
+                </div>
+              )}
+              {playstation.color && (
+                <div className="bg-gray-50 rounded-lg p-2">
+                  <p className="text-xs text-gray-500">اللون</p>
+                  <p className="text-sm font-medium text-gray-800">{playstation.color}</p>
+                </div>
+              )}
+              {playstation.modelNumber && (
                 <div className="bg-gray-50 rounded-lg p-2">
                   <p className="text-xs text-gray-500">رقم الموديل</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.modelNumber}</p>
-                </div>
-              )}
-              {accessory.compatibility && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">التوافق</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.compatibility}</p>
+                  <p className="text-sm font-medium text-gray-800 truncate">{playstation.modelNumber}</p>
                 </div>
               )}
             </div>
@@ -493,7 +488,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* المواصفات الكاملة Section - FIRST */}
+      {/* المواصفات الكاملة Section */}
       <div className="mt-8">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -506,11 +501,11 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                 <tbody>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700 w-1/3 rounded-r-lg">الاسم</td>
-                    <td className="py-3 px-4 text-gray-600">{accessory.name}</td>
+                    <td className="py-3 px-4 text-gray-600">{playstation.name}</td>
                   </tr>
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
-                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(accessory.age)}</td>
+                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(playstation.age)}</td>
                   </tr>
                   
                   {/* Discount row */}
@@ -519,7 +514,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     <td className="py-3 px-4 text-gray-600">
                       {hasDiscount ? (
                         <span className="text-red-600 font-bold">
-                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(playstation.price) - parseFloat(playstation.discount))}$
                         </span>
                       ) : (
                         <span className="text-gray-500">لا يوجد خصم</span>
@@ -527,32 +522,44 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     </td>
                   </tr>
                   
-                  {accessory.brand && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.brand}</td>
-                    </tr>
-                  )}
-                  {accessory.type_name && (
+                  {playstation.type_name && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.type_name}</td>
+                      <td className="py-3 px-4 text-gray-600">{playstation.type_name}</td>
                     </tr>
                   )}
-                  {accessory.modelNumber && (
+                  {playstation.brand && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
+                      <td className="py-3 px-4 text-gray-600">{playstation.brand}</td>
+                    </tr>
+                  )}
+                  {playstation.modelNumber && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.modelNumber}</td>
+                      <td className="py-3 px-4 text-gray-600">{playstation.modelNumber}</td>
                     </tr>
                   )}
-                  {accessory.compatibility && (
+                  {playstation.storage && (
                     <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التوافق</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.compatibility}</td>
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المساحة</td>
+                      <td className="py-3 px-4 text-gray-600">{playstation.storage}</td>
+                    </tr>
+                  )}
+                  {playstation.color && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">اللون</td>
+                      <td className="py-3 px-4 text-gray-600">{playstation.color}</td>
+                    </tr>
+                  )}
+                  {playstation.controllerCount && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">عدد أيدي التحكم</td>
+                      <td className="py-3 px-4 text-gray-600">{playstation.controllerCount}</td>
                     </tr>
                   )}
                   
-                  {accessory.dynamicSpecs && accessory.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
+                  {playstation.dynamicSpecs && playstation.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
                     <tr key={idx} className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
                       <td className="py-3 px-4 text-gray-600">{spec.value}</td>
@@ -565,7 +572,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
         </div>
       </div>
 
-      {/* الوصف Section - SECOND (below specs) */}
+      {/* الوصف Section */}
       <div className="mt-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
@@ -575,7 +582,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
           <div className="p-6">
             <div className="prose max-w-none">
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {accessory.description || "لا يوجد وصف لهذا المنتج"}
+                {playstation.description || "لا يوجد وصف لهذا المنتج"}
               </p>
             </div>
           </div>
@@ -603,7 +610,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
             {similarProducts.map((product) => {
               const productImage = product.image || product.image1 || product.url1 || "";
               return (
-                <CardAccessory
+                <CardPlayStation
                   key={product.id}
                   height="160px"
                   rounded="10px"
@@ -616,8 +623,11 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   dollarPrice={dollar}
                   id={product.id || ""}
                   age={product.age || ""}
-                  brand={product.brand || ""}
                   type_name={product.type_name || ""}
+                  storage={product.storage || ""}
+                  color={product.color || ""}
+                  includes_controller={product.includes_controller}
+                  controller_count={product.controller_count}
                   dynamicSpecs={product.dynamicSpecs || []}
                 />
               );
@@ -640,7 +650,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 }
 
 // Skeleton Loader Component
-function AccessoryDetailsSkeleton() {
+function PlayStationDetailsSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -663,7 +673,6 @@ function AccessoryDetailsSkeleton() {
         </div>
       </div>
       
-      {/* Skeleton for similar products */}
       <div className="mt-12">
         <Skeleton variant="text" width="200px" height={32} className="mb-4" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">

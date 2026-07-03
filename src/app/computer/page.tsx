@@ -160,7 +160,7 @@ export default function ComputerPage() {
               </span>
             </div>
           </div>
-          <MultipleItemsOffer productModule="COMPUTER" />
+          <MultipleItemsOffer  />
 
           <div className="my-6 md:my-8">
             <div 

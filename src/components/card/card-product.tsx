@@ -50,6 +50,26 @@ const getBadgeColor = (age: string | undefined): string => {
   }
 };
 
+// Helper to calculate discount percentage
+const calculateDiscount = (originalPrice: string, discountedPrice: string) => {
+  const original = parseFloat(originalPrice);
+  const discounted = parseFloat(discountedPrice);
+  if (!original || !discounted || original <= discounted) return null;
+  return Math.round(((original - discounted) / original) * 100);
+};
+
+// Get discount info
+const getDiscountInfo = (discount: string | undefined, price: string) => {
+  if (!discount || discount === "0" || discount === "0.00") return null;
+  const discountPercent = calculateDiscount(price, discount);
+  if (!discountPercent || discountPercent <= 0) return null;
+  return {
+    percent: discountPercent,
+    originalPrice: price,
+    discountedPrice: discount
+  };
+};
+
 const SpecItem = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <div className="flex items-center justify-center gap-1 text-gray-600 bg-gray-50 rounded-lg px-1.5 py-1.5 min-w-0">
     <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-left break-words min-w-0">{label}</span>
@@ -64,6 +84,7 @@ const CardProduct = ({
   image,
   title,
   price,
+  discount,
   dollarPrice,
   description,
   icons,
@@ -80,6 +101,7 @@ const CardProduct = ({
   title: string;
   image: string;
   price: string;
+  discount?: string;
   dollarPrice: number;
   description?: string;
   icons?: boolean;
@@ -92,18 +114,24 @@ const CardProduct = ({
 }) => {
   const ageInArabic = getAgeInArabic(age);
   const badgeColor = getBadgeColor(age);
+  const discountInfo = getDiscountInfo(discount, price);
 
   const priceInUSD = parseFloat(price);
   const priceInSYP = !isNaN(priceInUSD) && priceInUSD > 0
     ? Math.floor(priceInUSD * dollarPrice).toLocaleString()
     : 0;
 
+  // Get discount price in SYP if discount exists
+  const discountPriceInUSD = discountInfo ? parseFloat(discountInfo.discountedPrice) : null;
+  const discountPriceInSYP = discountPriceInUSD && discountPriceInUSD > 0
+    ? Math.floor(discountPriceInUSD * dollarPrice).toLocaleString()
+    : 0;
+
   const hasSpecs = cpu || gpu || ram || storage;
 
   return (
-    
-      <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
-<Link href={`/laptops/${id}`}>
+    <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
+      <Link href={`/laptops/${id}`}>
         {/* Image */}
         <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
           <img
@@ -116,50 +144,72 @@ const CardProduct = ({
               {ageInArabic}
             </span>
           )}
+          {discountInfo && (
+            <span className="absolute top-2 left-2 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg">
+              خصم {discountInfo.percent}%
+            </span>
+          )}
         </div>
-</Link>
-        {/* Body */}
-        <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
+      </Link>
 
-          {/* Title */}
-          <p className="font-semibold text-[13px] sm:text-[14px] md:text-[15px] leading-snug text-gray-800 line-clamp-2 mb-2 text-center">
-            {title}
-          </p>
+      {/* Body */}
+      <div className="flex flex-col flex-1 px-3 pt-3 pb-2">
+        {/* Title */}
+        <p className="font-semibold text-[13px] sm:text-[14px] md:text-[15px] leading-snug text-gray-800 line-clamp-2 mb-2 text-center">
+          {title}
+        </p>
 
-          {/* Price */}
-          {price === "0.00" || priceInUSD === 0 ? (
-            <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
-          ) : (
-            <div className="mb-2 text-center">
-              <p className="text-[13px] font-bold text-red-600 leading-tight">
+        {/* Price */}
+        {price === "0.00" || priceInUSD === 0 ? (
+          <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
+        ) : (
+          <div className="mb-2 text-center">
+            {/* Original Price - Crossed out if discount exists */}
+            {discountInfo && (
+              <p className="text-[12px] text-gray-400 line-through">
                 {priceInSYP} ل.س
               </p>
-              <p className="text-[20px] text-green-600 leading-tight">{priceInUSD.toFixed(2)}$</p>
-            </div>
-          )}
+            )}
+            
+            {/* Discounted Price OR Regular Price */}
+            <p className="text-[13px] font-bold text-red-600 leading-tight">
+              {discountInfo ? discountPriceInSYP : priceInSYP} ل.س
+            </p>
+            
+            {/* USD Price */}
+            <p className="text-[18px] font-bold text-green-600 leading-tight">
+              {discountInfo ? discountInfo.discountedPrice : priceInUSD.toFixed(2)}$
+            </p>
+            
+            {/* Show original price in USD if discount exists */}
+            {discountInfo && (
+              <p className="text-[10px] text-gray-400 line-through">
+                {priceInUSD.toFixed(2)}$
+              </p>
+            )}
+          </div>
+        )}
 
-          {/* Specs - 2 columns, CPU+GPU on row 1, RAM+Storage on row 2 */}
-          {hasSpecs && (
-            <div className="grid grid-cols-2 gap-1 mt-auto pt-2 border-t border-gray-100 min-w-0 overflow-hidden ">
-              {cpu     && <SpecItem icon={<CpuIcon />}     label={cpu} />}
-              {gpu     && <SpecItem icon={<GpuIcon />}     label={gpu} />}
-              {ram     && <SpecItem icon={<RamIcon />}     label={ram} />}
-              {storage && <SpecItem icon={<StorageIcon />} label={storage} />}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-3 pb-3 pt-1.5">
-          <Link href={`/laptops/${id}`}>
-            <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
-              معلومات المنتج
-            </span>
-          </Link>
-        </div>
-
+        {/* Specs - 2 columns, CPU+GPU on row 1, RAM+Storage on row 2 */}
+        {hasSpecs && (
+          <div className="grid grid-cols-2 gap-1 mt-auto pt-2 border-t border-gray-100 min-w-0 overflow-hidden">
+            {cpu     && <SpecItem icon={<CpuIcon />}     label={cpu} />}
+            {gpu     && <SpecItem icon={<GpuIcon />}     label={gpu} />}
+            {ram     && <SpecItem icon={<RamIcon />}     label={ram} />}
+            {storage && <SpecItem icon={<StorageIcon />} label={storage} />}
+          </div>
+        )}
       </div>
-    
+
+      {/* Footer */}
+      <div className="px-3 pb-3 pt-1.5">
+        <Link href={`/laptops/${id}`}>
+          <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
+            معلومات المنتج
+          </span>
+        </Link>
+      </div>
+    </div>
   );
 };
 

@@ -179,7 +179,7 @@ export default function LaptopPage() {
                 </span>
               </div>
             </div>
-            <MultipleItemsOffer productModule="LAPTOP" />
+            <MultipleItemsOffer  />
           </div>
 
           {/* Technical Support Section - Interactive Card - Same Height for All Screens */}
@@ -242,15 +242,10 @@ export default function LaptopPage() {
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <Shield className="w-4 h-4 md:w-5 md:h-5 text-yellow-300" />
                       <h3 className="text-sm md:text-lg font-bold text-white">
-                        الدعم التقني لديكم
-                      </h3>
+فريق الدعم التقني                       </h3>
                     </div>
                     <p className="text-base md:text-xl font-bold text-yellow-300 mb-1">
-                      لا خوف عليكم
-                    </p>
-                    <p className="text-white/90 text-xs md:text-sm">
-                      فريق دعم متخصص على مدار الساعة
-                    </p>
+متوفر على مدار الساعه                    </p>
                     
                     {/* WhatsApp Button */}
                     <div className="mt-2 md:mt-3 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 rounded-full px-3 py-1.5 md:px-4 md:py-2 transition-all duration-300">

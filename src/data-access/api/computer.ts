@@ -1,3 +1,4 @@
+// src/data-access/api/computer.ts
 import { apiSlice } from "../api/api";
 import { addComputerListItem } from "@/data-access/slices/computer-list";
 
@@ -26,7 +27,6 @@ export interface ComputerResponse {
 
 const computerApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // Get all computers
     getComputersList: builder.query({
       query: ({ type_name, status = true }) => ({
         url: ``,
@@ -57,7 +57,7 @@ const computerApi = apiSlice.injectEndpoints({
                   id
                   name
                 }
-                dynamicSpecs: dynamic_specs {
+                dynamicSpecs {
                   key
                   value
                 }
@@ -71,14 +71,12 @@ const computerApi = apiSlice.injectEndpoints({
         if (!response?.data?.allComputers) return [];
         
         const computerList = response.data.allComputers.map((obj) => {
-          // Convert age to Arabic
           let ageArabic = obj?.age || '';
           const ageLower = ageArabic.toLowerCase();
           if (ageLower === 'jdyd' || ageLower === 'new') ageArabic = 'جديد';
           else if (ageLower === 'used') ageArabic = 'مستعمل';
           else if (ageLower === 'openbox') ageArabic = 'اوبن بوكس';
           
-          // Keep type in English (gaming, office, workstation, etc.)
           const typeName = obj?.type?.name || '';
           
           return {
@@ -91,7 +89,7 @@ const computerApi = apiSlice.injectEndpoints({
             status: obj?.status,
             count: obj?.count,
             type_id: obj?.type?.id || '',
-            type_name: typeName,  // English: gaming, office, workstation
+            type_name: typeName,
             image: obj?.url1 || obj?.image1 || '',
             url1: obj?.url1,
             url2: obj?.url2,
@@ -122,7 +120,6 @@ const computerApi = apiSlice.injectEndpoints({
       },
     }),
 
-    // Get computer by ID
     getComputerById: builder.query({
       query: ({ id }) => ({
         url: ``,
@@ -153,7 +150,7 @@ const computerApi = apiSlice.injectEndpoints({
                   id
                   name
                 }
-                dynamicSpecs: dynamic_specs {
+                dynamicSpecs {
                   key
                   value
                 }
@@ -182,7 +179,6 @@ const computerApi = apiSlice.injectEndpoints({
       },
     }),
 
-    // Get computer types for filter options
     getComputerTypes: builder.query({
       query: () => ({
         url: ``,

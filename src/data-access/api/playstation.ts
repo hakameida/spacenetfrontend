@@ -1,3 +1,4 @@
+// src/data-access/api/playstation.ts
 import { apiSlice } from "../api/api";
 import { addPlayStationListItem } from "@/data-access/slices/playstation-list";
 
@@ -39,7 +40,7 @@ const playstationApi = apiSlice.injectEndpoints({
         method: "POST",
         body: {
           query: `
-               query GetPlayStations($typeName: String, $status: Boolean) {
+            query GetPlayStations($typeName: String, $status: Boolean) {
               allPlaystations(typeName: $typeName, status: $status) {
                 id
                 name
@@ -50,7 +51,7 @@ const playstationApi = apiSlice.injectEndpoints({
                 status
                 count
                 brand
-            	modelNumber
+                modelNumber
                 storage
                 color
                 includesController
@@ -108,7 +109,7 @@ const playstationApi = apiSlice.injectEndpoints({
             includes_controller: obj?.includesController ?? true,
             controller_count: obj?.controllerCount || 1,
             type_id: obj?.type?.id || '',
-            type_name: typeName,  // PS4, PS5, PS4 Pro, etc.
+            type_name: typeName,
             image: obj?.url1 || obj?.image1 || '',
             url1: obj?.url1,
             url2: obj?.url2,
@@ -139,7 +140,7 @@ const playstationApi = apiSlice.injectEndpoints({
       },
     }),
 
-    // Get playstation by ID
+    // Get playstation by ID - FIXED
     getPlayStationById: builder.query({
       query: ({ id }) => ({
         url: ``,
@@ -157,11 +158,11 @@ const playstationApi = apiSlice.injectEndpoints({
                 status
                 count
                 brand
-                modelNumber: model_number
+                modelNumber
                 storage
                 color
-                includesController: includes_controller
-                controllerCount: controller_count
+                includesController
+                controllerCount
                 url1
                 url2
                 url3
@@ -176,7 +177,7 @@ const playstationApi = apiSlice.injectEndpoints({
                   id
                   name
                 }
-                dynamicSpecs: dynamic_specs {
+                dynamicSpecs {
                   key
                   value
                 }

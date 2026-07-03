@@ -53,6 +53,7 @@ export const ComputerList = ({
                       height="180px"
                       rounded="10px"
                       width="100%"
+                      discount={computerItem.discount ?? ""}
                       image={computerItem.image ?? ""}
                       title={computerItem.name ?? ""}
                       price={computerItem.price ?? ""}

@@ -63,6 +63,7 @@ export const LaptopList = ({
                       image={laptopItem.image ?? ""}
                       title={laptopItem.name ?? ""}
                       price={laptopItem.price ?? ""}
+                      discount={laptopItem.discount ?? ""}
                       description={laptopItem.description ?? ""}
                       dollarPrice={dollarPrice}
                       icons={true}

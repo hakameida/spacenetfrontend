@@ -17,7 +17,7 @@ export default function LoadingScreen() {
     const hideTimer = setTimeout(() => {
       setVisible(false);
       clearInterval(interval);
-    }, 3000);
+    }, 1000);
 
     return () => {
       clearInterval(interval);

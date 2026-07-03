@@ -1,12 +1,30 @@
 // src/feature/card-accessory/index.tsx
-
 "use client";
 
 import Link from "next/link";
 import React from "react";
 import { getImage } from "@/util/get-image-url";
 
-// Convert English age values to Arabic
+// Helper to calculate discount percentage
+const calculateDiscount = (originalPrice: string, discountedPrice: string) => {
+  const original = parseFloat(originalPrice);
+  const discounted = parseFloat(discountedPrice);
+  if (!original || !discounted || original <= discounted) return null;
+  return Math.round(((original - discounted) / original) * 100);
+};
+
+// Get discount info
+const getDiscountInfo = (discount: string | undefined, price: string) => {
+  if (!discount || discount === "0" || discount === "0.00") return null;
+  const discountPercent = calculateDiscount(price, discount);
+  if (!discountPercent || discountPercent <= 0) return null;
+  return {  
+    percent: discountPercent,
+    originalPrice: price,
+    discountedPrice: discount
+  };
+};
+
 const getAgeInArabic = (age: string | undefined): string => {
   if (!age) return "";
   const ageLower = age.toLowerCase();
@@ -32,6 +50,7 @@ const CardAccessory = ({
   image,
   title,
   price,
+  discount,
   dollarPrice,
   description,
   id,
@@ -46,6 +65,7 @@ const CardAccessory = ({
   title: string;
   image: string;
   price: string;
+  discount?: string;
   dollarPrice: number;
   description?: string;
   id?: string;
@@ -56,10 +76,17 @@ const CardAccessory = ({
 }) => {
   const ageInArabic = getAgeInArabic(age);
   const badgeColor = getBadgeColor(age);
+  const discountInfo = getDiscountInfo(discount, price);
 
   const priceInUSD = parseFloat(price);
   const priceInSYP = !isNaN(priceInUSD) && priceInUSD > 0
     ? Math.floor(priceInUSD * dollarPrice).toLocaleString()
+    : 0;
+
+  // Get discount price in SYP if discount exists
+  const discountPriceInUSD = discountInfo ? parseFloat(discountInfo.discountedPrice) : null;
+  const discountPriceInSYP = discountPriceInUSD && discountPriceInUSD > 0
+    ? Math.floor(discountPriceInUSD * dollarPrice).toLocaleString()
     : 0;
 
   // Get first 2 dynamic specs to display
@@ -80,6 +107,11 @@ const CardAccessory = ({
               {ageInArabic}
             </span>
           )}
+          {discountInfo && (
+            <span className="absolute top-2 left-2 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg">
+              خصم {discountInfo.percent}%
+            </span>
+          )}
         </div>
       </Link>
 
@@ -90,29 +122,50 @@ const CardAccessory = ({
           {title}
         </p>
 
-        {/* Type & Brand - Show both */}
-        <div className="flex justify-center gap-2 mb-3 flex-wrap">
-          {type_name && (
-            <span className="text-[10px] bg-purple-100 px-2 py-0.5 rounded-full text-purple-700 font-medium">
-              {type_name}
-            </span>
-          )}
-          {brand && (
-            <span className="text-[10px] bg-blue-100 px-2 py-0.5 rounded-full text-blue-700 font-medium">
-              {brand}
-            </span>
-          )}
-        </div>
+        {/* Brand & Type */}
+        {(brand || type_name) && (
+          <div className="flex justify-center gap-2 mb-2 flex-wrap">
+            {type_name && (
+              <span className="text-[10px] bg-purple-100 px-2 py-0.5 rounded-full text-purple-700 font-medium">
+                {type_name}
+              </span>
+            )}
+            {brand && (
+              <span className="text-[10px] bg-blue-100 px-2 py-0.5 rounded-full text-blue-700 font-medium">
+                {brand}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Price */}
         {price === "0.00" || priceInUSD === 0 ? (
           <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
         ) : (
           <div className="mb-2 text-center">
+            {/* Original Price - Crossed out if discount exists */}
+            {discountInfo && (
+              <p className="text-[12px] text-gray-400 line-through">
+                {priceInSYP} ل.س
+              </p>
+            )}
+            
+            {/* Discounted Price OR Regular Price */}
             <p className="text-[13px] font-bold text-red-600 leading-tight">
-              {priceInSYP} ل.س
+              {discountInfo ? discountPriceInSYP : priceInSYP} ل.س
             </p>
-            <p className="text-[18px] font-bold text-green-600 leading-tight">{priceInUSD.toFixed(2)}$</p>
+            
+            {/* USD Price */}
+            <p className="text-[18px] font-bold text-green-600 leading-tight">
+              {discountInfo ? discountInfo.discountedPrice : priceInUSD.toFixed(2)}$
+            </p>
+            
+            {/* Show original price in USD if discount exists */}
+            {discountInfo && (
+              <p className="text-[10px] text-gray-400 line-through">
+                {priceInUSD.toFixed(2)}$
+              </p>
+            )}
           </div>
         )}
 

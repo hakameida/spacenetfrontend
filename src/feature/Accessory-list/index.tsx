@@ -1,3 +1,4 @@
+// src/feature/Accessory-list/index.tsx
 "use client";
 
 import React from "react";
@@ -56,6 +57,7 @@ export const AccessoryList = ({
                       image={accessoryItem.image ?? ""}
                       title={accessoryItem.name ?? ""}
                       price={accessoryItem.price ?? ""}
+                      discount={accessoryItem.discount ?? ""}
                       description={accessoryItem.description ?? ""}
                       dollarPrice={dollarPrice}
                       id={accessoryItem.id ?? ""}

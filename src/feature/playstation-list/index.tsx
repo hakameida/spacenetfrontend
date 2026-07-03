@@ -59,6 +59,7 @@ export const PlayStationList = ({
                       description={playstationItem.description ?? ""}
                       dollarPrice={dollarPrice}
                       id={playstationItem.id ?? ""}
+                      discount={playstationItem.discount ?? ""}
                       age={playstationItem.age ?? ""}
                       type_name={playstationItem.type_name ?? ""}
                       storage={playstationItem.storage ?? ""}

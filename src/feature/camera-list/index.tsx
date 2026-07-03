@@ -57,6 +57,7 @@ export const CameraList = ({
                       title={cameraItem.name ?? ""}
                       price={cameraItem.price ?? ""}
                       description={cameraItem.description ?? ""}
+                      discount={cameraItem.discount ?? ""}
                       dollarPrice={dollarPrice}
                       id={cameraItem.id ?? ""}
                       age={cameraItem.age ?? ""}
