@@ -2,17 +2,17 @@
 
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { useGetAccessoriesListQuery, useGetAccessoryTypesQuery } from "@/data-access/api/accessory";
 import { useAppSelector } from "@/store";
 import { selectAccessoryListList, AccessoryItem } from "@/data-access/slices/accessory-list";
 import AccessoryList from "../Accessory-list";
-import { FiX, FiSearch, FiChevronDown, FiChevronUp, FiSliders } from "react-icons/fi";
+import { FiX, FiSearch, FiChevronDown, FiChevronUp, FiSliders, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 interface FilterState {
-  types: string[];      // نوع المنتج (Mouse, Keyboard, Headset, etc.)
-  brands: string[];     // الماركة (Logitech, Razer, etc.)
+  types: string[];
+  brands: string[];
   minPrice: string;
   maxPrice: string;
   manualSearch: string;
@@ -129,12 +129,182 @@ const FilterSectionWithShowMore = ({
   );
 };
 
+// Pagination Component with smooth transitions
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  itemsPerPage,
+  onItemsPerPageChange,
+  totalItems,
+  isLoading
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
+  onItemsPerPageChange: (count: number) => void;
+  totalItems: number;
+  isLoading?: boolean;
+}) => {
+  const pageNumbers: number[] = [];
+  const maxVisiblePages = 5;
+  
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+  
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  const handlePageClick = (page: number) => {
+    if (page !== currentPage && !isLoading) {
+      onPageChange(page);
+    }
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-4 border-t border-gray-200">
+      {/* Items info */}
+      <div className="text-sm text-gray-500">
+        عرض {startItem} - {endItem} من {totalItems} منتج
+      </div>
+
+      {/* Page size selector */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-500">عرض:</span>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+          className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+        >
+          <option value={8}>8</option>
+          <option value={12}>12</option>
+          <option value={16}>16</option>
+          <option value={24}>24</option>
+          <option value={32}>32</option>
+        </select>
+      </div>
+
+      {/* Pagination buttons */}
+      <div className="flex items-center gap-1">
+        {/* First page */}
+        <button
+          onClick={() => handlePageClick(1)}
+          disabled={currentPage === 1 || isLoading}
+          className={`px-2 py-1 rounded-lg text-sm transition-all duration-300 ${
+            currentPage === 1 || isLoading
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
+          }`}
+        >
+          الأول
+        </button>
+
+        {/* Previous */}
+        <button
+          onClick={() => handlePageClick(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          className={`p-1.5 rounded-lg transition-all duration-300 ${
+            currentPage === 1 || isLoading
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
+          }`}
+        >
+          <FiChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Page numbers */}
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => handlePageClick(1)}
+              className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-all duration-300 hover:scale-105"
+            >
+              1
+            </button>
+            {startPage > 2 && <span className="text-gray-400">...</span>}
+          </>
+        )}
+
+        {pageNumbers.map((number) => (
+          <button
+            key={number}
+            onClick={() => handlePageClick(number)}
+            disabled={isLoading}
+            className={`px-3 py-1 rounded-lg text-sm transition-all duration-300 ${
+              currentPage === number
+                ? 'bg-blue-600 text-white shadow-md scale-105'
+                : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
+            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {number}
+          </button>
+        ))}
+
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="text-gray-400">...</span>}
+            <button
+              onClick={() => handlePageClick(totalPages)}
+              className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-all duration-300 hover:scale-105"
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* Next */}
+        <button
+          onClick={() => handlePageClick(currentPage + 1)}
+          disabled={currentPage === totalPages || isLoading}
+          className={`p-1.5 rounded-lg transition-all duration-300 ${
+            currentPage === totalPages || isLoading
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
+          }`}
+        >
+          <FiChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* Last page */}
+        <button
+          onClick={() => handlePageClick(totalPages)}
+          disabled={currentPage === totalPages || isLoading}
+          className={`px-2 py-1 rounded-lg text-sm transition-all duration-300 ${
+            currentPage === totalPages || isLoading
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
+          }`}
+        >
+          الأخير
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const AllAccessoryPage = ({ title }: { title: string }) => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     price: true,
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Ref for products container to scroll to
+  const productsContainerRef = useRef<HTMLDivElement>(null);
 
   const [showAllState, setShowAllState] = useState<ShowAllState>({
     types: false,
@@ -193,10 +363,12 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
           : [...currentArray, value]
       };
     });
+    setCurrentPage(1);
   };
 
   const handleManualSearch = (value: string) => {
     setFilters(prev => ({ ...prev, manualSearch: value }));
+    setCurrentPage(1);
   };
 
   const clearAllFilters = () => {
@@ -207,6 +379,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
       maxPrice: "",
       manualSearch: ""
     });
+    setCurrentPage(1);
   };
 
   const handleToggleShowAll = (sectionKey: string) => {
@@ -223,27 +396,24 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
            (filters.maxPrice ? 1 : 0);
   }, [filters]);
 
+  // Filter products
   const filteredProductList = sortedAccessoryList.filter((product) => {
     if (!product) return false;
     
-    // Filter by type (Mouse, Keyboard, Headset, etc.)
     if (filters.types.length > 0) {
       if (!filters.types.includes(product.type_name)) return false;
     }
 
-    // Filter by brand
     if (filters.brands.length > 0) {
       if (!filters.brands.includes(product.brand)) return false;
     }
 
-    // Filter by price
     if (filters.minPrice || filters.maxPrice) {
       const price = parseFloat(product.price || "0");
       if (filters.minPrice && price < parseFloat(filters.minPrice)) return false;
       if (filters.maxPrice && price > parseFloat(filters.maxPrice)) return false;
     }
 
-    // Filter by search
     if (filters.manualSearch.trim() !== "") {
       const searchTerm = filters.manualSearch.toLowerCase();
       const matchesSearch = product.name?.toLowerCase().includes(searchTerm) ||
@@ -256,6 +426,56 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     return true;
   });
 
+  // Pagination: Get current page items
+  const totalItems = filteredProductList.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+  // Reset to page 1 if current page exceeds total pages
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProductList.slice(startIndex, endIndex);
+  }, [filteredProductList, currentPage, itemsPerPage]);
+
+  // Smooth page change with animation
+  const handlePageChange = (page: number) => {
+    if (page === currentPage || isTransitioning) return;
+    
+    setIsTransitioning(true);
+    
+    // Fade out effect
+    if (productsContainerRef.current) {
+      productsContainerRef.current.style.opacity = '0';
+      productsContainerRef.current.style.transform = 'translateY(10px)';
+      productsContainerRef.current.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+    }
+    
+    setTimeout(() => {
+      setCurrentPage(page);
+      
+      // Fade in effect
+      setTimeout(() => {
+        if (productsContainerRef.current) {
+          productsContainerRef.current.style.opacity = '1';
+          productsContainerRef.current.style.transform = 'translateY(0)';
+          productsContainerRef.current.style.transition = 'opacity 0.3s ease-in, transform 0.3s ease-in';
+        }
+        setIsTransitioning(false);
+      }, 100);
+    }, 200);
+  };
+
+  const handleItemsPerPageChange = (count: number) => {
+    setItemsPerPage(count);
+    setCurrentPage(1);
+  };
+
   const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
     <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full">
       {label}
@@ -267,7 +487,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
 
   const FilterContent = () => (
     <div className="space-y-1">
-      {/* Price Filter */}
       <div className="border-b border-gray-200 py-3">
         <button
           onClick={() => toggleSection("price")}
@@ -303,7 +522,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         )}
       </div>
 
-      {/* Type Filter - نوع المنتج (Mouse, Keyboard, Headset, etc.) */}
       <FilterSectionWithShowMore 
         sectionKey="types"
         title="نوع المنتج" 
@@ -315,7 +533,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      {/* Brand Filter - العلامة التجارية */}
       <FilterSectionWithShowMore 
         sectionKey="brands"
         title="العلامة التجارية" 
@@ -337,10 +554,8 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         </h2>
       </div>
       
-      {/* Search and Sort Bar */}
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm py-3 mb-4">
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Search Input */}
           <div className="flex-1 relative">
             <input
               type="text"
@@ -360,7 +575,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
             )}
           </div>
 
-          {/* Mobile Filter Button */}
           <button
             onClick={() => setShowMobileFilters(true)}
             className="lg:hidden relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl font-semibold transition-all bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -374,7 +588,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
             )}
           </button>
 
-          {/* Sort Button */}
           <button
             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all text-sm sm:text-base"
             onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
@@ -388,7 +601,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
           </button>
         </div>
 
-        {/* Active Filters Chips */}
         {activeFiltersCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <span className="text-xs sm:text-sm text-gray-500">الفلاتر:</span>
@@ -418,7 +630,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         )}
       </div>
 
-      {/* Mobile Filter Drawer */}
       {showMobileFilters && (
         <div 
           className="fixed inset-0 z-[9999] lg:hidden"
@@ -472,27 +683,47 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         </div>
       )}
 
-      {/* Main Content */}
       <div className="flex gap-6">
-        {/* Desktop Sidebar Filters */}
         <div className="hidden lg:block w-72 flex-shrink-0 bg-white rounded-xl shadow-lg p-4 h-fit sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
           <h3 className="text-lg font-bold text-gray-800 mb-4">تصفية النتائج</h3>
           <FilterContent />
         </div>
 
-        {/* Products Grid */}
         <div className="flex-1">
           <div className="mb-4 text-sm text-gray-600">
-            عرض <span className="font-bold text-blue-600">{filteredProductList.length}</span> من أصل{" "}
-            <span className="font-bold">{accessoryList.length}</span> اكسسوار
+            عرض <span className="font-bold text-blue-600">{paginatedProducts.length}</span> من أصل{" "}
+            <span className="font-bold">{filteredProductList.length}</span> اكسسوار
           </div>
 
-          <AccessoryList 
-            dollarPrice={dollar} 
-            isLoading={isLoading} 
-            selectedList={filteredProductList}
-            gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
-          />
+          {/* Products container with smooth transitions */}
+          <div 
+            ref={productsContainerRef}
+            className="transition-all duration-300 ease-in-out"
+            style={{ 
+              opacity: 1,
+              transform: 'translateY(0)'
+            }}
+          >
+            <AccessoryList 
+              dollarPrice={dollar} 
+              isLoading={isLoading} 
+              selectedList={paginatedProducts}
+              gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
+            />
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              totalItems={filteredProductList.length}
+              isLoading={isTransitioning}
+            />
+          )}
         </div>
       </div>
     </>

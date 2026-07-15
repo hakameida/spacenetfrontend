@@ -1,6 +1,6 @@
 const { GraphQLClient, gql } = require('graphql-request');
 
-const endpoint = 'https://dockergqlserver.onrender.com/graphql/';
+const endpoint = 'https://api.spacenetstore.com/graphql/';
 const MARKET_SECRET_TOKEN = process.env.MARKET_SECRET_TOKEN;
 
 /** @type {import('next-sitemap').IConfig} */
