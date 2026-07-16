@@ -196,7 +196,7 @@ const Pagination = ({
       {/* Pagination buttons */}
       <div className="flex items-center gap-1">
         {/* First page */}
-        <button
+        {/* <button
           onClick={() => handlePageClick(1)}
           disabled={currentPage === 1 || isLoading}
           className={`px-2 py-1 rounded-lg text-sm transition-all duration-300 ${
@@ -206,7 +206,7 @@ const Pagination = ({
           }`}
         >
           الأول
-        </button>
+        </button> */}
 
         {/* Previous */}
         <button
@@ -274,7 +274,7 @@ const Pagination = ({
           <FiChevronLeft className="w-5 h-5" />
         </button>
 
-        {/* Last page */}
+        {/* Last page
         <button
           onClick={() => handlePageClick(totalPages)}
           disabled={currentPage === totalPages || isLoading}
@@ -285,7 +285,7 @@ const Pagination = ({
           }`}
         >
           الأخير
-        </button>
+        </button> */}
       </div>
     </div>
   );
@@ -683,13 +683,13 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         </div>
       )}
 
-      <div className="flex gap-6">
+<div className="flex gap-6 min-w-0">
         <div className="hidden lg:block w-72 flex-shrink-0 bg-white rounded-xl shadow-lg p-4 h-fit sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
           <h3 className="text-lg font-bold text-gray-800 mb-4">تصفية النتائج</h3>
           <FilterContent />
         </div>
+<div className="flex-1 min-w-0 [&_.container]:max-w-none [&_.container]:mx-0 [&_.container]:px-0">
 
-        <div className="flex-1">
           <div className="mb-4 text-sm text-gray-600">
             عرض <span className="font-bold text-blue-600">{paginatedProducts.length}</span> من أصل{" "}
             <span className="font-bold">{filteredProductList.length}</span> اكسسوار

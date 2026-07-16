@@ -22,7 +22,7 @@ export const AccessoryList = ({
   return (
     <>
       {isLoading ? (
-        <div className="container mx-auto my-[40px] px-2 md:px-4">
+        <div className="w-full my-[40px] px-2 md:px-4">
           <div className="my-[40px]">
             <div className={gridClassName}>
               {Array.from(new Array(9)).map((_, index) => (

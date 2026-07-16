@@ -684,7 +684,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
       <div className="mt-6">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
-            <h2 className="text-xl font-bold text-blue-600">تمييزات اصافية</h2>
+            <h2 className="text-xl font-bold text-blue-600">تمييزات اضافية</h2>
           </div>
           
           <div className="p-6">
