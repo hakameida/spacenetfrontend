@@ -1,4 +1,5 @@
-// shared.ts
+// data-access/api/shared.ts
+
 import { apiSlice } from "../api/api";
 
 export interface DollarResponse {
@@ -6,8 +7,7 @@ export interface DollarResponse {
   id: string;
 }
 
-// Define the exact product module types
-export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY"|"PLAYSTATION"|"CAMERA";
+export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY" | "PLAYSTATION" | "CAMERA" |"STORAGE" | "CASE";
 
 export interface OfferResponse {
   id: string;
@@ -15,6 +15,11 @@ export interface OfferResponse {
   price: string;
   status: boolean;
   productModule: ProductModule;
+  createdAt?: string;
+  durationDays?: number;
+  isExpired?: boolean;
+  expiryDate?: string;
+  remainingDays?: number;
 }
 
 export interface Offer {
@@ -22,6 +27,11 @@ export interface Offer {
   productId: string;
   price: string;
   productModule: ProductModule;
+  createdAt: string;
+  durationDays: number;
+  isExpired: boolean;
+  expiryDate: string;
+  remainingDays: number;
 }
 
 export interface YouTubeResponse {
@@ -31,6 +41,7 @@ export interface YouTubeResponse {
 
 const sharedApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    // Get Dollar Price
     getDollar: builder.query({
       query: () => ({
         url: ``,
@@ -65,6 +76,7 @@ const sharedApi = apiSlice.injectEndpoints({
       }),
     }),
 
+    // Get Offers List
     getOffersList: builder.query({
       query: ({ status = true }) => ({
         url: ``,
@@ -78,6 +90,11 @@ const sharedApi = apiSlice.injectEndpoints({
                 price
                 productModule
                 status
+                createdAt
+                durationDays
+                isExpired
+                expiryDate
+                remainingDays
               }
             }
           `,
@@ -92,10 +109,16 @@ const sharedApi = apiSlice.injectEndpoints({
           productId: obj?.productId,
           price: obj?.price,
           productModule: obj?.productModule,
+          createdAt: obj?.createdAt || new Date().toISOString(),
+          durationDays: obj?.durationDays || 7,
+          isExpired: obj?.isExpired || false,
+          expiryDate: obj?.expiryDate || '',
+          remainingDays: obj?.remainingDays || 0,
         })) as Offer[];
       },
     }),
 
+    
     getOfferById: builder.query({
       query: ({ id }) => ({
         url: ``,

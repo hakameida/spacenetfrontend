@@ -17,7 +17,8 @@ import {
   Gamepad2,
   Camera,
   Search,
-  HardDrive
+  HardDrive,
+  Server // NEW - for Case (PC Builds)
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -25,11 +26,13 @@ import { useEffect, useState, useRef } from "react";
 
 // ============ IMPORTS FROM YOUR REDUX ============
 import { useAppSelector } from "@/store";
-import { selectLaptopListList } from "@/data-access/slices/product-list";
+import { selectLaptopListList } from "@/data-access/slices/laptop-list";
 import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
 import { selectComputerListList } from "@/data-access/slices/computer-list";
 import { selectPlayStationListList } from "@/data-access/slices/playstation-list";
 import { selectCameraListList } from "@/data-access/slices/camera-list";
+import { selectStorageListList } from "@/data-access/slices/storage-list"; // NEW
+import { selectCaseListList } from "@/data-access/slices/case-list"; // NEW
 
 // ============ IMPORT API HOOKS TO FETCH PRODUCTS ============
 import { useGetLaptopsListQuery } from "@/data-access/api/laptop";
@@ -37,6 +40,8 @@ import { useGetAccessoriesListQuery } from "@/data-access/api/accessory";
 import { useGetComputersListQuery } from "@/data-access/api/computer";
 import { useGetPlayStationsListQuery } from "@/data-access/api/playstation";
 import { useGetCamerasListQuery } from "@/data-access/api/camera";
+import { useGetStoragesListQuery } from "@/data-access/api/storage"; // NEW
+import { useGetCasesListQuery } from "@/data-access/api/case"; // NEW
 
 // ============ IMPORT getImage UTILITY ============
 import { getImage } from "@/util/get-image-url";
@@ -67,6 +72,13 @@ interface SearchableProduct {
   storage?: string;
   model_number?: string;
   compatibility?: string;
+  capacity?: string; // NEW - for storage
+  read_speed?: string; // NEW - for storage
+  write_speed?: string; // NEW - for storage
+  motherboard?: string; // NEW - for case
+  psu?: string; // NEW - for case
+  case?: string; // NEW - for case
+  cooling?: string; // NEW - for case
   dynamicSpecs?: Array<{ key: string; value: string }>;
   [key: string]: any;
 }
@@ -78,7 +90,7 @@ const allNavLinks = [
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
   { name: "بلايستيشن", href: "/playstations", icon: Gamepad2 },
   { name: "كاميرات", href: "/cameras", icon: Camera },
-  { name: "وسائط تخزين", href: "/storage", icon: HardDrive },
+  { name: "وحدات تخزين", href: "/storage", icon: HardDrive }, // Updated name
   { name: "بطاريات", href: "/batteries", icon: Battery },
 ];
 
@@ -124,6 +136,8 @@ export default function TopNavbar() {
   const { isLoading: isLoadingComputers } = useGetComputersListQuery({ status: true });
   const { isLoading: isLoadingPlaystations } = useGetPlayStationsListQuery({ status: true });
   const { isLoading: isLoadingCameras } = useGetCamerasListQuery({ status: true });
+  const { isLoading: isLoadingStorages } = useGetStoragesListQuery({ status: true }); // NEW
+  const { isLoading: isLoadingCases } = useGetCasesListQuery({ status: true }); // NEW
 
   // ============ GET PRODUCTS FROM REDUX ============
   const laptopList = useAppSelector(selectLaptopListList);
@@ -131,6 +145,8 @@ export default function TopNavbar() {
   const computerList = useAppSelector(selectComputerListList);
   const playstationList = useAppSelector(selectPlayStationListList);
   const cameraList = useAppSelector(selectCameraListList);
+  const storageList = useAppSelector(selectStorageListList); // NEW
+  const caseList = useAppSelector(selectCaseListList); // NEW
 
   // ============ COMBINE ALL PRODUCTS WITH TYPE CASTING ============
   const allProducts: SearchableProduct[] = [
@@ -139,6 +155,8 @@ export default function TopNavbar() {
     ...(Array.isArray(computerList) ? (computerList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(playstationList) ? (playstationList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(cameraList) ? (cameraList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(storageList) ? (storageList as unknown as SearchableProduct[]) : []), // NEW
+    ...(Array.isArray(caseList) ? (caseList as unknown as SearchableProduct[]) : []), // NEW
   ];
 
   // ============ SEARCH FUNCTION ============
@@ -172,6 +190,13 @@ export default function TopNavbar() {
         product.video_resolution,
         product.lens_mount,
         product.storage,
+        product.capacity, // NEW - for storage
+        product.read_speed, // NEW - for storage
+        product.write_speed, // NEW - for storage
+        product.motherboard, // NEW - for case
+        product.psu, // NEW - for case
+        product.case, // NEW - for case
+        product.cooling, // NEW - for case
         ...(product.dynamicSpecs?.map((spec: any) => spec.value) || [])
       ].filter(Boolean);
       
@@ -213,12 +238,37 @@ export default function TopNavbar() {
   // ============ HANDLE RESULT CLICK ============
   const handleResultClick = (product: SearchableProduct) => {
     let path = "";
-    if (product.cpu !== undefined) path = `/laptops/${product.id}`;
-    else if (product.brand && product.type_name) path = `/accessories/${product.id}`;
-    else if (product.type_name) path = `/computer/${product.id}`;
-    else if (product.storage) path = `/playstations/${product.id}`;
-    else if (product.sensor_type || product.megapixels) path = `/cameras/${product.id}`;
-    else path = `/search/${encodeURIComponent(searchQuery)}`;
+    // Check for Laptop
+    if (product.cpu !== undefined && !product.motherboard) {
+      path = `/laptops/${product.id}`;
+    }
+    // Check for Case (PC Build) - has motherboard
+    else if (product.motherboard) {
+      path = `/computer/case/${product.id}`;
+    }
+    // Check for Storage - has capacity
+    else if (product.capacity) {
+      path = `/storage/${product.id}`;
+    }
+    // Check for Accessory
+    else if (product.brand && product.type_name) {
+      path = `/accessories/${product.id}`;
+    }
+    // Check for Computer
+    else if (product.type_name && !product.storage) {
+      path = `/computer/${product.id}`;
+    }
+    // Check for PlayStation
+    else if (product.storage) {
+      path = `/playstations/${product.id}`;
+    }
+    // Check for Camera
+    else if (product.sensor_type || product.megapixels) {
+      path = `/cameras/${product.id}`;
+    }
+    else {
+      path = `/search/${encodeURIComponent(searchQuery)}`;
+    }
     
     router.push(path);
     closeSearch();
@@ -592,7 +642,7 @@ export default function TopNavbar() {
               </div>
 
               <div className="max-h-[60vh] overflow-y-auto">
-                {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras) && (
+                {(isLoadingLaptops || isLoadingAccessories || isLoadingComputers || isLoadingPlaystations || isLoadingCameras || isLoadingStorages || isLoadingCases) && (
                   <div className="p-6 text-center">
                     <div className="flex items-center justify-center gap-3">
                       <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/30 border-t-white" />
@@ -601,7 +651,7 @@ export default function TopNavbar() {
                   </div>
                 )}
 
-                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && 
+                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && !isLoadingStorages && !isLoadingCases &&
                  searchQuery.length >= 2 && searchResults.length > 0 && (
                   <>
                     {searchResults.map((product, index) => {
@@ -648,7 +698,7 @@ export default function TopNavbar() {
                   </>
                 )}
 
-                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras &&
+                {!isLoadingLaptops && !isLoadingAccessories && !isLoadingComputers && !isLoadingPlaystations && !isLoadingCameras && !isLoadingStorages && !isLoadingCases &&
                  searchQuery.length >= 2 && searchResults.length === 0 && allProducts.length > 0 && (
                   <div className="p-8 text-center">
                     <p className="text-white/60">لا توجد نتائج مطابقة لـ &quot;{searchQuery}&quot;</p>
@@ -705,6 +755,15 @@ export default function TopNavbar() {
                       >
                         🎮 بلايستيشن
                       </button>
+                      <button 
+                        onClick={() => {
+                          setSearchQuery("SSD");
+                          handleSearch("SSD");
+                        }}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-xs text-white/60 transition-colors"
+                      >
+                        💾 SSD
+                      </button>
                     </div>
                   </div>
                 )}
@@ -720,7 +779,7 @@ export default function TopNavbar() {
         </div>
       )}
 
-      {/* Floating Bottom Categories Bar - Extended width to fit all items */}
+      {/* Floating Bottom Categories Bar */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}

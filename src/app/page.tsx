@@ -5,7 +5,7 @@ import LoadingScreen from "@/components/loading/LoadingScreen";
 import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Tag, Shield, Truck, Headphones, Star, ArrowLeft } from "lucide-react";
+import { Sparkles, Tag, Shield, Truck, Headphones, Star, ArrowLeft, HardDrive } from "lucide-react";
 
 const sections = [
   { 
@@ -21,6 +21,13 @@ const sections = [
     img: "/Design28.jpeg",
     description: "جميع قطع الكومبيوتر مع أحدث الشاشات",
     color: "from-purple-600 to-pink-600"
+  },
+  { 
+    name: "وحدات تخزين", 
+    href: "/storage", 
+    img: "/storage-main.png",  
+    description: "أقراص صلبة، SSD، NVMe، فلاش ميموري",
+    color: "from-cyan-600 to-blue-600"
   },
   { 
     name: "اكسسوارات", 
@@ -50,7 +57,7 @@ export const metadata = {
   description:
     "اسعار اللابتوبات والاكسسوارات وقطع الكومبيوتر والكاميرات والبلايستيشن في دمشق - سوق البحصة",
   keywords:
-    "اسعار الابتوبات في سوريا, اسعار الاكسسوارات في دمشق, اسعار قطع الكومبيوتر في سوريا, سوق البحصة, لابتوبات البحصه, كاميرات في سوريا, بلايستيشن في سوريا",
+    "اسعار الابتوبات في سوريا, اسعار الاكسسوارات في دمشق, اسعار قطع الكومبيوتر في سوريا, سوق البحصة, لابتوبات البحصه, كاميرات في سوريا, بلايستيشن في سوريا, وحدات تخزين, SSD, NVMe",
 };
 
 export default function HomePage() {

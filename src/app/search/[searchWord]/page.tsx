@@ -1,15 +1,17 @@
-// src/app/search/[searchWord]/page.tsx
+// app/search/[searchWord]/page.tsx
 
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store";
-import { selectLaptopListList } from "@/data-access/slices/product-list";
+import { selectLaptopListList } from "@/data-access/slices/laptop-list";
 import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
 import { selectComputerListList } from "@/data-access/slices/computer-list";
 import { selectPlayStationListList } from "@/data-access/slices/playstation-list";
 import { selectCameraListList } from "@/data-access/slices/camera-list";
+import { selectStorageListList } from "@/data-access/slices/storage-list"; // NEW
+import { selectCaseListList } from "@/data-access/slices/case-list"; // NEW
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import CardProduct from "@/components/card/card-product";
 import { Search, ArrowRight, X } from "lucide-react";
@@ -41,26 +43,51 @@ interface SearchableProduct {
   storage?: string;
   model_number?: string;
   compatibility?: string;
+  capacity?: string; // NEW - for storage
+  read_speed?: string; // NEW - for storage
+  write_speed?: string; // NEW - for storage
+  motherboard?: string; // NEW - for case
+  psu?: string; // NEW - for case
+  case?: string; // NEW - for case
+  cooling?: string; // NEW - for case
   dynamicSpecs?: Array<{ key: string; value: string }>;
   [key: string]: any;
 }
 
 // Helper to determine product type and get correct link
 const getProductLink = (product: SearchableProduct): string => {
-  if (product.cpu !== undefined) return `/laptops/${product.id}`;
+  // Check for Laptop
+  if (product.cpu !== undefined && !product.motherboard) return `/laptops/${product.id}`;
+  // Check for Case (PC Build) - has motherboard and cpu
+  else if (product.motherboard) return `/computer/case/${product.id}`;
+  // Check for Storage - has capacity
+  else if (product.capacity) return `/storage/${product.id}`;
+  // Check for Accessory
   else if (product.brand && product.type_name) return `/accessories/${product.id}`;
-  else if (product.type_name) return `/computer/${product.id}`;
+  // Check for Computer
+  else if (product.type_name && !product.storage) return `/computer/${product.id}`;
+  // Check for PlayStation
   else if (product.storage) return `/playstations/${product.id}`;
+  // Check for Camera
   else if (product.sensor_type || product.megapixels) return `/cameras/${product.id}`;
   else return `/search/${encodeURIComponent(product.name)}`;
 };
 
 // Helper to get product category
 const getProductCategory = (product: SearchableProduct): string => {
-  if (product.cpu !== undefined) return "لابتوب";
+  // Check for Laptop
+  if (product.cpu !== undefined && !product.motherboard) return "لابتوب";
+  // Check for Case (PC Build)
+  else if (product.motherboard) return "كيس كامل";
+  // Check for Storage
+  else if (product.capacity) return "وحدات تخزين";
+  // Check for Accessory
   else if (product.brand && product.type_name) return "اكسسوار";
-  else if (product.type_name) return "كمبيوتر";
+  // Check for Computer
+  else if (product.type_name && !product.storage) return "كمبيوتر";
+  // Check for PlayStation
   else if (product.storage) return "بلايستيشن";
+  // Check for Camera
   else if (product.sensor_type || product.megapixels) return "كاميرا";
   else return "منتج";
 };
@@ -78,6 +105,8 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
   const computerList = useAppSelector(selectComputerListList);
   const playstationList = useAppSelector(selectPlayStationListList);
   const cameraList = useAppSelector(selectCameraListList);
+  const storageList = useAppSelector(selectStorageListList); // NEW
+  const caseList = useAppSelector(selectCaseListList); // NEW
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
@@ -92,6 +121,8 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
     ...(Array.isArray(computerList) ? (computerList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(playstationList) ? (playstationList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(cameraList) ? (cameraList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(storageList) ? (storageList as unknown as SearchableProduct[]) : []), // NEW
+    ...(Array.isArray(caseList) ? (caseList as unknown as SearchableProduct[]) : []), // NEW
   ];
 
   // Search function
@@ -120,6 +151,13 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
         product.video_resolution,
         product.lens_mount,
         product.storage,
+        product.capacity, // NEW - for storage
+        product.read_speed, // NEW - for storage
+        product.write_speed, // NEW - for storage
+        product.motherboard, // NEW - for case
+        product.psu, // NEW - for case
+        product.case, // NEW - for case
+        product.cooling, // NEW - for case
         ...(product.dynamicSpecs?.map((spec: any) => spec.value) || [])
       ].filter(Boolean);
       
@@ -222,6 +260,8 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                 {products.map((product) => {
                   const imageUrl = product.image || product.image1 || product.url1 || "";
+                  // Determine which card component to use based on product type
+                  // For now, we use CardProduct for all, but we could add specific cards
                   return (
                     <CardProduct
                       key={product.id}
@@ -239,7 +279,7 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
                       cpu={product.cpu || ""}
                       gpu={product.gpu || ""}
                       ram={product.ram || ""}
-                      storage={product.hard || ""}
+                      storage={product.hard || product.storage || product.capacity || ""}
                     />
                   );
                 })}
@@ -269,11 +309,11 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
             <button
               onClick={() => {
                 setSearchInput("");
-                router.push("/accessories");
+                router.push("/storage");
               }}
-              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors"
+              className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl transition-colors"
             >
-              تصفح الاكسسوارات
+              تصفح وحدات التخزين
             </button>
             <button
               onClick={() => {
@@ -283,6 +323,15 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors"
             >
               تصفح الكمبيوتر
+            </button>
+            <button
+              onClick={() => {
+                setSearchInput("");
+                router.push("/accessories");
+              }}
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors"
+            >
+              تصفح الاكسسوارات
             </button>
             <button
               onClick={() => {

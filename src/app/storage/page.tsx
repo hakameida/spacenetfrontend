@@ -1,54 +1,345 @@
 // app/storage/page.tsx
 "use client";
 
-import React from "react";
-import { HardDrive } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { AllStoragePage } from "@/feature/all-storage-page";
+import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
+import VideoCarousel from "@/components/youtubevideo/VideoCarousel";
+import LoadingScreen from "@/components/loading/LoadingScreen";
+import { Play, Tag, Sparkles, ChevronLeft, ChevronRight, Shield, Phone, MessageCircle, ZoomIn, HardDrive } from "lucide-react";
+import Image from "next/image";
+import Head from "next/head";
+
+const promoMessages = [
+  "يوجد لدينا توصيل لكافة المحافظات",
+  "افضل وحدات التخزين وبافضل الاسعار",
+  "كفالة ذهبية على جميع الاجهزة",
+  "تشمل هارد وير وسوفت وير",
+  "توصيل لجميع مناطق دمشق",
+  "شحن امن لجميع المحافظات",
+  "تخديم كامل و مميز بعد البيع",
+];
 
 export default function StoragePage() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % promoMessages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % promoMessages.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + promoMessages.length) % promoMessages.length);
+  };
+
+  const handleWhatsAppClick = () => {
+    window.open("https://wa.me/963998372756", "_blank");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 pt-24">
-      <div className="text-center max-w-2xl mx-auto px-4">
-        {/* Icon */}
-        <div className="inline-block p-6 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 backdrop-blur-sm mb-6">
-          <HardDrive className="w-20 h-20 text-blue-600" />
+    <>
+      <Head>
+        <title>وحدات تخزين - اسعار في سوريا بحصة</title>
+        <meta name="description" content="أقراص صلبة، SSD، NVMe، فلاش ميموري - بارخص الاسعار وافضل الانواع في سبيس ستور" />
+        <meta name="keywords" content="وحدات تخزين, SSD, NVMe, HDD, فلاش ميموري, قرص صلب, تخزين بحصة" />
+      </Head>
+      
+      <LoadingScreen />
+
+      <div className="w-full mx-auto mb-4 mt-1 pt-14 md:pt-16">        
+        {/* Hero Section */}
+        <div className="relative w-full h-auto md:h-[600px] lg:h-[700px] overflow-hidden pb-8">
+          <div className="absolute inset-0 w-full h-full">
+            <Image
+              src="/Design32.png"
+              alt="Storage Hero"
+              fill
+              className="object-cover object-center"
+              priority
+              quality={100}
+            />
+          </div>
+          
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-cyan-900/40 to-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+          
+          <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-12 md:py-0">
+            
+            <div className="text-center mb-6 md:mb-8 animate-fadeInDown">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 md:mb-4 drop-shadow-lg">
+                سبيس نت ستور
+              </h1>
+              <p className="text-lg sm:text-xl md:text-3xl text-cyan-200 font-light drop-shadow-md">
+                أفضل وحدات التخزين في سوريا
+              </p>
+            </div>
+            
+            <div className="relative w-full max-w-3xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-4 md:p-8">
+                <div className="min-h-[100px] md:min-h-[120px] flex items-center justify-center">
+                  <div className="text-center animate-fadeIn">
+                    <div className="inline-block p-2 md:p-3 rounded-full bg-gradient-to-r from-cyan-500/30 to-blue-500/30 mb-3 md:mb-4">
+                      <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+                    </div>
+                    <p className="text-base md:text-xl lg:text-3xl font-bold text-white leading-relaxed px-2">
+                      {promoMessages[currentSlide]}
+                    </p>
+                    <div className="mt-3 md:mt-4 flex justify-center gap-2">
+                      <div className="w-8 md:w-12 h-0.5 bg-cyan-400 rounded-full" />
+                      <div className="w-4 md:w-6 h-0.5 bg-white/50 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 p-1 md:p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 p-1 md:p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </button>
+                
+                <div className="flex justify-center gap-1 md:gap-2 mt-4 md:mt-6">
+                  {promoMessages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`transition-all duration-300 rounded-full ${
+                        currentSlide === index
+                          ? "w-6 md:w-8 h-1.5 md:h-2 bg-cyan-500"
+                          : "w-1.5 md:w-2 h-1.5 md:h-2 bg-white/50 hover:bg-white/80"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative z-10 flex flex-wrap justify-center gap-2 md:gap-3 mt-6 md:mt-8 mb-4 md:mb-0">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+                🚚 توصيل سريع
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+                💎 كفالة ذهبية
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-white border border-white/20">
+                ⭐ ضمان شامل
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {/* Title */}
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-          وسائط تخزين
-        </h1>
-        
-        {/* Coming Soon Badge */}
-        <div className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
-          قريباً
+
+        <div className="sm:container w-[90%] mx-auto">
+          {/* Offers Section */}
+          <div className="flex items-center gap-3 mb-2 mt-8">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-sm">
+              <Tag className="w-7 h-7 md:w-9 md:h-9" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <div>
+              <h2
+                className="md:text-[42px] text-[28px] font-extrabold tracking-tight leading-tight"
+                style={{ color: "rgba(34,82,154,1)" }}
+              >
+                عروض الاسبوع
+              </h2>
+              <span
+                className="text-[16px] md:text-[18px] font-medium block mt-1"
+                style={{ color: "rgba(34,82,154,0.8)" }}
+              >
+                عروض كل اسبوع شكل
+              </span>
+            </div>
+          </div>
+          <MultipleItemsOffer  />
+
+          {/* Technical Support Card */}
+          <div className="my-6 md:my-8">
+            <div 
+              className="relative rounded-xl overflow-hidden shadow-lg cursor-pointer transition-all duration-500 transform hover:scale-[1.02] active:scale-[0.98]"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              onTouchStart={() => setIsHovered(true)}
+              onTouchEnd={() => setIsHovered(false)}
+              onClick={handleWhatsAppClick}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-cyan-700 to-blue-700" />
+              
+              <div className="relative w-full h-56 overflow-hidden">
+                <div 
+                  className={`relative w-full h-full transition-all duration-700 ${
+                    isHovered ? 'scale-125 md:scale-150' : 'scale-100'
+                  }`}
+                >
+                  <Image
+                    src="/itsupport.png"
+                    alt="الدعم التقني"
+                    fill
+                    className="object-contain transition-all duration-700"
+                    style={{ objectPosition: "center" }}
+                  />
+                </div>
+                
+                <div className={`absolute top-2 right-2 transition-all duration-300 ${
+                  isHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+                }`}>
+                  <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5 md:p-2">
+                    <ZoomIn className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                  </div>
+                </div>
+                
+                <div className={`absolute inset-0 transition-all duration-500 ${
+                  isHovered ? 'bg-black/70 backdrop-blur-sm' : 'bg-black/40'
+                }`} />
+                
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 transition-all duration-500 ${
+                  isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                }`}>
+                  <div className="mb-2 md:mb-3">
+                    <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center shadow-lg animate-bounce">
+                      <MessageCircle className="w-5 h-5 md:w-7 md:h-7 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <Shield className="w-4 h-4 md:w-5 md:h-5 text-yellow-300" />
+                      <h3 className="text-sm md:text-lg font-bold text-white">
+                        الدعم التقني لديكم
+                      </h3>
+                    </div>
+                    <p className="text-base md:text-xl font-bold text-yellow-300 mb-1">
+                      لا خوف عليكم
+                    </p>
+                    <p className="text-white/90 text-xs md:text-sm">
+                      فريق دعم متخصص على مدار الساعة
+                    </p>
+                    
+                    <div className="mt-2 md:mt-3 inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 rounded-full px-3 py-1.5 md:px-4 md:py-2 transition-all duration-300">
+                      <Phone className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                      <span className="text-white text-xs md:text-sm font-semibold">واتساب: 0998372756</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className={`absolute inset-0 flex items-center justify-center gap-1.5 md:gap-2 px-2 transition-all duration-500 ${
+                  isHovered ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+                }`}>
+                  <div className="bg-black/50 backdrop-blur-md rounded-full px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white border border-white/20 shadow-lg">
+                    🎧 24/7
+                  </div>
+                  <div className="bg-black/50 backdrop-blur-md rounded-full px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white border border-white/20 shadow-lg">
+                    ⚡ سريع
+                  </div>
+                  <div className="bg-black/50 backdrop-blur-md rounded-full px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white border border-white/20 shadow-lg">
+                    🛡️ شامل
+                  </div>
+                </div>
+
+                <div className={`absolute bottom-2 left-0 right-0 text-center transition-all duration-500 ${
+                  isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                }`}>
+                  <p className="text-white/80 text-[10px] md:text-xs bg-black/40 backdrop-blur-sm inline-block px-2 py-0.5 rounded-full mx-auto">
+                    🔍 اضغط للتكبير والتواصل
+                  </p>
+                </div>
+              </div>
+              
+              <div className="relative z-10 h-0.5 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" />
+            </div>
+          </div>
+
+          {/* Storage Header */}
+          <div className="flex items-center gap-3 mb-4 mt-12">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-sm">
+              <HardDrive className="w-8 h-8 md:w-10 md:h-10" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <div>
+              <h2
+                className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
+                style={{ color: "rgba(34,82,154,1)" }}
+              >
+                وحدات تخزين
+              </h2>
+              <p className="text-gray-500 text-sm md:text-base">
+                أقراص صلبة، SSD، NVMe، فلاش ميموري
+              </p>
+            </div>
+          </div>
+
+          <AllStoragePage title="" />
+          
+          {/* Videos Section */}
+          <div className="flex items-center gap-3 mb-4 mt-12">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-red-500/20 backdrop-blur-sm">
+              <Play className="w-7 h-7 md:w-9 md:h-9" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <h2
+              className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
+              style={{ color: "rgba(34,82,154,1)" }}
+            >
+              فيديوهات سبيس نت ستور
+            </h2>
+          </div>
+          <VideoCarousel />
         </div>
-        
-        {/* Description */}
-        <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-          هذا القسم قيد التطوير حالياً. 
-          <br />
-          سيتم إضافة وسائط التخزين قريباً.
-        </p>
-        
-        {/* Decorative Line */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-0.5 w-12 bg-blue-300 rounded-full" />
-          <span className="text-blue-400 text-sm">⏳ قيد الإنجاز</span>
-          <div className="h-0.5 w-12 bg-blue-300 rounded-full" />
-        </div>
-        
-        {/* Loading Animation */}
-        <div className="flex items-center justify-center gap-2">
-          <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-        </div>
-        
-        {/* Footer */}
-        <p className="mt-8 text-sm text-gray-400">
-          سبيس نت ستور • نعمل لتقديم أفضل الخدمات
-        </p>
       </div>
-    </div>
+
+      <style jsx global>{`
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        
+        .animate-fadeInDown {
+          animation: fadeInDown 0.8s ease-out;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out;
+        }
+        
+        .animate-bounce {
+          animation: bounce 1s infinite;
+        }
+      `}</style>
+    </>
   );
 }

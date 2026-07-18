@@ -1,18 +1,14 @@
-// app/computer/page.tsx
+// app/computer/case/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import Head from "next/head";
-import { 
-  Play, Tag, Sparkles, ChevronLeft, ChevronRight, 
-  Shield, Phone, MessageCircle, ZoomIn, Monitor, 
-  Cpu, Server, ArrowLeft 
-} from "lucide-react";
+import { AllCasePage } from "@/feature/all-case-page";
 import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 import VideoCarousel from "@/components/youtubevideo/VideoCarousel";
 import LoadingScreen from "@/components/loading/LoadingScreen";
+import { Play, Tag, Sparkles, ChevronLeft, ChevronRight, Shield, Phone, MessageCircle, ZoomIn, Server } from "lucide-react";
+import Image from "next/image";
+import Head from "next/head";
 
 const promoMessages = [
   "يوجد لدينا توصيل لكافة المحافظات",
@@ -24,31 +20,7 @@ const promoMessages = [
   "تخديم كامل و مميز بعد البيع",
 ];
 
-// Sub-categories for Computer
-const computerSubCategories = [
-  {
-    id: "parts",
-    name: "قطع كمبيوتر",
-    href: "/computer/parts",
-    icon: Cpu,
-    image: "/computer-parts.png",
-    description: "معالجات، كروت شاشة، رامات، مذربورد، مزودات طاقة، تبريد",
-    color: "from-purple-600 to-pink-600",
-    bgColor: "bg-purple-50"
-  },
-  {
-    id: "case",
-    name: "كيس كامل",
-    href: "/computer/case",
-    icon: Server,
-    image: "/computer-case.png",
-    description: "أجهزة كمبيوتر كاملة بمواصفات عالية - جاهزة للاستخدام",
-    color: "from-green-600 to-teal-600",
-    bgColor: "bg-green-50"
-  },
-];
-
-export default function ComputerPage() {
+export default function CasePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -74,9 +46,9 @@ export default function ComputerPage() {
   return (
     <>
       <Head>
-        <title>اسعار كمبيوتر في سوريا بحصة</title>
-        <meta name="description" content="كمبيوتر جيمينغ ومكتبي بارخص الاسعار وافضل الانواع في سبيس ستور" />
-        <meta name="keywords" content="بيع كمبيوتر جيمينغ, كمبيوتر بحصة, كمبيوتر بارخص الاسعار بحصه, قطع كمبيوتر, كيس كامل" />
+        <title>كيس كامل - اسعار كمبيوتر في سوريا بحصة</title>
+        <meta name="description" content="أجهزة كمبيوتر كاملة بمواصفات عالية - جاهزة للاستخدام بأفضل الأسعار في سبيس ستور" />
+        <meta name="keywords" content="كيس كامل, كمبيوتر جاهز, PC Build, كمبيوتر جيمينغ, كمبيوتر بحصة" />
       </Head>
       
       <LoadingScreen />
@@ -87,7 +59,7 @@ export default function ComputerPage() {
           <div className="absolute inset-0 w-full h-full">
             <Image
               src="/computermain.png"
-              alt="Computer Hero"
+              alt="Case Hero"
               fill
               className="object-cover object-center"
               priority
@@ -105,7 +77,7 @@ export default function ComputerPage() {
                 سبيس نت ستور
               </h1>
               <p className="text-lg sm:text-xl md:text-3xl text-green-200 font-light drop-shadow-md">
-                أفضل أجهزة الكمبيوتر في سوريا
+                أجهزة كمبيوتر كاملة - جاهزة للاستخدام
               </p>
             </div>
             
@@ -190,7 +162,7 @@ export default function ComputerPage() {
               </span>
             </div>
           </div>
-          <MultipleItemsOffer productModule="COMPUTER" />
+          <MultipleItemsOffer />
 
           {/* Technical Support Card */}
           <div className="my-6 md:my-8">
@@ -288,103 +260,39 @@ export default function ComputerPage() {
             </div>
           </div>
 
-          {/* ============ SUB-CATEGORIES SECTION ============ */}
-          <div className="mt-8 md:mt-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur-sm">
-                <Monitor className="w-8 h-8 md:w-10 md:h-10" style={{ color: "rgba(34,82,154,1)" }} />
-              </div>
-              <div>
-                <h2
-                  className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
-                  style={{ color: "rgba(34,82,154,1)" }}
-                >
-                  أقسام الكمبيوتر
-                </h2>
-                <p className="text-gray-500 text-sm md:text-base">
-                  اختر القسم الذي تريد تصفحه
-                </p>
-              </div>
+          {/* Case Header */}
+          <div className="flex items-center gap-3 mb-4 mt-12">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur-sm">
+              <Server className="w-8 h-8 md:w-10 md:h-10" style={{ color: "rgba(34,82,154,1)" }} />
             </div>
-
-            {/* Two Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-              {computerSubCategories.map((category) => {
-                const Icon = category.icon;
-                return (
-                  <Link
-                    key={category.id}
-                    href={category.href}
-                    className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
-                  >
-                    {/* Image Container */}
-                    <div className="relative h-56 md:h-64 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                      {/* Gradient Overlay */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-                      
-                      {/* Placeholder Image with Icon */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className={`p-8 rounded-full bg-gradient-to-br ${category.color} bg-opacity-10 group-hover:scale-110 transition-transform duration-500`}>
-                          <Icon 
-                            className="w-24 h-24 md:w-32 md:h-32" 
-                            style={{ color: category.color.includes('purple') ? '#7C3AED' : '#059669' }}
-                          />
-                        </div>
-                      </div>
-                      
-                      {/* Decorative Elements */}
-                      <div className={`absolute top-0 right-0 w-32 h-32 rounded-full bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-2xl`} />
-                      <div className={`absolute bottom-0 left-0 w-32 h-32 rounded-full bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-2xl`} />
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="p-6 md:p-8 text-center">
-                      <h3 className={`text-2xl md:text-3xl font-bold bg-gradient-to-r ${category.color} bg-clip-text text-transparent mb-3`}>
-                        {category.name}
-                      </h3>
-                      <p className="text-gray-600 text-sm md:text-base mb-4 leading-relaxed">
-                        {category.description}
-                      </p>
-                      
-                      {/* Features Tags */}
-                      <div className="flex flex-wrap justify-center gap-2 mb-4">
-                        <span className={`text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200`}>
-                          {category.id === 'parts' ? '⚡ قطع أصلية' : '🎮 جاهز للتشغيل'}
-                        </span>
-                        <span className={`text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200`}>
-                          {category.id === 'parts' ? '🔧 تشكيلة واسعة' : '💻 مواصفات عالية'}
-                        </span>
-                        <span className={`text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200`}>
-                          {category.id === 'parts' ? '💰 أسعار تنافسية' : '🛡️ كفالة شاملة'}
-                        </span>
-                      </div>
-                      
-                      <span className={`inline-flex items-center gap-2 text-sm font-semibold bg-gradient-to-r ${category.color} bg-clip-text text-transparent group-hover:gap-3 transition-all duration-300`}>
-                        تصفح الأقسام
-                        <ArrowLeft className="w-4 h-4" />
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Videos Section */}
-          <div className="mt-12">
-            <div className="flex items-center gap-3 mb-4 mt-12">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-red-500/20 backdrop-blur-sm">
-                <Play className="w-7 h-7 md:w-9 md:h-9" style={{ color: "rgba(34,82,154,1)" }} />
-              </div>
+            <div>
               <h2
                 className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
                 style={{ color: "rgba(34,82,154,1)" }}
               >
-                فيديوهات سبيس نت ستور
+                كيس كامل
               </h2>
+              <p className="text-gray-500 text-sm md:text-base">
+                أجهزة كمبيوتر كاملة بمواصفات عالية - جاهزة للاستخدام
+              </p>
             </div>
-            <VideoCarousel />
           </div>
+
+          <AllCasePage title="" />
+          
+          {/* Videos Section */}
+          <div className="flex items-center gap-3 mb-4 mt-12">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-red-500/20 backdrop-blur-sm">
+              <Play className="w-7 h-7 md:w-9 md:h-9" style={{ color: "rgba(34,82,154,1)" }} />
+            </div>
+            <h2
+              className="md:text-[42px] text-[28px] font-extrabold tracking-tight"
+              style={{ color: "rgba(34,82,154,1)" }}
+            >
+              فيديوهات سبيس نت ستور
+            </h2>
+          </div>
+          <VideoCarousel />
         </div>
       </div>
 

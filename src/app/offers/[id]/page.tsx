@@ -8,6 +8,8 @@ import { useGetComputerByIdQuery } from "@/data-access/api/computer";
 import { useGetAccessoryByIdQuery } from "@/data-access/api/accessory";
 import { useGetPlayStationByIdQuery } from "@/data-access/api/playstation";
 import { useGetCameraByIdQuery } from "@/data-access/api/camera";
+import { useGetStorageByIdQuery } from "@/data-access/api/storage"; // NEW
+import { useGetCaseByIdQuery } from "@/data-access/api/case"; // NEW
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
@@ -60,7 +62,24 @@ const getModuleName = (module: string | undefined) => {
     case 'ACCESSORY': return 'اكسسوارات';
     case 'PLAYSTATION': return 'بلايستيشن';
     case 'CAMERA': return 'كاميرا';
+    case 'STORAGE': return 'وحدات تخزين'; // NEW
+    case 'CASE': return 'كيس كامل'; // NEW
     default: return '';
+  }
+};
+
+// Helper to get module color
+const getModuleColor = (module: string | undefined) => {
+  if (!module) return 'bg-blue-100 text-blue-700';
+  switch (module.toUpperCase()) {
+    case 'LAPTOP': return 'bg-blue-100 text-blue-700';
+    case 'COMPUTER': return 'bg-green-100 text-green-700';
+    case 'ACCESSORY': return 'bg-purple-100 text-purple-700';
+    case 'PLAYSTATION': return 'bg-indigo-100 text-indigo-700';
+    case 'CAMERA': return 'bg-red-100 text-red-700';
+    case 'STORAGE': return 'bg-cyan-100 text-cyan-700'; // NEW
+    case 'CASE': return 'bg-teal-100 text-teal-700'; // NEW
+    default: return 'bg-blue-100 text-blue-700';
   }
 };
 
@@ -101,6 +120,13 @@ interface ProductType {
   videoResolution?: string;
   lensMount?: string;
   controllerCount?: number;
+  capacity?: string; // NEW - for storage
+  read_speed?: string; // NEW - for storage
+  write_speed?: string; // NEW - for storage
+  motherboard?: string; // NEW - for case
+  psu?: string; // NEW - for case
+  case?: string; // NEW - for case
+  cooling?: string; // NEW - for case
   [key: string]: any;
 }
 
@@ -151,6 +177,18 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     { skip: !productId || productModule?.toUpperCase() !== 'CAMERA' }
   );
 
+  // NEW: Storage query
+  const { data: storageData, isLoading: storageLoading } = useGetStorageByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'STORAGE' }
+  );
+
+  // NEW: Case query
+  const { data: caseData, isLoading: caseLoading } = useGetCaseByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'CASE' }
+  );
+
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
       setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);
@@ -176,9 +214,15 @@ export default function OfferPage({ params }: { params: { id: string } }) {
   } else if (productModule?.toUpperCase() === 'CAMERA') {
     product = cameraData;
     isLoading = cameraLoading;
+  } else if (productModule?.toUpperCase() === 'STORAGE') { // NEW
+    product = storageData;
+    isLoading = storageLoading;
+  } else if (productModule?.toUpperCase() === 'CASE') { // NEW
+    product = caseData;
+    isLoading = caseLoading;
   }
 
-  // Calculate discount - FIXED: handle undefined values
+  // Calculate discount
   const originalPrice = product?.price || '';
   const offerPrice = offer?.price || '';
   const discountPercent = originalPrice ? getDiscountPercent(originalPrice, offerPrice) : 0;
@@ -281,6 +325,30 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     
     // Computer specs
     if (productModule?.toUpperCase() === 'COMPUTER') {
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+    }
+
+    // NEW: Storage specs
+    if (productModule?.toUpperCase() === 'STORAGE') {
+      if (product.brand) specsList.push(`• الماركة: ${product.brand}`);
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+      if (product.model_number) specsList.push(`• رقم الموديل: ${product.model_number}`);
+      if (product.capacity) specsList.push(`• السعة: ${product.capacity}`);
+      if (product.read_speed) specsList.push(`• سرعة القراءة: ${product.read_speed}`);
+      if (product.write_speed) specsList.push(`• سرعة الكتابة: ${product.write_speed}`);
+    }
+
+    // NEW: Case specs (PC Builds)
+    if (productModule?.toUpperCase() === 'CASE') {
+      if (product.cpu) specsList.push(`• المعالج: ${product.cpu}`);
+      if (product.gpu) specsList.push(`• كرت الشاشة: ${product.gpu}`);
+      if (product.ram) specsList.push(`• الرام: ${product.ram}`);
+      if (product.motherboard) specsList.push(`• المذربورد: ${product.motherboard}`);
+      if (product.psu) specsList.push(`• مزود الطاقة: ${product.psu}`);
+      if (product.storage) specsList.push(`• التخزين: ${product.storage}`);
+      if (product.case) specsList.push(`• الكيس: ${product.case}`);
+      if (product.cooling) specsList.push(`• التبريد: ${product.cooling}`);
+      if (product.os) specsList.push(`• نظام التشغيل: ${product.os}`);
       if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
     }
     
@@ -396,6 +464,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
 
   const ageDisplay = getAgeDisplay(product.age);
   const warrantyInfo = getWarrantyInfo();
+  const moduleColor = getModuleColor(productModule);
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
@@ -513,7 +582,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
               <span className={`inline-block px-3 py-1 text-sm rounded-full ${ageDisplay.className}`}>
                 {ageDisplay.label}
               </span>
-              <span className="inline-block px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700">
+              <span className={`inline-block px-3 py-1 text-sm rounded-full ${moduleColor}`}>
                 {getModuleName(productModule)}
               </span>
             </div>
@@ -656,6 +725,66 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                     <div className="bg-gray-50 rounded-lg p-2">
                       <p className="text-xs text-gray-500">النوع</p>
                       <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* NEW: Storage specs */}
+              {productModule?.toUpperCase() === 'STORAGE' && (
+                <>
+                  {product.brand && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الماركة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.brand}</p>
+                    </div>
+                  )}
+                  {product.type_name && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">النوع</p>
+                      <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                  {product.capacity && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">السعة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.capacity}</p>
+                    </div>
+                  )}
+                  {product.read_speed && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">سرعة القراءة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.read_speed}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* NEW: Case specs (PC Builds) */}
+              {productModule?.toUpperCase() === 'CASE' && (
+                <>
+                  {product.cpu && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">المعالج</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.cpu}</p>
+                    </div>
+                  )}
+                  {product.gpu && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">كرت الشاشة</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.gpu}</p>
+                    </div>
+                  )}
+                  {product.ram && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الرام</p>
+                      <p className="text-sm font-medium text-gray-800">{product.ram}</p>
+                    </div>
+                  )}
+                  {product.storage && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">التخزين</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.storage}</p>
                     </div>
                   )}
                 </>
@@ -876,6 +1005,114 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                         <tr className="border-b border-gray-100">
                           <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
                           <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                    </>
+                  )}
+
+                  {/* NEW: Storage specs */}
+                  {productModule?.toUpperCase() === 'STORAGE' && (
+                    <>
+                      {product.brand && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.brand}</td>
+                        </tr>
+                      )}
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                      {product.model_number && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.model_number}</td>
+                        </tr>
+                      )}
+                      {product.capacity && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">السعة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.capacity}</td>
+                        </tr>
+                      )}
+                      {product.read_speed && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">سرعة القراءة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.read_speed}</td>
+                        </tr>
+                      )}
+                      {product.write_speed && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">سرعة الكتابة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.write_speed}</td>
+                        </tr>
+                      )}
+                    </>
+                  )}
+
+                  {/* NEW: Case specs (PC Builds) */}
+                  {productModule?.toUpperCase() === 'CASE' && (
+                    <>
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                      {product.cpu && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المعالج (CPU)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.cpu}</td>
+                        </tr>
+                      )}
+                      {product.gpu && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">كرت الشاشة (GPU)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.gpu}</td>
+                        </tr>
+                      )}
+                      {product.ram && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الذاكرة (RAM)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.ram}</td>
+                        </tr>
+                      )}
+                      {product.motherboard && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المذربورد</td>
+                          <td className="py-3 px-4 text-gray-600">{product.motherboard}</td>
+                        </tr>
+                      )}
+                      {product.psu && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">مزود الطاقة (PSU)</td>
+                          <td className="py-3 px-4 text-gray-600">{product.psu}</td>
+                        </tr>
+                      )}
+                      {product.storage && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التخزين</td>
+                          <td className="py-3 px-4 text-gray-600">{product.storage}</td>
+                        </tr>
+                      )}
+                      {product.case && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الكيس</td>
+                          <td className="py-3 px-4 text-gray-600">{product.case}</td>
+                        </tr>
+                      )}
+                      {product.cooling && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التبريد</td>
+                          <td className="py-3 px-4 text-gray-600">{product.cooling}</td>
+                        </tr>
+                      )}
+                      {product.os && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نظام التشغيل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.os}</td>
                         </tr>
                       )}
                     </>
