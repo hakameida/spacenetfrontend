@@ -99,7 +99,7 @@ const CardCamera = ({
   return (
     <div className="card-camera h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
       <Link href={`/cameras/${id}`}>
-        <div className="relative bg-gray-50 flex items-center justify-center overflow-hidden" style={{ height }}>
+        <div className="relative  flex items-center justify-center overflow-hidden" style={{ height }}>
           <img
             className="w-full h-full object-contain p-2"
             alt={`اشتر ${title} باحسن سعر من سبيس نت ستور`}
