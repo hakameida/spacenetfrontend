@@ -1,4 +1,3 @@
-// app/offers/[id]/page.tsx
 'use client';
 
 import React, { useEffect, useState, useRef } from "react";
@@ -8,8 +7,8 @@ import { useGetComputerByIdQuery } from "@/data-access/api/computer";
 import { useGetAccessoryByIdQuery } from "@/data-access/api/accessory";
 import { useGetPlayStationByIdQuery } from "@/data-access/api/playstation";
 import { useGetCameraByIdQuery } from "@/data-access/api/camera";
-import { useGetStorageByIdQuery } from "@/data-access/api/storage"; // NEW
-import { useGetCaseByIdQuery } from "@/data-access/api/case"; // NEW
+import { useGetStorageByIdQuery } from "@/data-access/api/storage";
+import { useGetCaseByIdQuery } from "@/data-access/api/case";
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
@@ -62,8 +61,8 @@ const getModuleName = (module: string | undefined) => {
     case 'ACCESSORY': return 'اكسسوارات';
     case 'PLAYSTATION': return 'بلايستيشن';
     case 'CAMERA': return 'كاميرا';
-    case 'STORAGE': return 'وحدات تخزين'; // NEW
-    case 'CASE': return 'كيس كامل'; // NEW
+    case 'STORAGE': return 'وحدات تخزين';
+    case 'CASE': return 'كيس كامل';
     default: return '';
   }
 };
@@ -77,8 +76,8 @@ const getModuleColor = (module: string | undefined) => {
     case 'ACCESSORY': return 'bg-purple-100 text-purple-700';
     case 'PLAYSTATION': return 'bg-indigo-100 text-indigo-700';
     case 'CAMERA': return 'bg-red-100 text-red-700';
-    case 'STORAGE': return 'bg-cyan-100 text-cyan-700'; // NEW
-    case 'CASE': return 'bg-teal-100 text-teal-700'; // NEW
+    case 'STORAGE': return 'bg-cyan-100 text-cyan-700';
+    case 'CASE': return 'bg-teal-100 text-teal-700';
     default: return 'bg-blue-100 text-blue-700';
   }
 };
@@ -120,15 +119,39 @@ interface ProductType {
   videoResolution?: string;
   lensMount?: string;
   controllerCount?: number;
-  capacity?: string; // NEW - for storage
-  read_speed?: string; // NEW - for storage
-  write_speed?: string; // NEW - for storage
-  motherboard?: string; // NEW - for case
-  psu?: string; // NEW - for case
-  case?: string; // NEW - for case
-  cooling?: string; // NEW - for case
+  capacity?: string;
+  read_speed?: string;
+  write_speed?: string;
+  motherboard?: string;
+  psu?: string;
+  case?: string;
+  cooling?: string;
   [key: string]: any;
 }
+
+// ============ HELPER: Extract product data from response ============
+const extractProductData = (response: any, key: string): any => {
+  if (!response) return null;
+  // Check if response has nested data structure (e.g., { data: { laptopById: {...} } })
+  if (response?.data?.[key]) {
+    return response.data[key];
+  }
+  // Check if response itself is the product (has an id)
+  if (response?.id) {
+    return response;
+  }
+  // Check if response has data property but no key (fallback)
+  if (response?.data && typeof response.data === 'object') {
+    // Try to find the first key that looks like a product
+    const keys = Object.keys(response.data);
+    for (const k of keys) {
+      if (response.data[k]?.id) {
+        return response.data[k];
+      }
+    }
+  }
+  return null;
+};
 
 export default function OfferPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -177,13 +200,11 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     { skip: !productId || productModule?.toUpperCase() !== 'CAMERA' }
   );
 
-  // NEW: Storage query
   const { data: storageData, isLoading: storageLoading } = useGetStorageByIdQuery(
     { id: productId },
     { skip: !productId || productModule?.toUpperCase() !== 'STORAGE' }
   );
 
-  // NEW: Case query
   const { data: caseData, isLoading: caseLoading } = useGetCaseByIdQuery(
     { id: productId },
     { skip: !productId || productModule?.toUpperCase() !== 'CASE' }
@@ -195,30 +216,30 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     }
   }, [dollarData]);
 
-  // Get the correct product based on module
+  // ============ FIX: Extract product data using helper ============
   let product: ProductType | null | undefined = null;
   let isLoading = false;
-  
-  if (productModule?.toUpperCase() === 'LAPTOP') {
-    product = laptopData;
+
+  if (productModule?.toUpperCase() === 'LAPTOP' && laptopData) {
+    product = extractProductData(laptopData, 'laptopById');
     isLoading = laptopLoading;
-  } else if (productModule?.toUpperCase() === 'COMPUTER') {
-    product = computerData;
+  } else if (productModule?.toUpperCase() === 'COMPUTER' && computerData) {
+    product = extractProductData(computerData, 'computerById');
     isLoading = computerLoading;
-  } else if (productModule?.toUpperCase() === 'ACCESSORY') {
-    product = accessoryData;
+  } else if (productModule?.toUpperCase() === 'ACCESSORY' && accessoryData) {
+    product = extractProductData(accessoryData, 'accessoryById');
     isLoading = accessoryLoading;
-  } else if (productModule?.toUpperCase() === 'PLAYSTATION') {
-    product = playstationData;
+  } else if (productModule?.toUpperCase() === 'PLAYSTATION' && playstationData) {
+    product = extractProductData(playstationData, 'playstationById');
     isLoading = playstationLoading;
-  } else if (productModule?.toUpperCase() === 'CAMERA') {
-    product = cameraData;
+  } else if (productModule?.toUpperCase() === 'CAMERA' && cameraData) {
+    product = extractProductData(cameraData, 'cameraById');
     isLoading = cameraLoading;
-  } else if (productModule?.toUpperCase() === 'STORAGE') { // NEW
-    product = storageData;
+  } else if (productModule?.toUpperCase() === 'STORAGE' && storageData) {
+    product = extractProductData(storageData, 'storageById');
     isLoading = storageLoading;
-  } else if (productModule?.toUpperCase() === 'CASE') { // NEW
-    product = caseData;
+  } else if (productModule?.toUpperCase() === 'CASE' && caseData) {
+    product = extractProductData(caseData, 'caseById');
     isLoading = caseLoading;
   }
 
@@ -328,7 +349,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
       if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
     }
 
-    // NEW: Storage specs
+    // Storage specs
     if (productModule?.toUpperCase() === 'STORAGE') {
       if (product.brand) specsList.push(`• الماركة: ${product.brand}`);
       if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
@@ -338,7 +359,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
       if (product.write_speed) specsList.push(`• سرعة الكتابة: ${product.write_speed}`);
     }
 
-    // NEW: Case specs (PC Builds)
+    // Case specs (PC Builds)
     if (productModule?.toUpperCase() === 'CASE') {
       if (product.cpu) specsList.push(`• المعالج: ${product.cpu}`);
       if (product.gpu) specsList.push(`• كرت الشاشة: ${product.gpu}`);
@@ -730,7 +751,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                 </>
               )}
 
-              {/* NEW: Storage specs */}
+              {/* Storage specs */}
               {productModule?.toUpperCase() === 'STORAGE' && (
                 <>
                   {product.brand && (
@@ -760,7 +781,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                 </>
               )}
 
-              {/* NEW: Case specs (PC Builds) */}
+              {/* Case specs (PC Builds) */}
               {productModule?.toUpperCase() === 'CASE' && (
                 <>
                   {product.cpu && (
@@ -1010,7 +1031,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                     </>
                   )}
 
-                  {/* NEW: Storage specs */}
+                  {/* Storage specs */}
                   {productModule?.toUpperCase() === 'STORAGE' && (
                     <>
                       {product.brand && (
@@ -1052,7 +1073,7 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                     </>
                   )}
 
-                  {/* NEW: Case specs (PC Builds) */}
+                  {/* Case specs (PC Builds) */}
                   {productModule?.toUpperCase() === 'CASE' && (
                     <>
                       {product.type_name && (

@@ -12,8 +12,8 @@ import { useGetComputerByIdQuery } from "@/data-access/api/computer";
 import { useGetAccessoryByIdQuery } from "@/data-access/api/accessory";
 import { useGetPlayStationByIdQuery } from "@/data-access/api/playstation";
 import { useGetCameraByIdQuery } from "@/data-access/api/camera";
-import { useGetStorageByIdQuery } from "@/data-access/api/storage"; // NEW
-import { useGetCaseByIdQuery } from "@/data-access/api/case"; // NEW
+import { useGetStorageByIdQuery } from "@/data-access/api/storage";
+import { useGetCaseByIdQuery } from "@/data-access/api/case";
 import Link from "next/link";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { getImage } from "@/util/get-image-url";
@@ -75,8 +75,8 @@ const getModuleName = (module: ProductModule) => {
     case 'ACCESSORY': return 'اكسسوارات';
     case 'PLAYSTATION': return 'بلايستيشن';
     case 'CAMERA': return 'كاميرا';
-    case 'STORAGE': return 'وحدات تخزين'; // NEW
-    case 'CASE': return 'كيس كامل'; // NEW
+    case 'STORAGE': return 'وحدات تخزين';
+    case 'CASE': return 'كيس كامل';
     default: return '';
   }
 };
@@ -88,8 +88,8 @@ const getModuleColor = (module: ProductModule) => {
     case 'ACCESSORY': return 'bg-purple-600';
     case 'PLAYSTATION': return 'bg-indigo-600';
     case 'CAMERA': return 'bg-red-600';
-    case 'STORAGE': return 'bg-cyan-600'; // NEW
-    case 'CASE': return 'bg-teal-600'; // NEW
+    case 'STORAGE': return 'bg-cyan-600';
+    case 'CASE': return 'bg-teal-600';
     default: return 'bg-gray-600';
   }
 };
@@ -100,39 +100,38 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
   const [loading, setLoading] = useState(true);
   const [isExpired, setIsExpired] = useState(offer.isExpired || false);
   
-  const { data: laptopData, isLoading: laptopLoading } = useGetLaptopByIdQuery(
+  // FIX: Get the actual data from the response
+  const { data: laptopResponse, isLoading: laptopLoading } = useGetLaptopByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'LAPTOP' || !offer.productId || isExpired }
   );
   
-  const { data: computerData, isLoading: computerLoading } = useGetComputerByIdQuery(
+  const { data: computerResponse, isLoading: computerLoading } = useGetComputerByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'COMPUTER' || !offer.productId || isExpired }
   );
   
-  const { data: accessoryData, isLoading: accessoryLoading } = useGetAccessoryByIdQuery(
+  const { data: accessoryResponse, isLoading: accessoryLoading } = useGetAccessoryByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'ACCESSORY' || !offer.productId || isExpired }
   );
   
-  const { data: playstationData, isLoading: playstationLoading } = useGetPlayStationByIdQuery(
+  const { data: playstationResponse, isLoading: playstationLoading } = useGetPlayStationByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'PLAYSTATION' || !offer.productId || isExpired }
   );
   
-  const { data: cameraData, isLoading: cameraLoading } = useGetCameraByIdQuery(
+  const { data: cameraResponse, isLoading: cameraLoading } = useGetCameraByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'CAMERA' || !offer.productId || isExpired }
   );
 
-  // NEW: Storage query
-  const { data: storageData, isLoading: storageLoading } = useGetStorageByIdQuery(
+  const { data: storageResponse, isLoading: storageLoading } = useGetStorageByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'STORAGE' || !offer.productId || isExpired }
   );
 
-  // NEW: Case query
-  const { data: caseData, isLoading: caseLoading } = useGetCaseByIdQuery(
+  const { data: caseResponse, isLoading: caseLoading } = useGetCaseByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'CASE' || !offer.productId || isExpired }
   );
@@ -143,34 +142,42 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
       return;
     }
 
-    if (offer.productModule === 'LAPTOP' && laptopData) {
-      setProduct(laptopData);
-      setLoading(false);
-    } else if (offer.productModule === 'COMPUTER' && computerData) {
-      setProduct(computerData);
-      setLoading(false);
-    } else if (offer.productModule === 'ACCESSORY' && accessoryData) {
-      setProduct(accessoryData);
-      setLoading(false);
-    } else if (offer.productModule === 'PLAYSTATION' && playstationData) {
-      setProduct(playstationData);
-      setLoading(false);
-    } else if (offer.productModule === 'CAMERA' && cameraData) {
-      setProduct(cameraData);
-      setLoading(false);
-    } else if (offer.productModule === 'STORAGE' && storageData) { // NEW
-      setProduct(storageData);
-      setLoading(false);
-    } else if (offer.productModule === 'CASE' && caseData) { // NEW
-      setProduct(caseData);
+    // FIX: Extract the actual product data from the response
+    // The response might be { data: { laptopById: {...} } } or just the product directly
+    let productData: any = null;
+
+if (offer.productModule === 'LAPTOP' && laptopResponse) {
+  productData = (laptopResponse as any)?.data?.laptopById || laptopResponse;
+} else if (offer.productModule === 'COMPUTER' && computerResponse) {
+  productData = (computerResponse as any)?.data?.computerById || computerResponse;
+} else if (offer.productModule === 'ACCESSORY' && accessoryResponse) {
+  productData = (accessoryResponse as any)?.data?.accessoryById || accessoryResponse;
+} else if (offer.productModule === 'PLAYSTATION' && playstationResponse) {
+  productData = (playstationResponse as any)?.data?.playstationById || playstationResponse;
+} else if (offer.productModule === 'CAMERA' && cameraResponse) {
+  productData = (cameraResponse as any)?.data?.cameraById || cameraResponse;
+} else if (offer.productModule === 'STORAGE' && storageResponse) {
+  productData = (storageResponse as any)?.data?.storageById || storageResponse;
+} else if (offer.productModule === 'CASE' && caseResponse) {
+  productData = (caseResponse as any)?.data?.caseById || caseResponse;
+}
+
+    if (productData) {
+      setProduct(productData);
       setLoading(false);
     }
-  }, [offer.productModule, laptopData, computerData, accessoryData, playstationData, cameraData, storageData, caseData, isExpired]);
+  }, [offer.productModule, laptopResponse, computerResponse, accessoryResponse, playstationResponse, cameraResponse, storageResponse, caseResponse, isExpired]);
   
-  const originalPrice = product?.price;
+  // Get the product data correctly
+  const productData = product;
+  
+  // FIX: Check if we have product data
+  console.log("Product Data in render:", productData);
+  
+  const originalPrice = productData?.price;
   const discountPercent = originalPrice ? Math.floor(((parseFloat(originalPrice) - parseFloat(offer.price)) / parseFloat(originalPrice)) * 100) : 0;
   const hasDiscount = discountPercent > 0;
-  const imageUrl = getImage(product?.url1 || product?.image1 || product?.image || '');
+  const imageUrl = getImage(productData?.url1 || productData?.image1 || productData?.image || '');
   const moduleColor = getModuleColor(offer.productModule);
 
   if (isExpired) {
@@ -194,7 +201,7 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
     );
   }
   
-  if (!product) {
+  if (!productData) {
     return null;
   }
   
@@ -203,16 +210,15 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
       href={`/offers/${offer.id}`}
       className="block bg-white rounded-xl border overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group"
     >
-      {/* Full card with flex column to push timer to bottom */}
       <div className="flex flex-col">
         {/* Main content - Image + Details in flex row on large screens */}
         <div className="flex flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative w-full md:w-1/2 h-64 md:h-80 lg:h-96 overflow-hidden ">
+          <div className="relative w-full md:w-1/2 h-64 md:h-80 lg:h-96 overflow-hidden bg-gray-50">
             {imageUrl ? (
               <img
                 src={imageUrl}
-                alt={product.name}
+                alt={productData.name}
                 className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-4"
                 loading="lazy"
                 onError={(e) => {
@@ -220,7 +226,7 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
                 <span className="text-gray-400">لا توجد صورة</span>
               </div>
             )}
@@ -241,12 +247,12 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
           {/* Content Section */}
           <div className="flex-1 p-4 md:p-6 lg:p-8 text-center md:text-right">
             <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 md:mb-3 line-clamp-2">
-              {product.name}
+              {productData.name}
             </h3>
             
-            {product.description && (
+            {productData.description && (
               <p className="text-gray-600 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
-                {product.description}
+                {productData.description}
               </p>
             )}
             
@@ -254,28 +260,34 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
             <div className="grid grid-cols-2 gap-1.5 md:gap-2 mt-2 md:mt-3 text-xs md:text-sm">
               {offer.productModule === 'LAPTOP' && (
                 <>
-                  {product.cpu && (
+                  {productData.cpu && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">المعالج</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{product.cpu}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.cpu}</p>
                     </div>
                   )}
-                  {product.ram && (
+                  {productData.ram && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الرام</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.ram}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.ram}</p>
                     </div>
                   )}
-                  {product.gpu && (
+                  {productData.gpu && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">كرت الشاشة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{product.gpu}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.gpu}</p>
                     </div>
                   )}
-                  {product.hard && (
+                  {productData.hard && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">التخزين</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{product.hard}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.hard}</p>
+                    </div>
+                  )}
+                  {productData.screen && (
+                    <div className="bg-gray-50 rounded p-1.5 md:p-2 col-span-2">
+                      <p className="text-[10px] md:text-xs text-gray-500">الشاشة</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.screen}</p>
                     </div>
                   )}
                 </>
@@ -283,16 +295,16 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
 
               {offer.productModule === 'CAMERA' && (
                 <>
-                  {product.brand && (
+                  {productData.brand && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الماركة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.brand}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.brand}</p>
                     </div>
                   )}
-                  {product.megapixels && (
+                  {productData.megapixels && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الدقة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.megapixels}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.megapixels}</p>
                     </div>
                   )}
                 </>
@@ -300,16 +312,16 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
 
               {offer.productModule === 'PLAYSTATION' && (
                 <>
-                  {product.type_name && (
+                  {productData.type_name && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">النوع</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.type_name}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.type_name}</p>
                     </div>
                   )}
-                  {product.storage && (
+                  {productData.storage && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">المساحة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.storage}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.storage}</p>
                     </div>
                   )}
                 </>
@@ -317,23 +329,23 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
 
               {offer.productModule === 'ACCESSORY' && (
                 <>
-                  {product.brand && (
+                  {productData.brand && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الماركة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.brand}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.brand}</p>
                     </div>
                   )}
-                  {product.type_name && (
+                  {productData.type_name && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">النوع</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.type_name}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.type_name}</p>
                     </div>
                   )}
                 </>
               )}
 
-              {offer.productModule === 'COMPUTER' && product.dynamicSpecs && (
-                product.dynamicSpecs.slice(0, 4).map((spec: any, idx: number) => (
+              {offer.productModule === 'COMPUTER' && productData.dynamicSpecs && (
+                productData.dynamicSpecs.slice(0, 4).map((spec: any, idx: number) => (
                   <div key={idx} className="bg-gray-50 rounded p-1.5 md:p-2">
                     <p className="text-[10px] md:text-xs text-gray-500">{spec.key}</p>
                     <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{spec.value}</p>
@@ -341,61 +353,59 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
                 ))
               )}
 
-              {/* NEW: Storage Module */}
               {offer.productModule === 'STORAGE' && (
                 <>
-                  {product.brand && (
+                  {productData.brand && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الماركة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.brand}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.brand}</p>
                     </div>
                   )}
-                  {product.type_name && (
+                  {productData.type_name && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">النوع</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.type_name}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.type_name}</p>
                     </div>
                   )}
-                  {product.capacity && (
+                  {productData.capacity && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">السعة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.capacity}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.capacity}</p>
                     </div>
                   )}
-                  {product.read_speed && (
+                  {productData.read_speed && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">سرعة القراءة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.read_speed}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.read_speed}</p>
                     </div>
                   )}
                 </>
               )}
 
-              {/* NEW: Case Module (PC Builds) */}
               {offer.productModule === 'CASE' && (
                 <>
-                  {product.cpu && (
+                  {productData.cpu && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">المعالج</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{product.cpu}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.cpu}</p>
                     </div>
                   )}
-                  {product.gpu && (
+                  {productData.gpu && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">كرت الشاشة</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{product.gpu}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.gpu}</p>
                     </div>
                   )}
-                  {product.ram && (
+                  {productData.ram && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الرام</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{product.ram}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.ram}</p>
                     </div>
                   )}
-                  {product.storage && (
+                  {productData.storage && (
                     <div className="bg-gray-50 rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">التخزين</p>
-                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{product.storage}</p>
+                      <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.storage}</p>
                     </div>
                   )}
                 </>
@@ -406,11 +416,11 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
             <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3 mt-3 md:mt-4">
               {hasDiscount && (
                 <p className="text-sm md:text-lg text-red-500 font-bold line-through">
-                  {originalPrice} $
+                  {parseFloat(originalPrice).toFixed(2)} $
                 </p>
               )}
               <p className="text-xl md:text-3xl font-bold text-green-600">
-                {offer.price} <span className="text-sm md:text-base">$</span>
+                {parseFloat(offer.price).toFixed(2)} <span className="text-sm md:text-base">$</span>
               </p>
             </div>
             
@@ -429,9 +439,9 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
           </div>
         </div>
 
-        {/* COUNTDOWN TIMER - Bottom of the ENTIRE CARD (below everything) */}
+        {/* COUNTDOWN TIMER - Bottom of the ENTIRE CARD */}
         {offer.createdAt && (
-          <div className="w-full border-t border-gray-100 p-2 md:p-3">
+          <div className="w-full border-t border-gray-100 bg-gradient-to-r from-red-50/50 to-red-50/50 p-2 md:p-3">
             <div className="flex justify-center">
               <CountdownTimer
                 createdAt={offer.createdAt}
