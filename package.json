@@ -33,6 +33,7 @@
     "react-redux": "^9.1.0",
     "react-slick": "^0.30.2",
     "redux": "^5.0.1",
+    "simple-icons": "^16.32.0",
     "slick-carousel": "^1.8.1",
     "yup": "^1.4.0"
   },
