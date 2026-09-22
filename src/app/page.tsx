@@ -6,6 +6,7 @@ import MultipleItemsOffer from "@/components/react-slick/react-slickOffer";
 import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, Tag, Shield, Truck, Headphones, Star, ArrowLeft, HardDrive } from "lucide-react";
+import BrandsSection from "@/components/brands/brands-section";
 
 const sections = [
   { 
@@ -98,7 +99,7 @@ export default function HomePage() {
           </div>
           <MultipleItemsOffer  />
         </div>
-
+<BrandsSection />
         {/* Categories Grid */}
         <section className="py-16 px-6">
           <div className="container mx-auto">

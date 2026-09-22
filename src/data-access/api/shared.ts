@@ -49,7 +49,7 @@ const sharedApi = apiSlice.injectEndpoints({
         body: {
           query: `
             query GetDollarPrice {
-              dollarPriceByPk(id: "b2cad799-bfbe-4f5c-840e-e80e01377776") {
+              dollarPriceByPk(id: "cab4e930-7b9f-4a4b-ab12-bec0088bfd83") {
                 dollarPrice
                 id
               }

@@ -13,6 +13,10 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
 import CardProduct from "@/components/card/card-product";
 
+// ---- Zoom constants ----
+const ZOOM_LEVEL = 2.5;   // how much the lens magnifies
+const LENS_SIZE = 170;    // lens diameter in px
+
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
   const priceNum = parseFloat(price);
@@ -99,11 +103,17 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
   const { data: dollarData } = useGetDollarQuery({});
   const [dollar, setDollar] = useState(0);
   const [currentImage, setCurrentImage] = useState("");
-  
+
   // Swipe state
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  // ---- Zoom state ----
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [imgBounds, setImgBounds] = useState({ x: 0, y: 0, w: 0, h: 0 });
+  const [zoomActive, setZoomActive] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
 
   // Get all laptops for similar products
   const { isLoading: isListLoading } = useGetLaptopsListQuery({ status: true });
@@ -138,6 +148,79 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
   // Calculate discount
   const discountPercent = laptop?.discount ? getDiscountPercent(laptop.price, laptop.discount) : 0;
   const hasDiscount = discountPercent > 0;
+
+  // ---- Zoom: measure the actual rendered image bounds inside the container ----
+  const measureImage = () => {
+    const img = imgRef.current;
+    const container = imageContainerRef.current;
+    if (!img || !container || !img.naturalWidth || !img.naturalHeight) return;
+
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const style = window.getComputedStyle(img);
+    const padL = parseFloat(style.paddingLeft) || 0;
+    const padR = parseFloat(style.paddingRight) || 0;
+    const padT = parseFloat(style.paddingTop) || 0;
+    const padB = parseFloat(style.paddingBottom) || 0;
+
+    const contentW = imgRect.width - padL - padR;
+    const contentH = imgRect.height - padT - padB;
+    if (contentW <= 0 || contentH <= 0) return;
+
+    const aspect = img.naturalWidth / img.naturalHeight;
+    let drawW: number, drawH: number;
+    if (contentW / contentH > aspect) {
+      drawH = contentH;
+      drawW = drawH * aspect;
+    } else {
+      drawW = contentW;
+      drawH = drawW / aspect;
+    }
+
+    const drawX = imgRect.left + padL + (contentW - drawW) / 2 - containerRect.left;
+    const drawY = imgRect.top + padT + (contentH - drawH) / 2 - containerRect.top;
+
+    setImgBounds({ x: drawX, y: drawY, w: drawW, h: drawH });
+  };
+
+  // Re-measure when image changes or viewport changes
+  useEffect(() => {
+    measureImage();
+    window.addEventListener("resize", measureImage);
+    window.addEventListener("scroll", measureImage, true);
+    return () => {
+      window.removeEventListener("resize", measureImage);
+      window.removeEventListener("scroll", measureImage, true);
+    };
+  }, [currentImage]);
+
+  // ---- Zoom: pointer position → lens position ----
+  const updateZoomAt = (clientX: number, clientY: number, container: HTMLElement) => {
+    if (imgBounds.w === 0 || imgBounds.h === 0) {
+      setZoomActive(false);
+      return;
+    }
+    const rect = container.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    // Only activate when over the actual rendered image
+    if (
+      x < imgBounds.x || x > imgBounds.x + imgBounds.w ||
+      y < imgBounds.y || y > imgBounds.y + imgBounds.h
+    ) {
+      setZoomActive(false);
+      return;
+    }
+
+    setZoomPos({ x, y });
+    setZoomActive(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    updateZoomAt(e.clientX, e.clientY, e.currentTarget);
+  };
+  const handleMouseLeave = () => setZoomActive(false);
 
   // Find similar products
   const similarProducts = useMemo(() => {
@@ -176,7 +259,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     return scored;
   }, [laptop, laptopList]);
 
-  // Handle swipe gestures
+  // Handle swipe gestures (RTL: left swipe → next, right swipe → prev)
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -187,20 +270,20 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
     const currentIndex = allImages.findIndex(img => img === currentImage);
-    
+
     if (isLeftSwipe && currentIndex < allImages.length - 1) {
       setCurrentImage(allImages[currentIndex + 1]);
     }
-    
+
     if (isRightSwipe && currentIndex > 0) {
       setCurrentImage(allImages[currentIndex - 1]);
     }
-    
+
     setTouchStart(0);
     setTouchEnd(0);
   };
@@ -230,20 +313,20 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     if (laptop.screen) specsList.push(`• الشاشة: ${laptop.screen}`);
     if (laptop.color) specsList.push(`• اللون: ${laptop.color}`);
     if (laptop.os) specsList.push(`• نظام التشغيل: ${laptop.os}`);
-    
+
     if (laptop.dynamicSpecs) {
       laptop.dynamicSpecs.forEach((spec: { key: string; value: string }) => {
         specsList.push(`• ${spec.key}: ${spec.value}`);
       });
     }
-    
+
     return specsList.length > 0 ? `\n\n*المواصفات:*\n${specsList.join('\n')}` : '';
   };
 
   // Build warranty text
   const buildWarrantyText = () => {
     if (!laptop) return "";
-    
+
     if (laptop.age?.toLowerCase() === 'jdyd') {
       return '\n\n*الضمان والهدايا (جديد):*\n• كفالة هاردوير: 3 شهور\n• كفالة سوفتوير: 6 شهور\n• الهدايا: حقيبة + ماوس + ستاند معدني + ماوس باد';
     } else if (laptop.age?.toLowerCase() === 'used' || laptop.age?.toLowerCase() === 'openbox') {
@@ -255,10 +338,10 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
   // Share function
   const handleShare = async () => {
     if (!laptop) return;
-    
+
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
-    
+
     let shareText = `💻 *${laptop.name}*\n\n💰 السعر: $${formatPriceInUSD(laptop.discount || laptop.price)}`;
     if (hasDiscount) {
       shareText += ` (خصم ${discountPercent}% - كان $${formatPriceInUSD(laptop.price)})`;
@@ -292,10 +375,10 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
   // WhatsApp order function
   const handleWhatsAppOrder = () => {
     if (!laptop) return;
-    
+
     const specsText = buildSpecsText();
     const warrantyText = buildWarrantyText();
-    
+
     let message = `مرحباً، أريد الاستفسار عن هذا المنتج:\n\n`;
     message += `💻 *${laptop.name}*\n`;
     message += `💰 السعر: $${formatPriceInUSD(laptop.discount || laptop.price)}`;
@@ -306,11 +389,11 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
     message += specsText;
     message += warrantyText;
     message += `\n\n🔗 رابط المنتج: ${window.location.origin}/laptops/${params.id}`;
-    
+
     if (currentImage) {
       message += `\n\n📸 صورة المنتج: ${currentImage}`;
     }
-    
+
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/963956958013?text=${encodedMessage}`, '_blank');
   };
@@ -318,7 +401,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
   // Helper to display age status in Arabic
   const getAgeDisplay = (age: string | undefined): { label: string; className: string } => {
     if (!age) return { label: '', className: '' };
-    
+
     switch (age.toLowerCase()) {
       case 'jdyd':
         return { label: 'جديد', className: 'bg-green-100 text-green-700' };
@@ -334,7 +417,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
   // Get warranty info for display in table
   const getWarrantyInfo = () => {
     if (!laptop) return { hardware: '', software: '', gifts: '' };
-    
+
     if (laptop.age?.toLowerCase() === 'jdyd') {
       return {
         hardware: '✨ إسبوع استبدال فوري: في حال وجود أي عذر مصنعي أو خلل بالقطع  🛠️ كفالة 6 أشهر: تشمل أي عيوب أو سوء صنع.',
@@ -390,83 +473,116 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
       )}
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left - Image Gallery with Swipe Support */}
+        {/* Left - Image Gallery with Swipe Support + Zoom */}
         <div className="lg:w-1/2">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            {/* Main Image with Swipe */}
-            <div 
+            {/* Main Image with Swipe + Zoom */}
+            <div
               ref={imageContainerRef}
-              className="relative w-full h-80 md:h-96 bg-gray-50"
+              className="relative w-full h-80 md:h-96 bg-gray-50 select-none"
+              style={{ cursor: zoomActive ? "crosshair" : "zoom-in" }}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
               {currentImage ? (
                 <img
+                  ref={imgRef}
                   src={getImage(currentImage)}
                   alt={laptop.name}
                   className="absolute inset-0 w-full h-full object-contain p-4"
+                  draggable={false}
+                  onLoad={measureImage}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                   <span className="text-gray-400">لا توجد صورة</span>
                 </div>
               )}
-              
-              {/* Navigation Arrows */}
+
+              {/* ===== Magnifier Lens ===== */}
+              {zoomActive && currentImage && imgBounds.w > 0 && (
+                <div
+                  className="pointer-events-none absolute rounded-full border-4 border-white shadow-2xl z-30"
+                  style={{
+                    width: LENS_SIZE,
+                    height: LENS_SIZE,
+                    left: zoomPos.x - LENS_SIZE / 2,
+                    top: zoomPos.y - LENS_SIZE / 2,
+                    backgroundImage: `url(${getImage(currentImage)})`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: `${imgBounds.w * ZOOM_LEVEL}px ${imgBounds.h * ZOOM_LEVEL}px`,
+                    backgroundPosition: `${
+                      LENS_SIZE / 2 - (zoomPos.x - imgBounds.x) * ZOOM_LEVEL
+                    }px ${
+                      LENS_SIZE / 2 - (zoomPos.y - imgBounds.y) * ZOOM_LEVEL
+                    }px`,
+                    boxShadow:
+                      "0 0 0 1px rgba(0,0,0,0.15), 0 10px 30px rgba(0,0,0,0.35)",
+                  }}
+                />
+              )}
+
+              {/* Navigation Arrows (RTL: left = next, right = prev) */}
               {allImages.length > 1 && (
                 <>
+                  {/* LEFT arrow → NEXT image (RTL layout) */}
                   <button
-                    onClick={prevImage}
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 ${
-                      allImages.findIndex(img => img === currentImage) === 0 
-                        ? 'opacity-50 cursor-not-allowed' 
+                    onClick={nextImage}
+                    disabled={allImages.findIndex(img => img === currentImage) === allImages.length - 1}
+                    aria-label="التالي"
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 z-20 ${
+                      allImages.findIndex(img => img === currentImage) === allImages.length - 1
+                        ? 'opacity-50 cursor-not-allowed'
                         : 'opacity-100'
                     }`}
-                    disabled={allImages.findIndex(img => img === currentImage) === 0}
                   >
                     <ChevronLeft className="w-5 h-5 text-white" />
                   </button>
-                  
+
+                  {/* RIGHT arrow → PREVIOUS image (RTL layout) */}
                   <button
-                    onClick={nextImage}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 ${
-                      allImages.findIndex(img => img === currentImage) === allImages.length - 1 
-                        ? 'opacity-50 cursor-not-allowed' 
+                    onClick={prevImage}
+                    disabled={allImages.findIndex(img => img === currentImage) === 0}
+                    aria-label="السابق"
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 z-20 ${
+                      allImages.findIndex(img => img === currentImage) === 0
+                        ? 'opacity-50 cursor-not-allowed'
                         : 'opacity-100'
                     }`}
-                    disabled={allImages.findIndex(img => img === currentImage) === allImages.length - 1}
                   >
                     <ChevronRight className="w-5 h-5 text-white" />
                   </button>
                 </>
               )}
-              
+
               {/* Image Counter */}
               {allImages.length > 1 && (
-                <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white">
+                <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white z-20">
                   {allImages.findIndex(img => img === currentImage) + 1} / {allImages.length}
                 </div>
               )}
-              
+
               {/* Swipe Hint for Mobile */}
               {allImages.length > 1 && (
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-white flex items-center gap-1 md:hidden">
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-white flex items-center gap-1 md:hidden z-20">
                   <span>👆 اسحب لليمين واليسار</span>
                 </div>
               )}
 
               {/* Discount Badge on Image */}
               {hasDiscount && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-20">
                   خصم {discountPercent}%
                 </div>
               )}
             </div>
-            
-            {/* Thumbnails */}
+
+            {/* Thumbnails — centered */}
             {allImages.length > 1 && (
-              <div className="flex gap-2 p-4 overflow-x-auto border-t border-gray-100 scrollbar-hide">
+              <div className="flex gap-2 p-4 overflow-x-auto border-t border-gray-100 scrollbar-hide justify-center">
                 {allImages.map((url, index) => (
                   <button
                     key={index}
@@ -492,7 +608,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
             <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
               {laptop.name}
             </h1>
-            
+
             <div className="flex flex-wrap gap-2 mb-4">
               <span className={`inline-block px-3 py-1 text-sm rounded-full ${ageDisplay.className}`}>
                 {ageDisplay.label}
@@ -566,7 +682,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                 <IoMdCart size={20} />
                 اطلب الآن
               </button>
-              <button 
+              <button
                 onClick={handleShare}
                 className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center justify-center"
               >
@@ -583,7 +699,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
             <h2 className="text-xl font-bold text-blue-600">المواصفات الكاملة</h2>
           </div>
-          
+
           <div className="p-6">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -596,7 +712,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
                     <td className="py-3 px-4 text-gray-600">{getAgeInArabic(laptop.age)}</td>
                   </tr>
-                  
+
                   {/* Discount row */}
                   <tr className="border-b border-gray-100">
                     <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الخصم</td>
@@ -610,7 +726,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                       )}
                     </td>
                   </tr>
-                  
+
                   {laptop.cpu && (
                     <tr className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المعالج (CPU)</td>
@@ -653,14 +769,14 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
                       <td className="py-3 px-4 text-gray-600">{laptop.os}</td>
                     </tr>
                   )}
-                  
+
                   {laptop.dynamicSpecs && laptop.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
                     <tr key={idx} className="border-b border-gray-100">
                       <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
                       <td className="py-3 px-4 text-gray-600">{spec.value}</td>
                     </tr>
                   ))}
-                  
+
                   <tr className="border-b border-gray-100 bg-green-50/30">
                     <td className="py-3 px-4 bg-green-50 font-semibold text-gray-700">🎁 كفالة هاردوير</td>
                     <td className="py-3 px-4 text-gray-600">{warrantyInfo.hardware}</td>
@@ -686,7 +802,7 @@ export default function LaptopDetailsPage({ params }: { params: { id: string } }
           <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
             <h2 className="text-xl font-bold text-blue-600">تمييزات اضافية</h2>
           </div>
-          
+
           <div className="p-6">
             <div className="prose max-w-none">
               <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
@@ -779,8 +895,7 @@ function LaptopDetailsSkeleton() {
           </div>
         </div>
       </div>
-      
-      {/* Skeleton for similar products */}
+
       <div className="mt-12">
         <Skeleton variant="text" width="200px" height={32} className="mb-4" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">

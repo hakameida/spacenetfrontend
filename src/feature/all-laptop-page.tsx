@@ -43,6 +43,23 @@ interface ShowAllState {
   age: boolean;
 }
 
+// -------- Persistence helpers --------
+const STORAGE_KEY = "all-laptop-page-state";
+
+const loadSavedState = (): {
+  filters?: FilterState;
+  sortDirection?: "asc" | "desc";
+  showAllState?: ShowAllState;
+} | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 // Extract unique values from laptop data
 const useExtractedFilters = (laptops: LaptopItem[]) => {
   return useMemo(() => {
@@ -79,7 +96,7 @@ const useExtractedFilters = (laptops: LaptopItem[]) => {
       laptop.dynamicSpecs?.forEach(spec => {
         const key = spec.key.toLowerCase();
         const value = spec.value;
-        
+
         if ((key.includes('cpu') || key.includes('معالج') || key.includes('processor')) && !laptop.cpu) {
           cpus.add(value);
         } else if ((key.includes('gpu') || key.includes('كرت') || key.includes('graphics') || key.includes('vga')) && !laptop.gpu) {
@@ -141,11 +158,11 @@ const sortProductsByPrice = (products: LaptopItem[], direction: "asc" | "desc") 
   return [...products].sort((a, b) => {
     const aIsSoon = a.price === "0.00";
     const bIsSoon = b.price === "0.00";
-    
+
     if (aIsSoon && !bIsSoon) return 1;
     if (!aIsSoon && bIsSoon) return -1;
     if (aIsSoon && bIsSoon) return 0;
-    
+
     return direction === "asc"
       ? parseFloat(a.price || "0") - parseFloat(b.price || "0")
       : parseFloat(b.price || "0") - parseFloat(a.price || "0");
@@ -153,18 +170,18 @@ const sortProductsByPrice = (products: LaptopItem[], direction: "asc" | "desc") 
 };
 
 // Fixed FilterSectionWithShowMore - now accepts showAll state from parent
-const FilterSectionWithShowMore = ({ 
-  title, 
-  options, 
-  selectedValues, 
+const FilterSectionWithShowMore = ({
+  title,
+  options,
+  selectedValues,
   onToggle,
   showAll,
   onToggleShowAll,
   defaultShowCount = 5,
   sectionKey
-}: { 
-  title: string; 
-  options: string[]; 
+}: {
+  title: string;
+  options: string[];
   selectedValues: string[];
   onToggle: (value: string) => void;
   showAll: boolean;
@@ -173,7 +190,7 @@ const FilterSectionWithShowMore = ({
   sectionKey: string;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  
+
   const visibleOptions = showAll ? options : options.slice(0, defaultShowCount);
   const hasMore = options.length > defaultShowCount;
 
@@ -188,7 +205,7 @@ const FilterSectionWithShowMore = ({
         <span>{title} ({options.length})</span>
         {isExpanded ? <FiChevronUp /> : <FiChevronDown />}
       </button>
-      
+
       {isExpanded && (
         <div className="mt-3">
           <div className="max-h-52 overflow-y-auto pr-2 space-y-2">
@@ -206,7 +223,7 @@ const FilterSectionWithShowMore = ({
               </label>
             ))}
           </div>
-          
+
           {hasMore && (
             <button
               onClick={(e) => {
@@ -226,13 +243,19 @@ const FilterSectionWithShowMore = ({
 };
 
 export const AllLaptopPage = ({ title }: { title: string }) => {
+  // NOTE: We must NOT read sessionStorage during initial render because that
+  // causes a hydration mismatch. We start with defaults and restore saved
+  // state inside a useEffect (client-only). The persist effect is gated by
+  // the `hasRestored` STATE flag (not a ref) so that under React Strict Mode
+  // (which double-invokes effects on mount) we never overwrite the saved
+  // state with the initial defaults before the restore has settled.
+
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     price: true,
   });
 
-  // State for "Show More" in each filter section - moved to parent to prevent re-renders from resetting
   const [showAllState, setShowAllState] = useState<ShowAllState>({
     brands: false,
     cpu: false,
@@ -260,11 +283,41 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
     manualSearch: ""
   });
 
+  // STATE flag (not ref!) — starts false, flips to true once restore finished.
+  const [hasRestored, setHasRestored] = useState(false);
+
+  // ---- Restore saved state AFTER mount (client only) ----
+  useEffect(() => {
+    const saved = loadSavedState();
+    if (saved) {
+      if (saved.filters) setFilters(saved.filters);
+      if (saved.sortDirection) setSortDirection(saved.sortDirection);
+      if (saved.showAllState) setShowAllState(saved.showAllState);
+    }
+    setHasRestored(true);
+  }, []);
+
+  // ---- Persist state on change (only AFTER restore has finished) ----
+  useEffect(() => {
+    if (!hasRestored) return;
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          filters,
+          sortDirection,
+          showAllState,
+        })
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, [filters, sortDirection, showAllState, hasRestored]);
+
   // Prevent body scroll when filter drawer is open
   useEffect(() => {
     if (showMobileFilters) {
       document.body.style.overflow = 'hidden';
-      // Also add a class to the html element to ensure no scrolling
       document.documentElement.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -285,7 +338,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
   const laptopListRaw = useAppSelector(selectLaptopListList);
   const laptopList: LaptopItem[] = Array.isArray(laptopListRaw) ? laptopListRaw : [];
   const sortedLaptopList = sortProductsByPrice(laptopList, sortDirection);
-  
+
   const availableFilters = useExtractedFilters(sortedLaptopList);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -351,7 +404,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
 
   const filteredProductList = sortedLaptopList.filter((product) => {
     if (!product) return false;
-    
+
     if (filters.brands.length > 0) {
       const productBrand = product.name?.split(' ')[0] || '';
       if (!filters.brands.includes(productBrand)) return false;
@@ -413,7 +466,6 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
     </span>
   );
 
-  // Fixed FilterContent - price inputs now properly contained
   const FilterContent = () => (
     <div className="space-y-1">
       <div className="border-b border-gray-200 py-3">
@@ -424,7 +476,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
           <span>السعر ($)</span>
           {expandedSections.price ? <FiChevronUp /> : <FiChevronDown />}
         </button>
-        
+
         {expandedSections.price && (
           <div className="mt-3 space-y-3">
             <div className="flex gap-2 w-full">
@@ -451,10 +503,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         )}
       </div>
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="brands"
-        title="العلامة التجارية" 
-        options={availableFilters.brands} 
+        title="العلامة التجارية"
+        options={availableFilters.brands}
         selectedValues={filters.brands}
         onToggle={(value) => handleFilterToggle("brands", value)}
         showAll={showAllState.brands}
@@ -462,10 +514,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="age"
-        title="الحالة" 
-        options={['جديد', 'مستعمل', 'اوبن بوكس']} 
+        title="الحالة"
+        options={['جديد', 'مستعمل', 'اوبن بوكس']}
         selectedValues={filters.age}
         onToggle={(value) => handleFilterToggle("age", value)}
         showAll={showAllState.age}
@@ -473,10 +525,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         defaultShowCount={3}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="cpu"
-        title="المعالج (CPU)" 
-        options={availableFilters.cpus} 
+        title="المعالج (CPU)"
+        options={availableFilters.cpus}
         selectedValues={filters.cpu}
         onToggle={(value) => handleFilterToggle("cpu", value)}
         showAll={showAllState.cpu}
@@ -484,10 +536,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="gpu"
-        title="كرت الشاشة (GPU)" 
-        options={availableFilters.gpus} 
+        title="كرت الشاشة (GPU)"
+        options={availableFilters.gpus}
         selectedValues={filters.gpu}
         onToggle={(value) => handleFilterToggle("gpu", value)}
         showAll={showAllState.gpu}
@@ -495,10 +547,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="ram"
-        title="الذاكرة (RAM)" 
-        options={availableFilters.rams} 
+        title="الذاكرة (RAM)"
+        options={availableFilters.rams}
         selectedValues={filters.ram}
         onToggle={(value) => handleFilterToggle("ram", value)}
         showAll={showAllState.ram}
@@ -506,10 +558,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="storage"
-        title="التخزين (Storage)" 
-        options={availableFilters.storages} 
+        title="التخزين (Storage)"
+        options={availableFilters.storages}
         selectedValues={filters.storage}
         onToggle={(value) => handleFilterToggle("storage", value)}
         showAll={showAllState.storage}
@@ -517,10 +569,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="screenSize"
-        title="حجم الشاشة" 
-        options={availableFilters.screenSizes} 
+        title="حجم الشاشة"
+        options={availableFilters.screenSizes}
         selectedValues={filters.screenSize}
         onToggle={(value) => handleFilterToggle("screenSize", value)}
         showAll={showAllState.screenSize}
@@ -537,7 +589,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
           {title}
         </h2>
       </div>
-      
+
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm py-3 mb-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex-1 relative">
@@ -607,11 +659,11 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
                 <FilterChip key={storage} label={storage} onRemove={() => handleFilterToggle("storage", storage)} />
               ))}
               {(filters.minPrice || filters.maxPrice) && (
-                <FilterChip 
-                  label={`${filters.minPrice || '0'} - ${filters.maxPrice || '∞'} $`} 
+                <FilterChip
+                  label={`${filters.minPrice || '0'} - ${filters.maxPrice || '∞'} $`}
                   onRemove={() => {
                     setFilters(prev => ({ ...prev, minPrice: "", maxPrice: "" }));
-                  }} 
+                  }}
                 />
               )}
               <button
@@ -625,20 +677,17 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         )}
       </div>
 
-      {/* Mobile Filter Drawer - Now covers everything including navbar with higher z-index */}
       {showMobileFilters && (
-        <div 
+        <div
           className="fixed inset-0 z-[9999] lg:hidden"
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
         >
-          {/* Backdrop with higher z-index */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => setShowMobileFilters(false)}
           />
-          
-          {/* Filter drawer */}
-          <div 
+
+          <div
             className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col"
             style={{ height: '100vh', maxHeight: '100vh' }}
           >
@@ -651,10 +700,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
                 <FiX size={24} />
               </button>
             </div>
-            
-            <div 
+
+            <div
               className="flex-1 overflow-y-auto p-4"
-              style={{ 
+              style={{
                 overflowY: 'auto',
                 WebkitOverflowScrolling: 'touch',
               }}
@@ -662,7 +711,7 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
               <FilterContent />
               <div className="h-4" />
             </div>
-            
+
             <div className="p-4 border-t flex gap-3 flex-shrink-0 bg-white">
               <button
                 onClick={clearAllFilters}
@@ -693,10 +742,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
             <span className="font-bold">{laptopList.length}</span> لابتوب
           </div>
 
-          <LaptopList 
-            title={title} 
-            dollarPrice={dollar} 
-            isLoading={isLoading} 
+          <LaptopList
+            title={title}
+            dollarPrice={dollar}
+            isLoading={isLoading}
             selectedList={filteredProductList}
             gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
           />
