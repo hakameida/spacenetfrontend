@@ -139,7 +139,7 @@ const CardAccessory = ({
         )}
 
         {/* Price */}
-        {price === "0.00" || priceInUSD === 0 ? (
+        {price === "0.0" || priceInUSD === 0 ? (
           <p className="text-[12px] font-bold text-blue-900 mb-2 text-center">قريبا</p>
         ) : (
           <div className="mb-2 text-center">
@@ -157,13 +157,13 @@ const CardAccessory = ({
             
             {/* USD Price */}
             <p className="text-[18px] font-bold text-green-600 leading-tight">
-              {discountInfo ? discountInfo.discountedPrice : priceInUSD.toFixed(2)}$
+              {discountInfo ? discountInfo.discountedPrice : priceInUSD.toFixed(1)}$
             </p>
             
             {/* Show original price in USD if discount exists */}
             {discountInfo && (
               <p className="text-[10px] text-gray-400 line-through">
-                {priceInUSD.toFixed(2)}$
+                {priceInUSD.toFixed(1)}$
               </p>
             )}
           </div>

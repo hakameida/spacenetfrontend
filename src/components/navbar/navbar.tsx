@@ -1,9 +1,9 @@
 "use client";
 
-import { 
-  LaptopIcon, 
-  MonitorIcon, 
-  ChevronLeft, 
+import {
+  LaptopIcon,
+  MonitorIcon,
+  ChevronLeft,
   ChevronRight,
   PcCase,
   Smartphone,
@@ -18,7 +18,7 @@ import {
   Camera,
   Search,
   HardDrive,
-  Server // NEW - for Case (PC Builds)
+  Server
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -31,8 +31,8 @@ import { selectAccessoryListList } from "@/data-access/slices/accessory-list";
 import { selectComputerListList } from "@/data-access/slices/computer-list";
 import { selectPlayStationListList } from "@/data-access/slices/playstation-list";
 import { selectCameraListList } from "@/data-access/slices/camera-list";
-import { selectStorageListList } from "@/data-access/slices/storage-list"; // NEW
-import { selectCaseListList } from "@/data-access/slices/case-list"; // NEW
+import { selectStorageListList } from "@/data-access/slices/storage-list";
+import { selectCaseListList } from "@/data-access/slices/case-list";
 
 // ============ IMPORT API HOOKS TO FETCH PRODUCTS ============
 import { useGetLaptopsListQuery } from "@/data-access/api/laptop";
@@ -40,8 +40,8 @@ import { useGetAccessoriesListQuery } from "@/data-access/api/accessory";
 import { useGetComputersListQuery } from "@/data-access/api/computer";
 import { useGetPlayStationsListQuery } from "@/data-access/api/playstation";
 import { useGetCamerasListQuery } from "@/data-access/api/camera";
-import { useGetStoragesListQuery } from "@/data-access/api/storage"; // NEW
-import { useGetCasesListQuery } from "@/data-access/api/case"; // NEW
+import { useGetStoragesListQuery } from "@/data-access/api/storage";
+import { useGetCasesListQuery } from "@/data-access/api/case";
 
 // ============ IMPORT getImage UTILITY ============
 import { getImage } from "@/util/get-image-url";
@@ -72,13 +72,13 @@ interface SearchableProduct {
   storage?: string;
   model_number?: string;
   compatibility?: string;
-  capacity?: string; // NEW - for storage
-  read_speed?: string; // NEW - for storage
-  write_speed?: string; // NEW - for storage
-  motherboard?: string; // NEW - for case
-  psu?: string; // NEW - for case
-  case?: string; // NEW - for case
-  cooling?: string; // NEW - for case
+  capacity?: string;
+  read_speed?: string;
+  write_speed?: string;
+  motherboard?: string;
+  psu?: string;
+  case?: string;
+  cooling?: string;
   dynamicSpecs?: Array<{ key: string; value: string }>;
   [key: string]: any;
 }
@@ -90,7 +90,7 @@ const allNavLinks = [
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
   { name: "بلايستيشن", href: "/playstations", icon: Gamepad2 },
   { name: "كاميرات", href: "/cameras", icon: Camera },
-  { name: "وحدات تخزين", href: "/storage", icon: HardDrive }, // Updated name
+  { name: "وحدات تخزين", href: "/storage", icon: HardDrive },
   { name: "بطاريات", href: "/batteries", icon: Battery },
 ];
 
@@ -108,68 +108,59 @@ export default function TopNavbar() {
   const [hintDirection, setHintDirection] = useState<"left" | "right" | null>(null);
   const lastScrollY = useRef(0);
   const categoriesRef = useRef<HTMLDivElement>(null);
-  
-  // Search states
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchableProduct[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
-  // Drag to scroll state
+
   const [isDragging, setIsDragging] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  // PWA Install states
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [showDesktopBanner, setShowDesktopBanner] = useState(true);
-
-  // Check if device is mobile
   const [isMobileDevice, setIsMobileDevice] = useState(false);
 
-  // ============ FETCH ALL PRODUCTS ============
   const { isLoading: isLoadingLaptops } = useGetLaptopsListQuery({ status: true });
   const { isLoading: isLoadingAccessories } = useGetAccessoriesListQuery({ status: true });
   const { isLoading: isLoadingComputers } = useGetComputersListQuery({ status: true });
   const { isLoading: isLoadingPlaystations } = useGetPlayStationsListQuery({ status: true });
   const { isLoading: isLoadingCameras } = useGetCamerasListQuery({ status: true });
-  const { isLoading: isLoadingStorages } = useGetStoragesListQuery({ status: true }); // NEW
-  const { isLoading: isLoadingCases } = useGetCasesListQuery({ status: true }); // NEW
+  const { isLoading: isLoadingStorages } = useGetStoragesListQuery({ status: true });
+  const { isLoading: isLoadingCases } = useGetCasesListQuery({ status: true });
 
-  // ============ GET PRODUCTS FROM REDUX ============
   const laptopList = useAppSelector(selectLaptopListList);
   const accessoryList = useAppSelector(selectAccessoryListList);
   const computerList = useAppSelector(selectComputerListList);
   const playstationList = useAppSelector(selectPlayStationListList);
   const cameraList = useAppSelector(selectCameraListList);
-  const storageList = useAppSelector(selectStorageListList); // NEW
-  const caseList = useAppSelector(selectCaseListList); // NEW
+  const storageList = useAppSelector(selectStorageListList);
+  const caseList = useAppSelector(selectCaseListList);
 
-  // ============ COMBINE ALL PRODUCTS WITH TYPE CASTING ============
   const allProducts: SearchableProduct[] = [
     ...(Array.isArray(laptopList) ? (laptopList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(accessoryList) ? (accessoryList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(computerList) ? (computerList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(playstationList) ? (playstationList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(cameraList) ? (cameraList as unknown as SearchableProduct[]) : []),
-    ...(Array.isArray(storageList) ? (storageList as unknown as SearchableProduct[]) : []), // NEW
-    ...(Array.isArray(caseList) ? (caseList as unknown as SearchableProduct[]) : []), // NEW
+    ...(Array.isArray(storageList) ? (storageList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(caseList) ? (caseList as unknown as SearchableProduct[]) : []),
   ];
 
-  // ============ SEARCH FUNCTION ============
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    
+
     if (query.trim().length < 2) {
       setSearchResults([]);
       return;
     }
 
     const searchTerm = query.toLowerCase().trim();
-    
+
     const results = allProducts.filter((product: SearchableProduct) => {
       const searchableFields = [
         product.name,
@@ -190,25 +181,24 @@ export default function TopNavbar() {
         product.video_resolution,
         product.lens_mount,
         product.storage,
-        product.capacity, // NEW - for storage
-        product.read_speed, // NEW - for storage
-        product.write_speed, // NEW - for storage
-        product.motherboard, // NEW - for case
-        product.psu, // NEW - for case
-        product.case, // NEW - for case
-        product.cooling, // NEW - for case
+        product.capacity,
+        product.read_speed,
+        product.write_speed,
+        product.motherboard,
+        product.psu,
+        product.case,
+        product.cooling,
         ...(product.dynamicSpecs?.map((spec: any) => spec.value) || [])
       ].filter(Boolean);
-      
-      return searchableFields.some(field => 
+
+      return searchableFields.some(field =>
         String(field).toLowerCase().includes(searchTerm)
       );
     });
-    
+
     setSearchResults(results.slice(0, 10));
   };
 
-  // ============ HANDLE SEARCH SUBMIT ============
   const handleSearchSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       router.push(`/search/${encodeURIComponent(searchQuery.trim())}`);
@@ -218,7 +208,6 @@ export default function TopNavbar() {
     }
   };
 
-  // ============ OPEN SEARCH ============
   const openSearch = () => {
     setIsSearchOpen(true);
     document.body.style.overflow = 'hidden';
@@ -227,7 +216,6 @@ export default function TopNavbar() {
     }, 300);
   };
 
-  // ============ CLOSE SEARCH ============
   const closeSearch = () => {
     setIsSearchOpen(false);
     document.body.style.overflow = 'unset';
@@ -235,52 +223,42 @@ export default function TopNavbar() {
     setSearchResults([]);
   };
 
-  // ============ HANDLE RESULT CLICK ============
   const handleResultClick = (product: SearchableProduct) => {
     let path = "";
-    // Check for Laptop
     if (product.cpu !== undefined && !product.motherboard) {
       path = `/laptops/${product.id}`;
     }
-    // Check for Case (PC Build) - has motherboard
     else if (product.motherboard) {
       path = `/computer/case/${product.id}`;
     }
-    // Check for Storage - has capacity
     else if (product.capacity) {
       path = `/storage/${product.id}`;
     }
-    // Check for Accessory
     else if (product.brand && product.type_name) {
       path = `/accessories/${product.id}`;
     }
-    // Check for Computer
     else if (product.type_name && !product.storage) {
       path = `/computer/${product.id}`;
     }
-    // Check for PlayStation
     else if (product.storage) {
       path = `/playstations/${product.id}`;
     }
-    // Check for Camera
     else if (product.sensor_type || product.megapixels) {
       path = `/cameras/${product.id}`;
     }
     else {
       path = `/search/${encodeURIComponent(searchQuery)}`;
     }
-    
+
     router.push(path);
     closeSearch();
   };
 
-  // ============ GET IMAGE FOR PRODUCT ============
   const getProductImage = (product: SearchableProduct) => {
     const imageUrl = product.image || product.image1 || product.url1 || "";
     return getImage(imageUrl);
   };
 
-  // ============ THE REST OF YOUR COMPONENT CODE ============
   useEffect(() => {
     const checkMobile = () => {
       setIsMobileDevice(window.innerWidth < 768);
@@ -296,7 +274,7 @@ export default function TopNavbar() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    if (window.matchMedia('(display-mode: standalone)').matches || 
+    if (window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as any).standalone === true) {
       setIsInstalled(true);
       setShowInstallButton(false);
@@ -326,10 +304,10 @@ export default function TopNavbar() {
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem("hasSeenNavbarOnboarding");
     const isMobile = window.innerWidth < 768;
-    
+
     if (!hasSeenOnboarding && isMobile) {
       setShowOnboarding(true);
-      
+
       setTimeout(() => {
         if (categoriesRef.current) {
           const { scrollWidth, clientWidth } = categoriesRef.current;
@@ -353,22 +331,22 @@ export default function TopNavbar() {
     }
 
     await deferredPrompt.prompt();
-    
+
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       setIsInstalled(true);
       setShowInstallButton(false);
       setShowDesktopBanner(false);
     }
-    
+
     setDeferredPrompt(null);
   };
 
   const showManualInstallInstructions = () => {
     const isMobile = window.innerWidth < 768;
     let message = '';
-    
+
     if (isMobile) {
       if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
         message = 'للتثبيت: اضغط على زر المشاركة 📤 ثم اختر "إضافة إلى الشاشة الرئيسية"';
@@ -378,7 +356,7 @@ export default function TopNavbar() {
     } else {
       message = 'للتثبيت: اضغط على زر القفل 🔒 في شريط العنوان ثم اختر "تثبيت" أو ابحث عن أيقونة التثبيت في شريط العنوان';
     }
-    
+
     alert(message);
   };
 
@@ -435,7 +413,7 @@ export default function TopNavbar() {
       const { scrollLeft, scrollWidth, clientWidth } = categoriesRef.current;
       const isAtStart = scrollLeft < 10;
       const isAtEnd = scrollLeft + clientWidth >= scrollWidth - 10;
-      
+
       if (!isAtStart && !isAtEnd) {
         setHintDirection(null);
       } else if (isAtStart && scrollWidth > clientWidth) {
@@ -468,26 +446,23 @@ export default function TopNavbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Clean up body overflow on unmount
   useEffect(() => {
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, []);
 
-  // Filter navLinks to exclude the current page
   const filteredNavLinks = allNavLinks.filter(link => link.href !== pathname);
 
   return (
     <>
-      {/* Onboarding Overlay */}
       {showOnboarding && (
         <>
-          <div 
+          <div
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] animate-in fade-in duration-500"
             onClick={dismissOnboarding}
           />
-          
+
           <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[101] text-center animate-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white rounded-2xl px-6 py-4 shadow-2xl max-w-[300px]">
               <p className="text-gray-800 font-bold mb-2">✨ تصفح الأقسام</p>
@@ -518,8 +493,7 @@ export default function TopNavbar() {
         </>
       )}
 
-      {/* Top Navigation Bar */}
-      <nav 
+      <nav
         className={`
           fixed top-0 w-full h-[56px] bg-white/30 backdrop-blur-md z-50 shadow-md
           transition-all duration-200 ease-out
@@ -527,8 +501,6 @@ export default function TopNavbar() {
         `}
       >
         <div className="flex justify-between items-center px-4 h-full max-w-7xl mx-auto">
-          
-          {/* LEFT SIDE - Buttons Group */}
           <div className="flex items-center gap-1 md:gap-2">
             <a
               href="https://technical.city/en"
@@ -567,7 +539,6 @@ export default function TopNavbar() {
             )}
           </div>
 
-          {/* RIGHT SIDE - Logo */}
           <a href="/" className="flex-shrink-0">
             <Image
               src="/logo.png"
@@ -577,11 +548,9 @@ export default function TopNavbar() {
               className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12"
             />
           </a>
-
         </div>
       </nav>
 
-      {/* FLOATING SEARCH BUTTON */}
       <button
         onClick={openSearch}
         className={`
@@ -604,14 +573,13 @@ export default function TopNavbar() {
         <span className="text-xs text-gray-400 hidden sm:inline">⌘K</span>
       </button>
 
-      {/* SEARCH OVERLAY */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 px-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={closeSearch}
           />
-          
+
           <div className="relative w-full max-w-2xl animate-in slide-in-from-top-4 duration-300">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
               <div className="p-4">
@@ -683,7 +651,7 @@ export default function TopNavbar() {
                         </div>
                       );
                     })}
-                    
+
                     <div className="px-4 py-3 border-t border-white/10">
                       <button
                         onClick={() => {
@@ -719,7 +687,7 @@ export default function TopNavbar() {
                     <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p>ابحث عن منتجات، ماركات، أو تصنيفات</p>
                     <div className="flex flex-wrap justify-center gap-2 mt-4">
-                      <button 
+                      <button
                         onClick={() => {
                           setSearchQuery("لابتوب");
                           handleSearch("لابتوب");
@@ -728,7 +696,7 @@ export default function TopNavbar() {
                       >
                         💻 لابتوب
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setSearchQuery("ماوس");
                           handleSearch("ماوس");
@@ -737,7 +705,7 @@ export default function TopNavbar() {
                       >
                         🖱️ ماوس
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setSearchQuery("كيبورد");
                           handleSearch("كيبورد");
@@ -746,7 +714,7 @@ export default function TopNavbar() {
                       >
                         ⌨️ كيبورد
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setSearchQuery("بلايستيشن");
                           handleSearch("بلايستيشن");
@@ -755,7 +723,7 @@ export default function TopNavbar() {
                       >
                         🎮 بلايستيشن
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setSearchQuery("SSD");
                           handleSearch("SSD");
@@ -779,7 +747,10 @@ export default function TopNavbar() {
         </div>
       )}
 
-      {/* Floating Bottom Categories Bar */}
+      {/* ============================================================ */}
+      {/* Floating Bottom Categories Bar                              */}
+      {/* Mobile: original small sizes  •  Desktop (md+): bigger sizes */}
+      {/* ============================================================ */}
       <div
         ref={categoriesRef}
         onScroll={handleCategoriesScroll}
@@ -795,9 +766,10 @@ export default function TopNavbar() {
           shadow-[0_4px_20px_rgba(0,0,0,0.15)]
           rounded-full
           border border-white/40
-          py-1.5
-          px-2
+          py-1.5 px-2
+          md:py-3 md:px-3
           w-[95%] max-w-[700px]
+          md:max-w-[1000px]
           overflow-x-auto
           scrollbar-hide
           transition-all duration-200 ease-out
@@ -807,7 +779,7 @@ export default function TopNavbar() {
         `}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="flex justify-around items-center gap-0.5">
+        <div className="flex justify-around items-center gap-0.5 md:gap-2">
           {filteredNavLinks.map((link) => {
             const IconComponent = link.icon;
             return (
@@ -816,22 +788,31 @@ export default function TopNavbar() {
                 onClick={(e) => handleLinkClick(e, link.href)}
                 className={`
                   flex flex-col items-center gap-0
-                  py-1 px-1.5 rounded-full
+                  py-1 px-1.5
+                  md:py-2 md:px-4
+                  rounded-full
                   transition-all duration-300
                   cursor-pointer
                   group
                   hover:bg-gray-100
                   text-gray-500
                   min-w-[50px]
+                  md:min-w-[90px]
                 `}
               >
                 <IconComponent className={`
-                  w-3.5 h-3.5 transition-all duration-300
-                  text-gray-500 group-hover:text-gray-700
+                  w-3.5 h-3.5
+                  md:w-7 md:h-7
+                  transition-all duration-300
+                  text-gray-500 group-hover:text-blue-600
+                  group-hover:scale-110
                 `} />
                 <span className={`
-                  text-[8px] font-medium whitespace-nowrap
-                  text-gray-500
+                  text-[8px]
+                  md:text-[13px]
+                  font-medium whitespace-nowrap
+                  text-gray-500 group-hover:text-blue-600
+                  transition-colors
                 `}>
                   {link.name}
                 </span>
@@ -841,7 +822,6 @@ export default function TopNavbar() {
         </div>
       </div>
 
-      {/* Desktop Install Banner */}
       {!isInstalled && showInstallButton && showDesktopBanner && !isMobileDevice && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[61] animate-in slide-in-from-top-2 duration-300">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-xl shadow-xl flex items-center gap-3">
@@ -850,13 +830,13 @@ export default function TopNavbar() {
               <p className="text-xs font-bold">ثبّت التطبيق للوصول السريع</p>
               <p className="text-[10px] opacity-90">استخدم موقعنا كتطبيق مستقل</p>
             </div>
-            <button 
+            <button
               onClick={handleInstallClick}
               className="bg-white text-green-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-100 transition shadow-md"
             >
               تثبيت
             </button>
-            <button 
+            <button
               onClick={dismissDesktopBanner}
               className="p-1 hover:bg-white/20 rounded-full transition"
             >

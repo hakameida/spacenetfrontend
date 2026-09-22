@@ -94,6 +94,7 @@ const CardProduct = ({
   gpu,
   ram,
   storage,
+  link,
 }: {
   width: string;
   height: string;
@@ -111,6 +112,7 @@ const CardProduct = ({
   gpu?: string;
   ram?: string;
   storage?: string;
+  link?: string;
 }) => {
   const ageInArabic = getAgeInArabic(age);
   const badgeColor = getBadgeColor(age);
@@ -129,13 +131,19 @@ const CardProduct = ({
 
   const hasSpecs = cpu || gpu || ram || storage;
 
+  // If no link prop, fall back to the old behaviour (laptops)
+  const href = link ?? `/laptops/${id}`;
+
   return (
     <div className="card-product h-full flex flex-col rounded-xl overflow-hidden border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200 bg-white">
-      <Link href={`/laptops/${id}`}>
-        {/* Image */}
-        <div className="relative  flex items-center justify-center overflow-hidden" style={{ height }}>
+      <Link href={href}>
+        {/* Image — with hover zoom */}
+        <div
+          className="relative flex items-center justify-center overflow-hidden group"
+          style={{ height }}
+        >
           <img
-            className="w-full h-full object-contain p-2"
+            className="w-full h-full object-contain p-2 transition-transform duration-500 ease-out group-hover:scale-110"
             alt={`اشتر ${title} باحسن سعر من سبيس نت ستور`}
             src={getImage(image, 400)}
           />
@@ -170,17 +178,17 @@ const CardProduct = ({
                 {priceInSYP} ل.س
               </p>
             )}
-            
+
             {/* Discounted Price OR Regular Price */}
             <p className="text-[13px] font-bold text-red-600 leading-tight">
               {discountInfo ? discountPriceInSYP : priceInSYP} ل.س
             </p>
-            
+
             {/* USD Price */}
             <p className="text-[18px] font-bold text-green-600 leading-tight">
               {discountInfo ? discountInfo.discountedPrice : priceInUSD.toFixed(2)}$
             </p>
-            
+
             {/* Show original price in USD if discount exists */}
             {discountInfo && (
               <p className="text-[10px] text-gray-400 line-through">
@@ -203,7 +211,7 @@ const CardProduct = ({
 
       {/* Footer */}
       <div className="px-3 pb-3 pt-1.5">
-        <Link href={`/laptops/${id}`}>
+        <Link href={href}>
           <span className="inline-block w-full text-center bg-blue-900 hover:bg-blue-800 transition-colors text-white text-[11px] sm:text-[12px] font-semibold px-2 py-2 rounded-lg">
             معلومات المنتج
           </span>

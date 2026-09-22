@@ -23,6 +23,25 @@ interface ShowAllState {
   brands: boolean;
 }
 
+// -------- Persistence helpers --------
+const STORAGE_KEY = "all-accessory-page-state";
+
+const loadSavedState = (): {
+  filters?: FilterState;
+  sortDirection?: "asc" | "desc";
+  currentPage?: number;
+  itemsPerPage?: number;
+  showAllState?: ShowAllState;
+} | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 // Extract unique values from accessory data
 const useExtractedFilters = (accessories: AccessoryItem[]) => {
   return useMemo(() => {
@@ -46,29 +65,29 @@ const sortProductsByPrice = (products: AccessoryItem[], direction: "asc" | "desc
   return [...products].sort((a, b) => {
     const aIsSoon = a.price === "0.00";
     const bIsSoon = b.price === "0.00";
-    
+
     if (aIsSoon && !bIsSoon) return 1;
     if (!aIsSoon && bIsSoon) return -1;
     if (aIsSoon && bIsSoon) return 0;
-    
+
     return direction === "asc"
       ? parseFloat(a.price || "0") - parseFloat(b.price || "0")
       : parseFloat(b.price || "0") - parseFloat(a.price || "0");
   });
 };
 
-const FilterSectionWithShowMore = ({ 
-  title, 
-  options, 
-  selectedValues, 
+const FilterSectionWithShowMore = ({
+  title,
+  options,
+  selectedValues,
   onToggle,
   showAll,
   onToggleShowAll,
   defaultShowCount = 5,
   sectionKey
-}: { 
-  title: string; 
-  options: string[]; 
+}: {
+  title: string;
+  options: string[];
   selectedValues: string[];
   onToggle: (value: string) => void;
   showAll: boolean;
@@ -77,7 +96,7 @@ const FilterSectionWithShowMore = ({
   sectionKey: string;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  
+
   const visibleOptions = showAll ? options : options.slice(0, defaultShowCount);
   const hasMore = options.length > defaultShowCount;
 
@@ -92,7 +111,7 @@ const FilterSectionWithShowMore = ({
         <span>{title} ({options.length})</span>
         {isExpanded ? <FiChevronUp /> : <FiChevronDown />}
       </button>
-      
+
       {isExpanded && (
         <div className="mt-3">
           <div className="max-h-52 overflow-y-auto pr-2 space-y-2">
@@ -110,7 +129,7 @@ const FilterSectionWithShowMore = ({
               </label>
             ))}
           </div>
-          
+
           {hasMore && (
             <button
               onClick={(e) => {
@@ -149,10 +168,10 @@ const Pagination = ({
 }) => {
   const pageNumbers: number[] = [];
   const maxVisiblePages = 5;
-  
+
   let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
   let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-  
+
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
@@ -195,19 +214,6 @@ const Pagination = ({
 
       {/* Pagination buttons */}
       <div className="flex items-center gap-1">
-        {/* First page */}
-        {/* <button
-          onClick={() => handlePageClick(1)}
-          disabled={currentPage === 1 || isLoading}
-          className={`px-2 py-1 rounded-lg text-sm transition-all duration-300 ${
-            currentPage === 1 || isLoading
-              ? 'text-gray-400 cursor-not-allowed'
-              : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
-          }`}
-        >
-          الأول
-        </button> */}
-
         {/* Previous */}
         <button
           onClick={() => handlePageClick(currentPage - 1)}
@@ -273,25 +279,17 @@ const Pagination = ({
         >
           <FiChevronLeft className="w-5 h-5" />
         </button>
-
-        {/* Last page
-        <button
-          onClick={() => handlePageClick(totalPages)}
-          disabled={currentPage === totalPages || isLoading}
-          className={`px-2 py-1 rounded-lg text-sm transition-all duration-300 ${
-            currentPage === totalPages || isLoading
-              ? 'text-gray-400 cursor-not-allowed'
-              : 'text-gray-600 hover:bg-gray-100 hover:scale-105'
-          }`}
-        >
-          الأخير
-        </button> */}
       </div>
     </div>
   );
 };
 
 export const AllAccessoryPage = ({ title }: { title: string }) => {
+  // NOTE: We must NOT read sessionStorage during initial render because that
+  // causes a hydration mismatch (server has no storage → renders defaults,
+  // client reads storage → renders different values). Instead we start with
+  // defaults and restore saved state in a useEffect that runs client-side only.
+
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
@@ -323,6 +321,22 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     manualSearch: ""
   });
 
+  // Guard so we don't overwrite storage with defaults before restoring
+  const hasRestoredRef = useRef(false);
+
+  // ---- Restore saved state AFTER mount (client only) ----
+  useEffect(() => {
+    const saved = loadSavedState();
+    if (saved) {
+      if (saved.filters) setFilters(saved.filters);
+      if (saved.sortDirection) setSortDirection(saved.sortDirection);
+      if (typeof saved.currentPage === "number") setCurrentPage(saved.currentPage);
+      if (typeof saved.itemsPerPage === "number") setItemsPerPage(saved.itemsPerPage);
+      if (saved.showAllState) setShowAllState(saved.showAllState);
+    }
+    hasRestoredRef.current = true;
+  }, []);
+
   useEffect(() => {
     if (showMobileFilters) {
       document.body.style.overflow = 'hidden';
@@ -343,10 +357,29 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     }
   }, [dollarData]);
 
+  // ---- Persist state on change (skip until restore finished) ----
+  useEffect(() => {
+    if (!hasRestoredRef.current) return;
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          filters,
+          sortDirection,
+          currentPage,
+          itemsPerPage,
+          showAllState,
+        })
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, [filters, sortDirection, currentPage, itemsPerPage, showAllState]);
+
   const accessoryListRaw = useAppSelector(selectAccessoryListList);
   const accessoryList: AccessoryItem[] = Array.isArray(accessoryListRaw) ? accessoryListRaw : [];
   const sortedAccessoryList = sortProductsByPrice(accessoryList, sortDirection);
-  
+
   const availableFilters = useExtractedFilters(sortedAccessoryList);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -399,7 +432,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
   // Filter products
   const filteredProductList = sortedAccessoryList.filter((product) => {
     if (!product) return false;
-    
+
     if (filters.types.length > 0) {
       if (!filters.types.includes(product.type_name)) return false;
     }
@@ -429,7 +462,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
   // Pagination: Get current page items
   const totalItems = filteredProductList.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
+
   // Reset to page 1 if current page exceeds total pages
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -446,19 +479,19 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
   // Smooth page change with animation
   const handlePageChange = (page: number) => {
     if (page === currentPage || isTransitioning) return;
-    
+
     setIsTransitioning(true);
-    
+
     // Fade out effect
     if (productsContainerRef.current) {
       productsContainerRef.current.style.opacity = '0';
       productsContainerRef.current.style.transform = 'translateY(10px)';
       productsContainerRef.current.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
     }
-    
+
     setTimeout(() => {
       setCurrentPage(page);
-      
+
       // Fade in effect
       setTimeout(() => {
         if (productsContainerRef.current) {
@@ -495,7 +528,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
           <span>السعر ($)</span>
           {expandedSections.price ? <FiChevronUp /> : <FiChevronDown />}
         </button>
-        
+
         {expandedSections.price && (
           <div className="mt-3 space-y-3">
             <div className="flex gap-2 w-full">
@@ -522,10 +555,10 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         )}
       </div>
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="types"
-        title="نوع المنتج" 
-        options={availableFilters.types} 
+        title="نوع المنتج"
+        options={availableFilters.types}
         selectedValues={filters.types}
         onToggle={(value) => handleFilterToggle("types", value)}
         showAll={showAllState.types}
@@ -533,10 +566,10 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         defaultShowCount={5}
       />
 
-      <FilterSectionWithShowMore 
+      <FilterSectionWithShowMore
         sectionKey="brands"
-        title="العلامة التجارية" 
-        options={availableFilters.brands} 
+        title="العلامة التجارية"
+        options={availableFilters.brands}
         selectedValues={filters.brands}
         onToggle={(value) => handleFilterToggle("brands", value)}
         showAll={showAllState.brands}
@@ -553,7 +586,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
           {title}
         </h2>
       </div>
-      
+
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm py-3 mb-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex-1 relative">
@@ -612,11 +645,11 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
                 <FilterChip key={brand} label={brand} onRemove={() => handleFilterToggle("brands", brand)} />
               ))}
               {(filters.minPrice || filters.maxPrice) && (
-                <FilterChip 
-                  label={`${filters.minPrice || '0'} - ${filters.maxPrice || '∞'} $`} 
+                <FilterChip
+                  label={`${filters.minPrice || '0'} - ${filters.maxPrice || '∞'} $`}
                   onRemove={() => {
                     setFilters(prev => ({ ...prev, minPrice: "", maxPrice: "" }));
-                  }} 
+                  }}
                 />
               )}
               <button
@@ -631,16 +664,16 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
       </div>
 
       {showMobileFilters && (
-        <div 
+        <div
           className="fixed inset-0 z-[9999] lg:hidden"
           style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
         >
-          <div 
+          <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => setShowMobileFilters(false)}
           />
-          
-          <div 
+
+          <div
             className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col"
             style={{ height: '100vh', maxHeight: '100vh' }}
           >
@@ -653,10 +686,10 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
                 <FiX size={24} />
               </button>
             </div>
-            
-            <div 
+
+            <div
               className="flex-1 overflow-y-auto p-4"
-              style={{ 
+              style={{
                 overflowY: 'auto',
                 WebkitOverflowScrolling: 'touch',
               }}
@@ -664,7 +697,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
               <FilterContent />
               <div className="h-4" />
             </div>
-            
+
             <div className="p-4 border-t flex gap-3 flex-shrink-0 bg-white">
               <button
                 onClick={clearAllFilters}
@@ -683,30 +716,30 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         </div>
       )}
 
-<div className="flex gap-6 min-w-0">
+      <div className="flex gap-6 min-w-0">
         <div className="hidden lg:block w-72 flex-shrink-0 bg-white rounded-xl shadow-lg p-4 h-fit sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
           <h3 className="text-lg font-bold text-gray-800 mb-4">تصفية النتائج</h3>
           <FilterContent />
         </div>
-<div className="flex-1 min-w-0 [&_.container]:max-w-none [&_.container]:mx-0 [&_.container]:px-0">
 
+        <div className="flex-1 min-w-0 [&_.container]:max-w-none [&_.container]:mx-0 [&_.container]:px-0">
           <div className="mb-4 text-sm text-gray-600">
             عرض <span className="font-bold text-blue-600">{paginatedProducts.length}</span> من أصل{" "}
             <span className="font-bold">{filteredProductList.length}</span> اكسسوار
           </div>
 
           {/* Products container with smooth transitions */}
-          <div 
+          <div
             ref={productsContainerRef}
             className="transition-all duration-300 ease-in-out"
-            style={{ 
+            style={{
               opacity: 1,
               transform: 'translateY(0)'
             }}
           >
-            <AccessoryList 
-              dollarPrice={dollar} 
-              isLoading={isLoading} 
+            <AccessoryList
+              dollarPrice={dollar}
+              isLoading={isLoading}
               selectedList={paginatedProducts}
               gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
             />

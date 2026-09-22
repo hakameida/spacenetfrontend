@@ -25,14 +25,14 @@ interface ArrowButtonProps {
   disabled?: boolean;
 }
 
-const ArrowButton: React.FC<ArrowButtonProps> = ({ 
-  direction, 
-  onClick, 
-  disabled = false 
+const ArrowButton: React.FC<ArrowButtonProps> = ({
+  direction,
+  onClick,
+  disabled = false
 }) => {
   const isNext = direction === "next";
   const Icon = isNext ? IoIosArrowForward : IoIosArrowBack;
-  
+
   return (
     <button
       aria-label={isNext ? "Next slide" : "Previous slide"}
@@ -99,28 +99,27 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isExpired, setIsExpired] = useState(offer.isExpired || false);
-  
-  // FIX: Get the actual data from the response
+
   const { data: laptopResponse, isLoading: laptopLoading } = useGetLaptopByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'LAPTOP' || !offer.productId || isExpired }
   );
-  
+
   const { data: computerResponse, isLoading: computerLoading } = useGetComputerByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'COMPUTER' || !offer.productId || isExpired }
   );
-  
+
   const { data: accessoryResponse, isLoading: accessoryLoading } = useGetAccessoryByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'ACCESSORY' || !offer.productId || isExpired }
   );
-  
+
   const { data: playstationResponse, isLoading: playstationLoading } = useGetPlayStationByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'PLAYSTATION' || !offer.productId || isExpired }
   );
-  
+
   const { data: cameraResponse, isLoading: cameraLoading } = useGetCameraByIdQuery(
     { id: offer.productId },
     { skip: offer.productModule !== 'CAMERA' || !offer.productId || isExpired }
@@ -135,45 +134,41 @@ const OfferCard = ({ offer }: { offer: Offer }) => {
     { id: offer.productId },
     { skip: offer.productModule !== 'CASE' || !offer.productId || isExpired }
   );
-  
+
   useEffect(() => {
     if (isExpired) {
       setLoading(false);
       return;
     }
 
-    // FIX: Extract the actual product data from the response
-    // The response might be { data: { laptopById: {...} } } or just the product directly
     let productData: any = null;
 
-if (offer.productModule === 'LAPTOP' && laptopResponse) {
-  productData = (laptopResponse as any)?.data?.laptopById || laptopResponse;
-} else if (offer.productModule === 'COMPUTER' && computerResponse) {
-  productData = (computerResponse as any)?.data?.computerById || computerResponse;
-} else if (offer.productModule === 'ACCESSORY' && accessoryResponse) {
-  productData = (accessoryResponse as any)?.data?.accessoryById || accessoryResponse;
-} else if (offer.productModule === 'PLAYSTATION' && playstationResponse) {
-  productData = (playstationResponse as any)?.data?.playstationById || playstationResponse;
-} else if (offer.productModule === 'CAMERA' && cameraResponse) {
-  productData = (cameraResponse as any)?.data?.cameraById || cameraResponse;
-} else if (offer.productModule === 'STORAGE' && storageResponse) {
-  productData = (storageResponse as any)?.data?.storageById || storageResponse;
-} else if (offer.productModule === 'CASE' && caseResponse) {
-  productData = (caseResponse as any)?.data?.caseById || caseResponse;
-}
+    if (offer.productModule === 'LAPTOP' && laptopResponse) {
+      productData = (laptopResponse as any)?.data?.laptopById || laptopResponse;
+    } else if (offer.productModule === 'COMPUTER' && computerResponse) {
+      productData = (computerResponse as any)?.data?.computerById || computerResponse;
+    } else if (offer.productModule === 'ACCESSORY' && accessoryResponse) {
+      productData = (accessoryResponse as any)?.data?.accessoryById || accessoryResponse;
+    } else if (offer.productModule === 'PLAYSTATION' && playstationResponse) {
+      productData = (playstationResponse as any)?.data?.playstationById || playstationResponse;
+    } else if (offer.productModule === 'CAMERA' && cameraResponse) {
+      productData = (cameraResponse as any)?.data?.cameraById || cameraResponse;
+    } else if (offer.productModule === 'STORAGE' && storageResponse) {
+      productData = (storageResponse as any)?.data?.storageById || storageResponse;
+    } else if (offer.productModule === 'CASE' && caseResponse) {
+      productData = (caseResponse as any)?.data?.caseById || caseResponse;
+    }
 
     if (productData) {
       setProduct(productData);
       setLoading(false);
     }
   }, [offer.productModule, laptopResponse, computerResponse, accessoryResponse, playstationResponse, cameraResponse, storageResponse, caseResponse, isExpired]);
-  
-  // Get the product data correctly
+
   const productData = product;
-  
-  // FIX: Check if we have product data
+
   console.log("Product Data in render:", productData);
-  
+
   const originalPrice = productData?.price;
   const discountPercent = originalPrice ? Math.floor(((parseFloat(originalPrice) - parseFloat(offer.price)) / parseFloat(originalPrice)) * 100) : 0;
   const hasDiscount = discountPercent > 0;
@@ -183,7 +178,7 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
   if (isExpired) {
     return null;
   }
-  
+
   if (loading) {
     return (
       <div className="block bg-white rounded-xl border overflow-hidden shadow-md">
@@ -200,21 +195,21 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
       </div>
     );
   }
-  
+
   if (!productData) {
     return null;
   }
-  
+
   return (
     <Link
       href={`/offers/${offer.id}`}
-      className="block bg-white rounded-xl border overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group"
+      className="block bg-white rounded-xl border overflow-hidden transition-all duration-300 group"
     >
       <div className="flex flex-col">
         {/* Main content - Image + Details in flex row on large screens */}
         <div className="flex flex-col md:flex-row">
           {/* Image Section */}
-          <div className="relative w-full md:w-1/2 h-64 md:h-80 lg:h-96 overflow-hidden bg-gray-50">
+          <div className="relative w-full md:w-1/2 h-64 md:h-80 lg:h-96 overflow-hidden">
             {imageUrl ? (
               <img
                 src={imageUrl}
@@ -230,62 +225,62 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
                 <span className="text-gray-400">لا توجد صورة</span>
               </div>
             )}
-            
+
             {/* Discount Badge */}
             {hasDiscount && (
               <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                 خصم {discountPercent}%
               </div>
             )}
-            
+
             {/* Module Badge */}
             <div className={`absolute top-4 right-4 ${moduleColor} text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg`}>
               {getModuleName(offer.productModule)}
             </div>
           </div>
-          
+
           {/* Content Section */}
-          <div className="flex-1 p-4 md:p-6 lg:p-8 text-center md:text-right">
+          <div className="flex-1 p-4 md:p-6 lg:p-8 text-center">
             <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 md:mb-3 line-clamp-2">
               {productData.name}
             </h3>
-            
+
             {productData.description && (
               <p className="text-gray-600 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
                 {productData.description}
               </p>
             )}
-            
+
             {/* Product Specifications */}
             <div className="grid grid-cols-2 gap-1.5 md:gap-2 mt-2 md:mt-3 text-xs md:text-sm">
               {offer.productModule === 'LAPTOP' && (
                 <>
                   {productData.cpu && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">المعالج</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.cpu}</p>
                     </div>
                   )}
                   {productData.ram && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الرام</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.ram}</p>
                     </div>
                   )}
                   {productData.gpu && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">كرت الشاشة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.gpu}</p>
                     </div>
                   )}
                   {productData.hard && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">التخزين</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.hard}</p>
                     </div>
                   )}
                   {productData.screen && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2 col-span-2">
+                    <div className="rounded p-1.5 md:p-2 col-span-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الشاشة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.screen}</p>
                     </div>
@@ -296,13 +291,13 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
               {offer.productModule === 'CAMERA' && (
                 <>
                   {productData.brand && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الماركة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.brand}</p>
                     </div>
                   )}
                   {productData.megapixels && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الدقة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.megapixels}</p>
                     </div>
@@ -313,13 +308,13 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
               {offer.productModule === 'PLAYSTATION' && (
                 <>
                   {productData.type_name && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">النوع</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.type_name}</p>
                     </div>
                   )}
                   {productData.storage && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">المساحة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.storage}</p>
                     </div>
@@ -330,13 +325,13 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
               {offer.productModule === 'ACCESSORY' && (
                 <>
                   {productData.brand && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الماركة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.brand}</p>
                     </div>
                   )}
                   {productData.type_name && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">النوع</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.type_name}</p>
                     </div>
@@ -346,7 +341,7 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
 
               {offer.productModule === 'COMPUTER' && productData.dynamicSpecs && (
                 productData.dynamicSpecs.slice(0, 4).map((spec: any, idx: number) => (
-                  <div key={idx} className="bg-gray-50 rounded p-1.5 md:p-2">
+                  <div key={idx} className="rounded p-1.5 md:p-2">
                     <p className="text-[10px] md:text-xs text-gray-500">{spec.key}</p>
                     <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{spec.value}</p>
                   </div>
@@ -356,25 +351,25 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
               {offer.productModule === 'STORAGE' && (
                 <>
                   {productData.brand && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الماركة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.brand}</p>
                     </div>
                   )}
                   {productData.type_name && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">النوع</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.type_name}</p>
                     </div>
                   )}
                   {productData.capacity && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">السعة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.capacity}</p>
                     </div>
                   )}
                   {productData.read_speed && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">سرعة القراءة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.read_speed}</p>
                     </div>
@@ -385,25 +380,25 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
               {offer.productModule === 'CASE' && (
                 <>
                   {productData.cpu && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">المعالج</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.cpu}</p>
                     </div>
                   )}
                   {productData.gpu && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">كرت الشاشة</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.gpu}</p>
                     </div>
                   )}
                   {productData.ram && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">الرام</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800">{productData.ram}</p>
                     </div>
                   )}
                   {productData.storage && (
-                    <div className="bg-gray-50 rounded p-1.5 md:p-2">
+                    <div className="rounded p-1.5 md:p-2">
                       <p className="text-[10px] md:text-xs text-gray-500">التخزين</p>
                       <p className="text-[10px] md:text-xs font-medium text-gray-800 truncate">{productData.storage}</p>
                     </div>
@@ -411,27 +406,27 @@ if (offer.productModule === 'LAPTOP' && laptopResponse) {
                 </>
               )}
             </div>
-            
-            {/* Price Section */}
-            <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3 mt-3 md:mt-4">
+
+            {/* Price Section — CENTERED */}
+            <div className="flex items-center justify-center gap-2 md:gap-3 mt-3 md:mt-4">
               {hasDiscount && (
                 <p className="text-sm md:text-lg text-red-500 font-bold line-through">
-                  {parseFloat(originalPrice).toFixed(2)} $
+                  {parseFloat(originalPrice).toFixed(1)} $
                 </p>
               )}
               <p className="text-xl md:text-3xl font-bold text-green-600">
-                {parseFloat(offer.price).toFixed(2)} <span className="text-sm md:text-base">$</span>
+                {parseFloat(offer.price).toFixed(1)} <span className="text-sm md:text-base">$</span>
               </p>
             </div>
-            
+
             {hasDiscount && (
-              <p className="text-xs md:text-sm text-green-600 mt-0.5 md:mt-1">
+              <p className="text-xs md:text-sm text-green-600 mt-0.5 md:mt-1 text-center">
                 وفر {Math.floor(parseFloat(originalPrice) - parseFloat(offer.price))} $
               </p>
             )}
-            
-            {/* "تفاصيل العرض" Button */}
-            <div className="mt-3 md:mt-6">
+
+            {/* "تفاصيل العرض" Button — CENTERED */}
+            <div className="mt-3 md:mt-6 text-center">
               <span className="inline-block px-4 md:px-6 py-1.5 md:py-2.5 bg-blue-600 text-white rounded-full text-xs md:text-sm font-semibold hover:bg-blue-700 transition shadow-md group-hover:shadow-lg">
                 تفاصيل العرض
               </span>
@@ -464,29 +459,29 @@ function MultipleItemsOffer({ productModule, showAll = false, limit = 10 }: Mult
   const sliderRef = useRef<Slider>(null);
   const { data, isLoading, error } = useGetOffersListQuery({});
   const allOffers: Offer[] = data || [];
-  
+
   let filteredOffers = allOffers;
-  
+
   filteredOffers = filteredOffers.filter(offer => {
     if (offer.isExpired !== undefined) {
       return !offer.isExpired;
     }
-    
+
     if (offer.createdAt && offer.durationDays) {
       const created = new Date(offer.createdAt);
       const expiryDate = new Date(created.getTime() + offer.durationDays * 24 * 60 * 60 * 1000);
       return new Date() < expiryDate;
     }
-    
+
     return true;
   });
-  
+
   if (showAll) {
     filteredOffers = filteredOffers;
   } else if (productModule) {
     filteredOffers = filteredOffers.filter(offer => offer.productModule === productModule);
   }
-  
+
   filteredOffers = filteredOffers.slice(0, limit);
 
   const settings: Settings = {
@@ -498,7 +493,7 @@ function MultipleItemsOffer({ productModule, showAll = false, limit = 10 }: Mult
     autoplaySpeed: 5000,
     speed: 500,
     pauseOnHover: true,
-    adaptiveHeight: true,
+    adaptiveHeight: false,
     arrows: false,
     dotsClass: "slick-dots custom-dots",
     fade: false,
@@ -542,14 +537,8 @@ function MultipleItemsOffer({ productModule, showAll = false, limit = 10 }: Mult
     <div className="relative max-w-4xl mx-auto px-4">
       {filteredOffers.length > 1 && (
         <>
-          <ArrowButton 
-            direction="prev" 
-            onClick={handlePrev} 
-          />
-          <ArrowButton 
-            direction="next" 
-            onClick={handleNext} 
-          />
+          {/* <ArrowButton direction="prev" onClick={handlePrev} /> */}
+          {/* <ArrowButton direction="next" onClick={handleNext} /> */}
         </>
       )}
 

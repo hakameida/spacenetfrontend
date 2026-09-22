@@ -9,6 +9,7 @@ import LoadingScreen from "@/components/loading/LoadingScreen";
 import { Play, Tag, Sparkles, ChevronLeft, ChevronRight, Shield, Phone, MessageCircle, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import Head from "next/head";
+import BrandsSection from "@/components/brands/brands-section";
 
 // Promotional messages for the slider
 const promoMessages = [
@@ -284,7 +285,7 @@ export default function LaptopPage() {
               <div className="relative z-10 h-0.5 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400" />
             </div>
           </div>
-
+<BrandsSection/>
           {/* Laptops Header with Icon */}
           <div className="flex items-center gap-3 mb-4 mt-12">
             <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm">
