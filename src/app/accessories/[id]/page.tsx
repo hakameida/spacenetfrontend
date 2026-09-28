@@ -13,6 +13,9 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
 import CardAccessory from "@/feature/card-accessory";
 
+// ✅ NEW — Lyket love button (one like per IP, shared total)
+import { Provider, LikeButton } from "@lyket/react";
+
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
   const priceNum = parseFloat(price);
@@ -57,8 +60,8 @@ const extractBrand = (name: string): string => {
 };
 
 // ---- Zoom constants ----
-const ZOOM_LEVEL = 2.5;   // how much the lens magnifies
-const LENS_SIZE = 170;    // lens diameter in px
+const ZOOM_LEVEL = 2.5;
+const LENS_SIZE = 170;
 
 export default function AccessoryDetailPage({ params }: { params: { id: string } }) {
   const { data, isLoading } = useGetAccessoryByIdQuery({ id: params.id });
@@ -142,7 +145,6 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
     setImgBounds({ x: drawX, y: drawY, w: drawW, h: drawH });
   };
 
-  // Re-measure when image changes or viewport changes
   useEffect(() => {
     measureImage();
     window.addEventListener("resize", measureImage);
@@ -163,7 +165,6 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Only activate when over the actual rendered image
     if (
       x < imgBounds.x || x > imgBounds.x + imgBounds.w ||
       y < imgBounds.y || y > imgBounds.y + imgBounds.h
@@ -356,371 +357,388 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
   const isAtEnd = currentIndex === allImages.length - 1 || currentIndex === -1;
 
   return (
-    <div className="container mx-auto px-4 py-8 pt-24">
-      {/* Discount Banner */}
-      {hasDiscount && (
-        <div className="mb-6 bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-4 text-center relative">
-          <div className="absolute top-2 right-2 bg-yellow-400 text-red-600 px-2 py-1 rounded-full text-xs font-bold">
-            عرض خاص
+    // ✅ Lyket Provider wraps the entire page — layout stays untouched
+    <Provider apiKey="pt_0e230d6e7e20dfa46a4c040f2c8c9b" disableSessionId={true}>
+      <div className="container mx-auto px-4 py-8 pt-24">
+        {/* Discount Banner */}
+        {hasDiscount && (
+          <div className="mb-6 bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-4 text-center relative">
+            <div className="absolute top-2 right-2 bg-yellow-400 text-red-600 px-2 py-1 rounded-full text-xs font-bold">
+              عرض خاص
+            </div>
+            <h3 className="text-white text-xl font-bold">
+              🎉 خصم {discountPercent}% على {accessory.name} 🎉
+            </h3>
+            <p className="text-white/90 text-sm mt-1">
+              وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+            </p>
           </div>
-          <h3 className="text-white text-xl font-bold">
-            🎉 خصم {discountPercent}% على {accessory.name} 🎉
-          </h3>
-          <p className="text-white/90 text-sm mt-1">
-            وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
-          </p>
-        </div>
-      )}
+        )}
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left - Image Gallery with Zoom */}
-        <div className="lg:w-1/2">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div
-              ref={imageContainerRef}
-              className="relative w-full h-80 md:h-96 bg-gray-50 select-none"
-              style={{ touchAction: "none", cursor: zoomActive ? "crosshair" : "zoom-in" }}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              onTouchStart={handleTouchStartZoom}
-              onTouchMove={handleTouchMoveZoom}
-              onTouchEnd={handleTouchEndZoom}
-              onTouchCancel={handleTouchEndZoom}
-            >
-              {currentImage ? (
-                <img
-                  ref={imgRef}
-                  src={getImage(currentImage)}
-                  alt={accessory.name}
-                  className="absolute inset-0 w-full h-full object-contain p-4"
-                  draggable={false}
-                  onLoad={measureImage}
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                  <span className="text-gray-400">لا توجد صورة</span>
-                </div>
-              )}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left - Image Gallery with Zoom */}
+          <div className="lg:w-1/2">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div
+                ref={imageContainerRef}
+                className="relative w-full h-80 md:h-96 bg-gray-50 select-none"
+                style={{ touchAction: "none", cursor: zoomActive ? "crosshair" : "zoom-in" }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                onTouchStart={handleTouchStartZoom}
+                onTouchMove={handleTouchMoveZoom}
+                onTouchEnd={handleTouchEndZoom}
+                onTouchCancel={handleTouchEndZoom}
+              >
+                {currentImage ? (
+                  <img
+                    ref={imgRef}
+                    src={getImage(currentImage)}
+                    alt={accessory.name}
+                    className="absolute inset-0 w-full h-full object-contain p-4"
+                    draggable={false}
+                    onLoad={measureImage}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                    <span className="text-gray-400">لا توجد صورة</span>
+                  </div>
+                )}
 
-              {/* ===== Magnifier Lens ===== */}
-              {zoomActive && currentImage && imgBounds.w > 0 && (
-                <div
-                  className="pointer-events-none absolute rounded-full border-4 border-white shadow-2xl z-30"
-                  style={{
-                    width: LENS_SIZE,
-                    height: LENS_SIZE,
-                    left: zoomPos.x - LENS_SIZE / 2,
-                    top: zoomPos.y - LENS_SIZE / 2,
-                    backgroundImage: `url(${getImage(currentImage)})`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: `${imgBounds.w * ZOOM_LEVEL}px ${imgBounds.h * ZOOM_LEVEL}px`,
-                    backgroundPosition: `${
-                      LENS_SIZE / 2 - (zoomPos.x - imgBounds.x) * ZOOM_LEVEL
-                    }px ${
-                      LENS_SIZE / 2 - (zoomPos.y - imgBounds.y) * ZOOM_LEVEL
-                    }px`,
-                    boxShadow:
-                      "0 0 0 1px rgba(0,0,0,0.15), 0 10px 30px rgba(0,0,0,0.35)",
-                  }}
-                />
-              )}
+                {/* ===== Magnifier Lens ===== */}
+                {zoomActive && currentImage && imgBounds.w > 0 && (
+                  <div
+                    className="pointer-events-none absolute rounded-full border-4 border-white shadow-2xl z-30"
+                    style={{
+                      width: LENS_SIZE,
+                      height: LENS_SIZE,
+                      left: zoomPos.x - LENS_SIZE / 2,
+                      top: zoomPos.y - LENS_SIZE / 2,
+                      backgroundImage: `url(${getImage(currentImage)})`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundSize: `${imgBounds.w * ZOOM_LEVEL}px ${imgBounds.h * ZOOM_LEVEL}px`,
+                      backgroundPosition: `${
+                        LENS_SIZE / 2 - (zoomPos.x - imgBounds.x) * ZOOM_LEVEL
+                      }px ${
+                        LENS_SIZE / 2 - (zoomPos.y - imgBounds.y) * ZOOM_LEVEL
+                      }px`,
+                      boxShadow:
+                        "0 0 0 1px rgba(0,0,0,0.15), 0 10px 30px rgba(0,0,0,0.35)",
+                    }}
+                  />
+                )}
+
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={nextImage}
+                      disabled={isAtEnd}
+                      aria-label="التالي"
+                      className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 z-20 ${
+                        isAtEnd ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
+                      }`}
+                    >
+                      <ChevronLeft className="w-5 h-5 text-white" />
+                    </button>
+
+                    <button
+                      onClick={prevImage}
+                      disabled={isAtStart}
+                      aria-label="السابق"
+                      className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 z-20 ${
+                        isAtStart ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
+                      }`}
+                    >
+                      <ChevronRight className="w-5 h-5 text-white" />
+                    </button>
+                  </>
+                )}
+
+                {allImages.length > 1 && (
+                  <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white z-20">
+                    {currentIndex + 1} / {allImages.length}
+                  </div>
+                )}
+
+                {hasDiscount && (
+                  <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-20">
+                    خصم {discountPercent}%
+                  </div>
+                )}
+              </div>
 
               {allImages.length > 1 && (
-                <>
-                  {/* LEFT arrow → NEXT image (RTL layout) */}
-                  <button
-                    onClick={nextImage}
-                    disabled={isAtEnd}
-                    aria-label="التالي"
-                    className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 z-20 ${
-                      isAtEnd ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
-                    }`}
-                  >
-                    <ChevronLeft className="w-5 h-5 text-white" />
-                  </button>
-
-                  {/* RIGHT arrow → PREVIOUS image (RTL layout) */}
-                  <button
-                    onClick={prevImage}
-                    disabled={isAtStart}
-                    aria-label="السابق"
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300 z-20 ${
-                      isAtStart ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
-                    }`}
-                  >
-                    <ChevronRight className="w-5 h-5 text-white" />
-                  </button>
-                </>
-              )}
-
-              {allImages.length > 1 && (
-                <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white z-20">
-                  {currentIndex + 1} / {allImages.length}
-                </div>
-              )}
-
-              {/* Discount Badge on Image */}
-              {hasDiscount && (
-                <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-20">
-                  خصم {discountPercent}%
-                </div>
-              )}
-            </div>
-
-            {allImages.length > 1 && (
-              <div className="flex gap-2 p-4 overflow-x-auto border-t border-gray-100 scrollbar-hide justify-center">
-                {allImages.map((url, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImage(url)}
-                    className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0
-                      ${currentImage === url ? 'border-blue-600 shadow-md' : 'border-gray-200 hover:border-blue-300'}`}
-                  >
-                    <img
-                      src={getImage(url)}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right - Product Info */}
-        <div className="lg:w-1/2">
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-              {accessory.name}
-            </h1>
-
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className={`inline-block px-3 py-1 text-sm rounded-full ${ageDisplay.className}`}>
-                {ageDisplay.label}
-              </span>
-              {hasDiscount && (
-                <span className="inline-block px-3 py-1 text-sm rounded-full bg-red-100 text-red-700">
-                  خصم {discountPercent}%
-                </span>
-              )}
-            </div>
-
-            <div className={`rounded-xl p-4 mb-6 ${hasDiscount ? 'bg-gradient-to-r from-red-50 to-orange-50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}>
-              <div className="flex items-baseline justify-between flex-wrap gap-2">
-                <div>
-                  <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
-                  {hasDiscount && (
-                    <p className="text-xs text-gray-500 line-through mt-1">
-                      {formatPriceInSYP(accessory.price, dollar)} ل.س
-                    </p>
-                  )}
-                  <p className="text-2xl md:text-3xl font-bold text-red-600">
-                    {formatPriceInSYP(accessory.discount || accessory.price, dollar)} <span className="text-sm">ل.س</span>
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-sm text-gray-500">السعر بالدولار</span>
-                  {hasDiscount && (
-                    <p className="text-xs text-gray-500 line-through mt-1">
-                      ${formatPriceInUSD(accessory.price)}
-                    </p>
-                  )}
-                  <p className="text-xl md:text-2xl font-bold text-green-600">
-                    ${formatPriceInUSD(accessory.discount || accessory.price)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {accessory.brand && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">الماركة</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.brand}</p>
-                </div>
-              )}
-              {accessory.type_name && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">النوع</p>
-                  <p className="text-sm font-medium text-gray-800">{accessory.type_name}</p>
-                </div>
-              )}
-              {accessory.modelNumber && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">رقم الموديل</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.modelNumber}</p>
-                </div>
-              )}
-              {accessory.compatibility && (
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-xs text-gray-500">التوافق</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{accessory.compatibility}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleWhatsAppOrder}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
-              >
-                <IoMdCart size={20} />
-                اطلب الآن
-              </button>
-              <button
-                onClick={handleShare}
-                className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center justify-center"
-              >
-                <IoMdShare size={22} className="text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* المواصفات الكاملة Section - FIRST */}
-      <div className="mt-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
-            <h2 className="text-xl font-bold text-blue-600">المواصفات الكاملة</h2>
-          </div>
-
-          <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <tbody>
-                  <tr className="border-b border-gray-100">
-                    <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700 w-1/3 rounded-r-lg">الاسم</td>
-                    <td className="py-3 px-4 text-gray-600">{accessory.name}</td>
-                  </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
-                    <td className="py-3 px-4 text-gray-600">{getAgeInArabic(accessory.age)}</td>
-                  </tr>
-
-                  <tr className="border-b border-gray-100">
-                    <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الخصم</td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {hasDiscount ? (
-                        <span className="text-red-600 font-bold">
-                          خصم {discountPercent}% - وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
-                        </span>
-                      ) : (
-                        <span className="text-gray-500">لا يوجد خصم</span>
-                      )}
-                    </td>
-                  </tr>
-
-                  {accessory.brand && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.brand}</td>
-                    </tr>
-                  )}
-                  {accessory.type_name && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.type_name}</td>
-                    </tr>
-                  )}
-                  {accessory.modelNumber && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.modelNumber}</td>
-                    </tr>
-                  )}
-                  {accessory.compatibility && (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التوافق</td>
-                      <td className="py-3 px-4 text-gray-600">{accessory.compatibility}</td>
-                    </tr>
-                  )}
-
-                  {accessory.dynamicSpecs && accessory.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
-                    <tr key={idx} className="border-b border-gray-100">
-                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
-                      <td className="py-3 px-4 text-gray-600">{spec.value}</td>
-                    </tr>
+                <div className="flex gap-2 p-4 overflow-x-auto border-t border-gray-100 scrollbar-hide justify-center">
+                  {allImages.map((url, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImage(url)}
+                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0
+                        ${currentImage === url ? 'border-blue-600 shadow-md' : 'border-gray-200 hover:border-blue-300'}`}
+                    >
+                      <img
+                        src={getImage(url)}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right - Product Info */}
+          <div className="lg:w-1/2">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
+                {accessory.name}
+              </h1>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className={`inline-block px-3 py-1 text-sm rounded-full ${ageDisplay.className}`}>
+                  {ageDisplay.label}
+                </span>
+                {hasDiscount && (
+                  <span className="inline-block px-3 py-1 text-sm rounded-full bg-red-100 text-red-700">
+                    خصم {discountPercent}%
+                  </span>
+                )}
+              </div>
+
+              <div className={`rounded-xl p-4 mb-6 ${hasDiscount ? 'bg-gradient-to-r from-red-50 to-orange-50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}>
+                <div className="flex items-baseline justify-between flex-wrap gap-2">
+                  <div>
+                    <span className="text-sm text-gray-500">السعر بالليرة السورية</span>
+                    {hasDiscount && (
+                      <p className="text-xs text-gray-500 line-through mt-1">
+                        {formatPriceInSYP(accessory.price, dollar)} ل.س
+                      </p>
+                    )}
+                    <p className="text-2xl md:text-3xl font-bold text-red-600">
+                      {formatPriceInSYP(accessory.discount || accessory.price, dollar)} <span className="text-sm">ل.س</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm text-gray-500">السعر بالدولار</span>
+                    {hasDiscount && (
+                      <p className="text-xs text-gray-500 line-through mt-1">
+                        ${formatPriceInUSD(accessory.price)}
+                      </p>
+                    )}
+                    <p className="text-xl md:text-2xl font-bold text-green-600">
+                      ${formatPriceInUSD(accessory.discount || accessory.price)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {accessory.brand && (
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-500">الماركة</p>
+                    <p className="text-sm font-medium text-gray-800 truncate">{accessory.brand}</p>
+                  </div>
+                )}
+                {accessory.type_name && (
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-500">النوع</p>
+                    <p className="text-sm font-medium text-gray-800">{accessory.type_name}</p>
+                  </div>
+                )}
+                {accessory.modelNumber && (
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-500">رقم الموديل</p>
+                    <p className="text-sm font-medium text-gray-800 truncate">{accessory.modelNumber}</p>
+                  </div>
+                )}
+                {accessory.compatibility && (
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-500">التوافق</p>
+                    <p className="text-sm font-medium text-gray-800 truncate">{accessory.compatibility}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 items-stretch">
+                <button
+                  onClick={handleWhatsAppOrder}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2"
+                >
+                  <IoMdCart size={20} />
+                  اطلب الآن
+                </button>
+
+                {/* ❤️ Lyket love button — one like per IP, shared total */}
+                <div className="flex items-center justify-center px-3 bg-gray-100 rounded-xl">
+                  <LikeButton
+                    namespace="accessories"
+                    id={String(accessory.id)}
+                    component={LikeButton.templates.Twitter}
+                    theme={{
+                      colors: {
+                        primary: "#ef4444",
+                        background: "transparent",
+                        text: "#6b7280",
+                      },
+                    }}
+                  />
+                </div>
+
+                <button
+                  onClick={handleShare}
+                  className="w-12 h-12 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center justify-center"
+                >
+                  <IoMdShare size={22} className="text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* المواصفات الكاملة Section */}
+        <div className="mt-8">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
+              <h2 className="text-xl font-bold text-blue-600">المواصفات الكاملة</h2>
+            </div>
+
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700 w-1/3 rounded-r-lg">الاسم</td>
+                      <td className="py-3 px-4 text-gray-600">{accessory.name}</td>
+                    </tr>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحالة</td>
+                      <td className="py-3 px-4 text-gray-600">{getAgeInArabic(accessory.age)}</td>
+                    </tr>
+
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الخصم</td>
+                      <td className="py-3 px-4 text-gray-600">
+                        {hasDiscount ? (
+                          <span className="text-red-600 font-bold">
+                            خصم {discountPercent}% - وفر {Math.floor(parseFloat(accessory.price) - parseFloat(accessory.discount))}$
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">لا يوجد خصم</span>
+                        )}
+                      </td>
+                    </tr>
+
+                    {accessory.brand && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الماركة</td>
+                        <td className="py-3 px-4 text-gray-600">{accessory.brand}</td>
+                      </tr>
+                    )}
+                    {accessory.type_name && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                        <td className="py-3 px-4 text-gray-600">{accessory.type_name}</td>
+                      </tr>
+                    )}
+                    {accessory.modelNumber && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                        <td className="py-3 px-4 text-gray-600">{accessory.modelNumber}</td>
+                      </tr>
+                    )}
+                    {accessory.compatibility && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">التوافق</td>
+                        <td className="py-3 px-4 text-gray-600">{accessory.compatibility}</td>
+                      </tr>
+                    )}
+
+                    {accessory.dynamicSpecs && accessory.dynamicSpecs.map((spec: { key: string; value: string }, idx: number) => (
+                      <tr key={idx} className="border-b border-gray-100">
+                        <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">{spec.key}</td>
+                        <td className="py-3 px-4 text-gray-600">{spec.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* الوصف Section */}
+        <div className="mt-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
+              <h2 className="text-xl font-bold text-blue-600">تمييزات اضافية</h2>
+            </div>
+
+            <div className="p-6">
+              <div className="prose max-w-none">
+                <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                  {accessory.description || "لا يوجد وصف لهذا المنتج"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ============ SIMILAR PRODUCTS SECTION ============ */}
+        {similarProducts.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm">
+                <Sparkles className="w-7 h-7 md:w-9 md:h-9 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                  منتجات مشابهة
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">
+                  قد تعجبك هذه المنتجات أيضاً
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">
+              {similarProducts.map((product) => {
+                const productImage = product.image || product.image1 || product.url1 || "";
+                return (
+                  <CardAccessory
+                    key={product.id}
+                    height="160px"
+                    rounded="10px"
+                    width="100%"
+                    image={productImage}
+                    title={product.name || ""}
+                    price={product.price || "0"}
+                    discount={product.discount || ""}
+                    description={product.description || ""}
+                    dollarPrice={dollar}
+                    id={product.id || ""}
+                    age={product.age || ""}
+                    brand={product.brand || ""}
+                    type_name={product.type_name || ""}
+                    dynamicSpecs={product.dynamicSpecs || []}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <style jsx global>{`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
       </div>
-
-      {/* الوصف Section */}
-      <div className="mt-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
-            <h2 className="text-xl font-bold text-blue-600">تمييزات اضافية</h2>
-          </div>
-
-          <div className="p-6">
-            <div className="prose max-w-none">
-              <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {accessory.description || "لا يوجد وصف لهذا المنتج"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ============ SIMILAR PRODUCTS SECTION ============ */}
-      {similarProducts.length > 0 && (
-        <div className="mt-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm">
-              <Sparkles className="w-7 h-7 md:w-9 md:h-9 text-blue-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                منتجات مشابهة
-              </h2>
-              <p className="text-gray-500 text-sm mt-1">
-                قد تعجبك هذه المنتجات أيضاً
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4">
-            {similarProducts.map((product) => {
-              const productImage = product.image || product.image1 || product.url1 || "";
-              return (
-                <CardAccessory
-                  key={product.id}
-                  height="160px"
-                  rounded="10px"
-                  width="100%"
-                  image={productImage}
-                  title={product.name || ""}
-                  price={product.price || "0"}
-                  discount={product.discount || ""}
-                  description={product.description || ""}
-                  dollarPrice={dollar}
-                  id={product.id || ""}
-                  age={product.age || ""}
-                  brand={product.brand || ""}
-                  type_name={product.type_name || ""}
-                  dynamicSpecs={product.dynamicSpecs || []}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <style jsx global>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </div>
+    </Provider>
   );
 }
 
