@@ -575,13 +575,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                     namespace="accessories"
                     id={String(accessory.id)}
                     component={LikeButton.templates.Twitter}
-                    theme={{
-                      colors: {
-                        primary: "#ef4444",
-                        background: "transparent",
-                        text: "#6b7280",
-                      },
-                    }}
+                    
                   />
                 </div>
 
