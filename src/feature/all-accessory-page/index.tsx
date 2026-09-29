@@ -191,12 +191,10 @@ const Pagination = ({
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-4 border-t border-gray-200">
-      {/* Items info */}
       <div className="text-sm text-gray-500">
         عرض {startItem} - {endItem} من {totalItems} منتج
       </div>
 
-      {/* Page size selector */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-500">عرض:</span>
         <select
@@ -212,9 +210,7 @@ const Pagination = ({
         </select>
       </div>
 
-      {/* Pagination buttons */}
       <div className="flex items-center gap-1">
-        {/* Previous */}
         <button
           onClick={() => handlePageClick(currentPage - 1)}
           disabled={currentPage === 1 || isLoading}
@@ -227,7 +223,6 @@ const Pagination = ({
           <FiChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Page numbers */}
         {startPage > 1 && (
           <>
             <button
@@ -267,7 +262,6 @@ const Pagination = ({
           </>
         )}
 
-        {/* Next */}
         <button
           onClick={() => handlePageClick(currentPage + 1)}
           disabled={currentPage === totalPages || isLoading}
@@ -285,29 +279,25 @@ const Pagination = ({
 };
 
 export const AllAccessoryPage = ({ title }: { title: string }) => {
-  // NOTE: We must NOT read sessionStorage during initial render because that
-  // causes a hydration mismatch (server has no storage → renders defaults,
-  // client reads storage → renders different values). Instead we start with
-  // defaults and restore saved state in a useEffect that runs client-side only.
-
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     price: true,
   });
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Ref for products container to scroll to
   const productsContainerRef = useRef<HTMLDivElement>(null);
 
   const [showAllState, setShowAllState] = useState<ShowAllState>({
     types: false,
     brands: false,
   });
+
+  // 👈 Like counts map: { [accessoryId]: numberOfLikes }
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
 
   const { isLoading } = useGetAccessoriesListQuery({ status: true });
   const { data: dollarData } = useGetDollarQuery({});
@@ -321,7 +311,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     manualSearch: ""
   });
 
-  // Guard so we don't overwrite storage with defaults before restoring
   const hasRestoredRef = useRef(false);
 
   // ---- Restore saved state AFTER mount (client only) ----
@@ -335,6 +324,53 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
       if (saved.showAllState) setShowAllState(saved.showAllState);
     }
     hasRestoredRef.current = true;
+  }, []);
+
+  // ---- Fetch like counts from Lyket (once) ----
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchLikeCounts = async () => {
+      try {
+        const res = await fetch(
+          "https://api.lyket.dev/v1/rank/like-buttons/accessories?per_page=500",
+          {
+            headers: {
+              Authorization: "Bearer pt_0e230d6e7e20dfa46a4c040f2c8c9b",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!res.ok) {
+          console.warn("Lyket likes fetch failed:", res.status);
+          return;
+        }
+
+        const json = await res.json();
+
+        // Lyket response shape:
+        // { data: [ { id, type: "like_button", attributes: { total_likes: N, ... } } ] }
+        const rawList: any[] = Array.isArray(json) ? json : json?.data ?? [];
+
+        const map: Record<string, number> = {};
+        rawList.forEach((item) => {
+          const id = String(item?.id ?? "");
+          const likes = item?.attributes?.total_likes ?? 0;
+          if (id) map[id] = Number(likes) || 0;
+        });
+
+        console.log("✅ Lyket like map:", map);
+        if (!cancelled) setLikeCounts(map);
+      } catch (err) {
+        console.error("Lyket fetch error:", err);
+      }
+    };
+
+    fetchLikeCounts();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -357,7 +393,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     }
   }, [dollarData]);
 
-  // ---- Persist state on change (skip until restore finished) ----
+  // ---- Persist state on change ----
   useEffect(() => {
     if (!hasRestoredRef.current) return;
     try {
@@ -372,7 +408,7 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
         })
       );
     } catch {
-      // ignore storage errors
+      // ignore
     }
   }, [filters, sortDirection, currentPage, itemsPerPage, showAllState]);
 
@@ -429,7 +465,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
            (filters.maxPrice ? 1 : 0);
   }, [filters]);
 
-  // Filter products
   const filteredProductList = sortedAccessoryList.filter((product) => {
     if (!product) return false;
 
@@ -459,11 +494,9 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     return true;
   });
 
-  // Pagination: Get current page items
   const totalItems = filteredProductList.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Reset to page 1 if current page exceeds total pages
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -476,13 +509,21 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     return filteredProductList.slice(startIndex, endIndex);
   }, [filteredProductList, currentPage, itemsPerPage]);
 
-  // Smooth page change with animation
+  // Attach likeCount to each paginated product
+  const paginatedWithLikes = useMemo(
+    () =>
+      paginatedProducts.map((p) => ({
+        ...p,
+        likeCount: likeCounts[String(p.id)] || 0,
+      })),
+    [paginatedProducts, likeCounts]
+  );
+
   const handlePageChange = (page: number) => {
     if (page === currentPage || isTransitioning) return;
 
     setIsTransitioning(true);
 
-    // Fade out effect
     if (productsContainerRef.current) {
       productsContainerRef.current.style.opacity = '0';
       productsContainerRef.current.style.transform = 'translateY(10px)';
@@ -492,7 +533,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
     setTimeout(() => {
       setCurrentPage(page);
 
-      // Fade in effect
       setTimeout(() => {
         if (productsContainerRef.current) {
           productsContainerRef.current.style.opacity = '1';
@@ -728,7 +768,6 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
             <span className="font-bold">{filteredProductList.length}</span> اكسسوار
           </div>
 
-          {/* Products container with smooth transitions */}
           <div
             ref={productsContainerRef}
             className="transition-all duration-300 ease-in-out"
@@ -740,12 +779,11 @@ export const AllAccessoryPage = ({ title }: { title: string }) => {
             <AccessoryList
               dollarPrice={dollar}
               isLoading={isLoading}
-              selectedList={paginatedProducts}
+              selectedList={paginatedWithLikes}
               gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
             />
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}

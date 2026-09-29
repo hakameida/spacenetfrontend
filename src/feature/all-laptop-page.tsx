@@ -21,7 +21,6 @@ interface FilterState {
   manualSearch: string;
 }
 
-// Track expanded state for each filter section
 interface FilterSectionsState {
   brands: boolean;
   cpu: boolean;
@@ -32,7 +31,6 @@ interface FilterSectionsState {
   age: boolean;
 }
 
-// Track showAll state for each filter section
 interface ShowAllState {
   brands: boolean;
   cpu: boolean;
@@ -43,7 +41,6 @@ interface ShowAllState {
   age: boolean;
 }
 
-// -------- Persistence helpers --------
 const STORAGE_KEY = "all-laptop-page-state";
 
 const loadSavedState = (): {
@@ -60,7 +57,6 @@ const loadSavedState = (): {
   }
 };
 
-// Extract unique values from laptop data
 const useExtractedFilters = (laptops: LaptopItem[]) => {
   return useMemo(() => {
     const brands = new Set<string>();
@@ -169,7 +165,6 @@ const sortProductsByPrice = (products: LaptopItem[], direction: "asc" | "desc") 
   });
 };
 
-// Fixed FilterSectionWithShowMore - now accepts showAll state from parent
 const FilterSectionWithShowMore = ({
   title,
   options,
@@ -243,13 +238,6 @@ const FilterSectionWithShowMore = ({
 };
 
 export const AllLaptopPage = ({ title }: { title: string }) => {
-  // NOTE: We must NOT read sessionStorage during initial render because that
-  // causes a hydration mismatch. We start with defaults and restore saved
-  // state inside a useEffect (client-only). The persist effect is gated by
-  // the `hasRestored` STATE flag (not a ref) so that under React Strict Mode
-  // (which double-invokes effects on mount) we never overwrite the saved
-  // state with the initial defaults before the restore has settled.
-
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
@@ -265,6 +253,9 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
     screenSize: false,
     age: false,
   });
+
+  // 👈 NEW — like counts map keyed by laptop id
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
 
   const { isLoading } = useGetLaptopsListQuery({ status: true });
   const { data: dollarData } = useGetDollarQuery({});
@@ -283,10 +274,8 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
     manualSearch: ""
   });
 
-  // STATE flag (not ref!) — starts false, flips to true once restore finished.
   const [hasRestored, setHasRestored] = useState(false);
 
-  // ---- Restore saved state AFTER mount (client only) ----
   useEffect(() => {
     const saved = loadSavedState();
     if (saved) {
@@ -297,7 +286,51 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
     setHasRestored(true);
   }, []);
 
-  // ---- Persist state on change (only AFTER restore has finished) ----
+  // 👈 NEW — fetch all like counts for the "laptops" namespace, once
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchLikeCounts = async () => {
+      try {
+        const res = await fetch(
+          "https://api.lyket.dev/v1/rank/like-buttons/laptops?per_page=500",
+          {
+            headers: {
+              Authorization: "Bearer pt_0e230d6e7e20dfa46a4c040f2c8c9b",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!res.ok) {
+          console.warn("Lyket likes fetch failed:", res.status);
+          return;
+        }
+
+        const json = await res.json();
+        // Shape: { data: [ { id, type: "like_button", attributes: { total_likes: N } } ] }
+        const rawList: any[] = Array.isArray(json) ? json : json?.data ?? [];
+
+        const map: Record<string, number> = {};
+        rawList.forEach((item) => {
+          const id = String(item?.id ?? "");
+          const likes = item?.attributes?.total_likes ?? 0;
+          if (id) map[id] = Number(likes) || 0;
+        });
+
+        console.log("✅ Lyket laptops like map:", map);
+        if (!cancelled) setLikeCounts(map);
+      } catch (err) {
+        console.error("Lyket fetch error:", err);
+      }
+    };
+
+    fetchLikeCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     if (!hasRestored) return;
     try {
@@ -310,11 +343,10 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
         })
       );
     } catch {
-      // ignore storage errors
+      // ignore
     }
   }, [filters, sortDirection, showAllState, hasRestored]);
 
-  // Prevent body scroll when filter drawer is open
   useEffect(() => {
     if (showMobileFilters) {
       document.body.style.overflow = 'hidden';
@@ -456,6 +488,16 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
 
     return true;
   });
+
+  // 👈 NEW — attach likeCount to each filtered laptop
+  const filteredWithLikes = useMemo(
+    () =>
+      filteredProductList.map((p) => ({
+        ...p,
+        likeCount: likeCounts[String(p.id)] || 0,
+      })),
+    [filteredProductList, likeCounts]
+  );
 
   const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
     <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full">
@@ -742,11 +784,12 @@ export const AllLaptopPage = ({ title }: { title: string }) => {
             <span className="font-bold">{laptopList.length}</span> لابتوب
           </div>
 
+          {/* 👈 CHANGED — use filteredWithLikes so each card gets `likeCount` */}
           <LaptopList
             title={title}
             dollarPrice={dollar}
             isLoading={isLoading}
-            selectedList={filteredProductList}
+            selectedList={filteredWithLikes}
             gridClassName="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
           />
         </div>

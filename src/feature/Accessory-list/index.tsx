@@ -14,7 +14,7 @@ export const AccessoryList = ({
 }: {
   dollarPrice: number;
   isLoading: boolean;
-  selectedList: AccessoryItem[];
+  selectedList: (AccessoryItem & { likeCount?: number })[];
   title?: string;
   gridClassName?: string;
 }) => {
@@ -65,6 +65,7 @@ export const AccessoryList = ({
                       brand={accessoryItem.brand ?? ""}
                       type_name={accessoryItem.type_name ?? ""}
                       dynamicSpecs={accessoryItem.dynamicSpecs ?? []}
+                      likeCount={accessoryItem.likeCount ?? 0}
                     />
                   </div>
                 ))
