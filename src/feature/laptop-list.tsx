@@ -12,7 +12,11 @@ interface ProductList {
   price?: string;
   type?: string;
   age?: string;
-  likeCount?: number;   // 👈 NEW
+  cpu?: string;        // 👈 NEW
+  gpu?: string;        // 👈 NEW
+  ram?: string;        // 👈 NEW
+  hard?: string;       // 👈 NEW  (maps to `storage` on CardProduct)
+  likeCount?: number;  // 👈 NEW
 }
 
 export const LaptopList = ({
@@ -88,7 +92,11 @@ export const LaptopList = ({
                     icons={true}
                     id={laptopItem.id ? laptopItem.id : ""}
                     age={laptopItem.age ? laptopItem.age : ""}
-                    likeCount={laptopItem.likeCount ?? 0}   // 👈 NEW
+                    cpu={laptopItem.cpu ?? ""}            // 👈 NEW
+                    gpu={laptopItem.gpu ?? ""}            // 👈 NEW
+                    ram={laptopItem.ram ?? ""}            // 👈 NEW
+                    storage={laptopItem.hard ?? ""}       // 👈 NEW
+                    likeCount={laptopItem.likeCount ?? 0} // 👈 NEW
                   />
                 </div>
               ))}
