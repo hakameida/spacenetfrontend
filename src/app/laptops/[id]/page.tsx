@@ -30,7 +30,7 @@ const formatPriceInSYP = (price: string, dollar: number) => {
 const formatPriceInUSD = (price: string) => {
   const priceNum = parseFloat(price);
   if (isNaN(priceNum)) return "0";
-  return priceNum.toFixed(2);
+  return priceNum.toFixed(1);
 };
 
 const getAgeInArabic = (age: string | undefined): string => {

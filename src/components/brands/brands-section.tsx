@@ -60,7 +60,6 @@ const BRANDS: Brand[] = [
   { searchName: "Lenovo", label: "لينوفو", logo: renderSimpleIcon(siLenovo) },
 
   // ── NOT in simple-icons — use file paths ─────────────────────────────
-  // 👇 Place the downloaded SVGs in `public/brands/` as shown below.
   { searchName: "Fantech", label: "فانتك", logo: "/brands/fantech.svg", alt: "Fantech" },
   { searchName: "Attack Shark", label: "أتاك شارك", logo: "/brands/attack-shark.svg", alt: "Attack Shark" },
   { searchName: "Havit", label: "هافيت", logo: "/brands/havit.svg", alt: "Havit" },
@@ -73,18 +72,14 @@ const BRANDS: Brand[] = [
 interface BrandCardProps {
   brand: Brand;
   onSelect: (brand: Brand) => void;
-  /** Duplicated clone used by the mobile marquee → hidden from a11y tree */
-  clone?: boolean;
 }
 
-function BrandCard({ brand, onSelect, clone = false }: BrandCardProps) {
+function BrandCard({ brand, onSelect }: BrandCardProps) {
   return (
     <button
       type="button"
       onClick={() => onSelect(brand)}
       aria-label={`بحث عن منتجات ${brand.label ?? brand.searchName}`}
-      aria-hidden={clone || undefined}
-      tabIndex={clone ? -1 : undefined}
       className="group relative flex w-[92px] shrink-0 select-none flex-col items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg md:w-auto md:p-4 md:hover:-translate-y-1"
     >
       <div className="relative flex h-14 w-full items-center justify-center md:h-16">
@@ -128,6 +123,8 @@ function BrandMarquee({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
+  /** +1 = moving right, -1 = moving left */
+  const dirRef = useRef<1 | -1>(1);
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pause = useCallback(() => {
@@ -146,7 +143,7 @@ function BrandMarquee({
     }, delay);
   }, []);
 
-  /* Auto-scroll loop */
+  /* Auto-scroll loop — bounces between the two ends, never wraps */
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -163,21 +160,22 @@ function BrandMarquee({
       // Hidden (desktop layout) → nothing to animate
       if (el.clientWidth === 0) return;
 
-      const first = el.children[0] as HTMLElement | undefined;
-      const second = el.children[brands.length] as HTMLElement | undefined;
-      if (!first || !second) return;
-
-      // Exact width of one full copy of the list (including the gap)
-      const loopWidth = second.offsetLeft - first.offsetLeft;
-      if (loopWidth <= 0) return;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return; // content fits, nothing to scroll
 
       if (!pausedRef.current) {
-        el.scrollLeft += (MARQUEE_SPEED * dt) / 1000;
-      }
+        const step = ((MARQUEE_SPEED * dt) / 1000) * dirRef.current;
+        let next = el.scrollLeft + step;
 
-      // Seamless wrap: the two copies are identical, so the jump is invisible
-      if (el.scrollLeft >= loopWidth) {
-        el.scrollLeft -= loopWidth;
+        if (next >= maxScroll) {
+          next = maxScroll;
+          dirRef.current = -1; // hit the right end → go left
+        } else if (next <= 0) {
+          next = 0;
+          dirRef.current = 1; // hit the left end → go right
+        }
+
+        el.scrollLeft = next;
       }
     };
 
@@ -187,7 +185,7 @@ function BrandMarquee({
       cancelAnimationFrame(rafId);
       if (resumeTimer.current) clearTimeout(resumeTimer.current);
     };
-  }, [brands.length]);
+  }, []);
 
   /* Pause on touch / hover, resume afterwards */
   const handlePointerDown = () => pause();
@@ -212,12 +210,11 @@ function BrandMarquee({
       onPointerLeave={handlePointerLeave}
       className="flex gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
-      {[...brands, ...brands].map((brand, i) => (
+      {brands.map((brand) => (
         <BrandCard
-          key={`${brand.searchName}-${i}`}
+          key={brand.searchName}
           brand={brand}
           onSelect={onSelect}
-          clone={i >= brands.length}
         />
       ))}
     </div>
@@ -262,7 +259,7 @@ export default function BrandsSection() {
         </div>
       </div>
 
-      {/* 📱 Mobile: auto-scrolling marquee (pause + swipe) */}
+      {/* 📱 Mobile: auto-scrolling marquee (pause + swipe + bounce at ends) */}
       <div className="md:hidden">
         <BrandMarquee brands={BRANDS} onSelect={handleBrandClick} />
       </div>
