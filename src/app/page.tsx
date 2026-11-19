@@ -19,7 +19,7 @@ const sections = [
   { 
     name: "كومبيوتر", 
     href: "/computer", 
-    img: "/Design28.jpeg",
+    img: "/Design28.png",
     description: "جميع قطع الكومبيوتر مع أحدث الشاشات",
     color: "from-purple-600 to-pink-600"
   },
@@ -40,14 +40,14 @@ const sections = [
   { 
     name: "كاميرات", 
     href: "/cameras", 
-    img: "/Design31.png",
+    img: "/Design30.jpg",
     description: "كاميرات احترافية وتصوير عالي الجودة",
     color: "from-red-600 to-orange-600"
   },
   { 
     name: "بلايستيشن", 
     href: "/playstations", 
-    img: "/Design30.png",
+    img: "/Design31.jpg",
     description: "ألعاب وبلايستيشن بأحدث الإصدارات",
     color: "from-green-600 to-teal-600"
   },
