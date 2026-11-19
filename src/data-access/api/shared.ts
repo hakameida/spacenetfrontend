@@ -7,8 +7,7 @@ export interface DollarResponse {
   id: string;
 }
 
-export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY" | "PLAYSTATION" | "CAMERA" |"STORAGE" | "CASE";
-
+export type ProductModule = "LAPTOP" | "COMPUTER" | "ACCESSORY" | "PLAYSTATION" | "CAMERA" | "STORAGE" | "CASE" | "BAG" | "TABLE_GAMINGCHAIR";
 export interface OfferResponse {
   id: string;
   productId: string;

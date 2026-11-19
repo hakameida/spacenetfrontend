@@ -11,6 +11,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import { allProductsList } from "@/data-access/slices/all-products-list";
 import { productsTypeList } from "@/data-access/slices/products-types";
 import { searchList } from "@/data-access/slices/search-list";
+import { bagList } from "@/data-access/slices/bag-list";
+import { tableGamingChairList } from "@/data-access/slices/table-gaming-chair-list";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +24,8 @@ export const store = configureStore({
     cameraList,
     storageList, // NEW
     caseList, // NEW
+    bagList,                       // NEW
+    tableGamingChairList,          // NEW
     allProductsList,
     productsTypeList,
     searchList,

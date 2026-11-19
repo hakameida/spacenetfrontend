@@ -51,6 +51,20 @@ const sections = [
     description: "ألعاب وبلايستيشن بأحدث الإصدارات",
     color: "from-green-600 to-teal-600"
   },
+  { 
+    name: "حقائب", 
+    href: "/bags", 
+    img: "/bags.jpg",
+    description: "حقائب لابتوب ومدرسية بأفضل الأسعار",
+    color: "from-sky-600 to-blue-600"
+  },
+  { 
+    name: "طاولات وكراسي", 
+    href: "/tables-chairs", 
+    img: "/tables-chairs-main.jpg",
+    description: "طاولات جيمينغ وكراسي مكتبية مريحة",
+    color: "from-amber-600 to-orange-600"
+  },
 ];
 
 export const metadata = {
@@ -112,7 +126,7 @@ export default function HomePage() {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {sections.map((section) => (
                 <Link
                   key={section.name}

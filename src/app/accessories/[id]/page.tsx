@@ -13,8 +13,7 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { getImage } from "@/util/get-image-url";
 import CardAccessory from "@/feature/card-accessory";
 
-// ✅ NEW — Lyket love button (one like per IP, shared total)
-import { Provider, LikeButton } from "@lyket/react";
+
 
 // Helper to format price in SYP
 const formatPriceInSYP = (price: string, dollar: number) => {
@@ -358,7 +357,6 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
 
   return (
     // ✅ Lyket Provider wraps the entire page — layout stays untouched
-    <Provider apiKey="pt_0e230d6e7e20dfa46a4c040f2c8c9b" disableSessionId={true}>
       <div className="container mx-auto px-4 py-8 pt-24">
         {/* Discount Banner */}
         {hasDiscount && (
@@ -569,15 +567,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
                   اطلب الآن
                 </button>
 
-                {/* ❤️ Lyket love button — one like per IP, shared total */}
-                <div className="flex items-center justify-center px-3 bg-gray-100 rounded-xl">
-                  <LikeButton
-                    namespace="accessories"
-                    id={String(accessory.id)}
-                    component={LikeButton.templates.Twitter}
-                    
-                  />
-                </div>
+               
 
                 <button
                   onClick={handleShare}
@@ -732,7 +722,7 @@ export default function AccessoryDetailPage({ params }: { params: { id: string }
           }
         `}</style>
       </div>
-    </Provider>
+  
   );
 }
 

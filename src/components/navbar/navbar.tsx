@@ -18,12 +18,17 @@ import {
   Camera,
   Search,
   HardDrive,
-  Server
+  Server,
+  ShoppingBag,
+  Sofa
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
-
+import { selectBagListList } from "@/data-access/slices/bag-list";
+import { selectTableGamingChairListList } from "@/data-access/slices/table-gaming-chair-list";
+import { useGetBagsListQuery } from "@/data-access/api/bag";
+import { useGetTableGamingChairsListQuery } from "@/data-access/api/table-gaming-chair";
 // ============ IMPORTS FROM YOUR REDUX ============
 import { useAppSelector } from "@/store";
 import { selectLaptopListList } from "@/data-access/slices/laptop-list";
@@ -88,10 +93,12 @@ const allNavLinks = [
   { name: "كمبيوتر", href: "/computer", icon: PcCase },
   { name: "اكسسوارات", href: "/accessories", icon: Headphones },
   { name: "لابتوبات", href: "/laptops", icon: LaptopIcon },
-  { name: "بلايستيشن", href: "/playstations", icon: Gamepad2 },
-  { name: "كاميرات", href: "/cameras", icon: Camera },
+  // { name: "بلايستيشن", href: "/playstations", icon: Gamepad2 },
+  // { name: "كاميرات", href: "/cameras", icon: Camera },
   { name: "وحدات تخزين", href: "/storage", icon: HardDrive },
   { name: "بطاريات", href: "/batteries", icon: Battery },
+   { name: "حقائب", href: "/bags", icon: ShoppingBag },              // NEW
+  { name: "طاولات وكراسي", href: "/tables-chairs", icon: Sofa },    // NEW
 ];
 
 // PWA install types
