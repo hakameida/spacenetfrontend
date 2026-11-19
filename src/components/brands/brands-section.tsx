@@ -51,20 +51,20 @@ const renderSimpleIcon = (icon: { path: string; hex: string; title: string }) =>
 
 const BRANDS: Brand[] = [
   // ── Available in simple-icons ────────────────────────────────────────
-  { searchName: "Redragon", label: "ريد دراجون", logo: renderSimpleIcon(siRedragon) },
-  { searchName: "Razer", label: "ريزر", logo: renderSimpleIcon(siRazer) },
-  { searchName: "HyperX", label: "هايبر إكس", logo: renderSimpleIcon(siHyperx) },
-  { searchName: "Dell", label: "ديل", logo: renderSimpleIcon(siDell) },
+  { searchName: "Redragon", label: "RedDragon", logo: renderSimpleIcon(siRedragon) },
+  { searchName: "Razer", label: "Razer", logo: renderSimpleIcon(siRazer) },
+  { searchName: "HyperX", label: "HyperX", logo: renderSimpleIcon(siHyperx) },
+  { searchName: "Dell", label: "Dell", logo: renderSimpleIcon(siDell) },
   { searchName: "MSI", label: "MSI", logo: renderSimpleIcon(siMsi) },
-  { searchName: "ASUS", label: "أسوس", logo: renderSimpleIcon(siAsus) },
-  { searchName: "Lenovo", label: "لينوفو", logo: renderSimpleIcon(siLenovo) },
+  { searchName: "ASUS", label: "ASUS", logo: renderSimpleIcon(siAsus) },
+  { searchName: "Lenovo", label: "Lenovo", logo: renderSimpleIcon(siLenovo) },
 
   // ── NOT in simple-icons — use file paths ─────────────────────────────
-  { searchName: "Fantech", label: "فانتك", logo: "/brands/fantech.svg", alt: "Fantech" },
-  { searchName: "Attack Shark", label: "أتاك شارك", logo: "/brands/attack-shark.svg", alt: "Attack Shark" },
-  { searchName: "Havit", label: "هافيت", logo: "/brands/havit.svg", alt: "Havit" },
-  { searchName: "A4Tech", label: "A4 تك", logo: "/brands/a4tech.svg", alt: "A4Tech" },
-  { searchName: "Netac", label: "نيتاك", logo: "/brands/netac.svg", alt: "Netac" },
+  { searchName: "Fantech", label: "Fantech", logo: "/brands/fantech.svg", alt: "Fantech" },
+  { searchName: "Attack Shark", label: "Attack Shark", logo: "/brands/attack-shark.svg", alt: "Attack Shark" },
+  { searchName: "Havit", label: "Havit", logo: "/brands/havit.svg", alt: "Havit" },
+  { searchName: "A4Tech", label: "A4Tech", logo: "/brands/a4tech.svg", alt: "A4Tech" },
+  { searchName: "Netac", label: "Netac", logo: "/brands/netac.svg", alt: "Netac" },
 ];
 
 /* ─────────────────────────── Brand card ──────────────────────────── */
