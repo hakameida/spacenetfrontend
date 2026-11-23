@@ -12,6 +12,8 @@ import { selectPlayStationListList } from "@/data-access/slices/playstation-list
 import { selectCameraListList } from "@/data-access/slices/camera-list";
 import { selectStorageListList } from "@/data-access/slices/storage-list";
 import { selectCaseListList } from "@/data-access/slices/case-list";
+import { selectBagListList } from "@/data-access/slices/bag-list"; // NEW
+import { selectTableGamingChairListList } from "@/data-access/slices/table-gaming-chair-list"; // NEW
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import CardProduct from "@/components/card/card-product";
 import { Search, ArrowRight, X } from "lucide-react";
@@ -50,6 +52,15 @@ interface SearchableProduct {
   psu?: string;
   case?: string;
   cooling?: string;
+  // NEW: Bag fields
+  material_name?: string;
+  laptop_size?: string;
+  water_resistant?: boolean;
+  // NEW: TableGamingChair fields
+  dimensions?: string;
+  max_weight?: string;
+  height_adjustable?: boolean;
+  weight?: string;
   dynamicSpecs?: Array<{ key: string; value: string }>;
   [key: string]: any;
 }
@@ -61,6 +72,15 @@ const getProductLink = (product: SearchableProduct): string => {
   if (product.capacity) return `/storage/${product.id}`;
   if (product.storage) return `/playstations/${product.id}`;                 // PS has storage, no capacity
   if (product.cpu !== undefined) return `/laptops/${product.id}`;            // laptop (cpu, no motherboard)
+  
+  // NEW: Bags & Tables (must be before generic type_name checks)
+  if (product.laptop_size !== undefined || product.material_name !== undefined) {
+    return `/bags/${product.id}`;
+  }
+  if (product.dimensions !== undefined || product.max_weight !== undefined || product.height_adjustable !== undefined) {
+    return `/tables-chairs/${product.id}`;
+  }
+  
   if (product.brand && product.type_name) return `/accessories/${product.id}`;
   if (product.type_name) return `/computer/${product.id}`;
   return `/search/${encodeURIComponent(product.name)}`;
@@ -73,6 +93,11 @@ const getProductCategory = (product: SearchableProduct): string => {
   if (product.capacity) return "وحدات تخزين";
   if (product.storage) return "بلايستيشن";
   if (product.cpu !== undefined) return "لابتوب";
+  
+  // NEW: Bags & Tables
+  if (product.laptop_size !== undefined || product.material_name !== undefined) return "حقائب";
+  if (product.dimensions !== undefined || product.max_weight !== undefined || product.height_adjustable !== undefined) return "طاولات وكراسي";
+  
   if (product.brand && product.type_name) return "اكسسوار";
   if (product.type_name) return "كمبيوتر";
   return "منتج";
@@ -93,6 +118,8 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
   const cameraList = useAppSelector(selectCameraListList);
   const storageList = useAppSelector(selectStorageListList);
   const caseList = useAppSelector(selectCaseListList);
+  const bagList = useAppSelector(selectBagListList); // NEW
+  const tableGamingChairList = useAppSelector(selectTableGamingChairListList); // NEW
 
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
@@ -109,6 +136,8 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
     ...(Array.isArray(cameraList) ? (cameraList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(storageList) ? (storageList as unknown as SearchableProduct[]) : []),
     ...(Array.isArray(caseList) ? (caseList as unknown as SearchableProduct[]) : []),
+    ...(Array.isArray(bagList) ? (bagList as unknown as SearchableProduct[]) : []), // NEW
+    ...(Array.isArray(tableGamingChairList) ? (tableGamingChairList as unknown as SearchableProduct[]) : []), // NEW
   ];
 
   // Search function
@@ -144,6 +173,10 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
         product.psu,
         product.case,
         product.cooling,
+        product.material_name,  // NEW
+        product.laptop_size,    // NEW
+        product.dimensions,     // NEW
+        product.max_weight,     // NEW
         ...(product.dynamicSpecs?.map((spec: any) => spec.value) || [])
       ].filter(Boolean);
 
@@ -335,6 +368,25 @@ export default function SearchPage({ params }: { params: { searchWord: string } 
               className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
             >
               تصفح الكاميرات
+            </button>
+            {/* NEW BUTTONS */}
+            <button
+              onClick={() => {
+                setSearchInput("");
+                router.push("/bags");
+              }}
+              className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors"
+            >
+              تصفح الحقائب
+            </button>
+            <button
+              onClick={() => {
+                setSearchInput("");
+                router.push("/tables-chairs");
+              }}
+              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl transition-colors"
+            >
+              تصفح الطاولات والكراسي
             </button>
           </div>
         </div>

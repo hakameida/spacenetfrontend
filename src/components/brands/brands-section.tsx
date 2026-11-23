@@ -51,20 +51,20 @@ const renderSimpleIcon = (icon: { path: string; hex: string; title: string }) =>
 
 const BRANDS: Brand[] = [
   // ── Available in simple-icons ────────────────────────────────────────
-  { searchName: "Redragon", label: "RedDragon", logo: renderSimpleIcon(siRedragon) },
-  { searchName: "Razer", label: "Razer", logo: renderSimpleIcon(siRazer) },
-  { searchName: "HyperX", label: "HyperX", logo: renderSimpleIcon(siHyperx) },
-  { searchName: "Dell", label: "Dell", logo: renderSimpleIcon(siDell) },
+  { searchName: "Redragon", label: "REDDRAGON", logo: renderSimpleIcon(siRedragon) },
+  { searchName: "Razer", label: "RAZER", logo: renderSimpleIcon(siRazer) },
+  { searchName: "HyperX", label: "HYPERX", logo: renderSimpleIcon(siHyperx) },
+  { searchName: "Dell", label: "DELL", logo: renderSimpleIcon(siDell) },
   { searchName: "MSI", label: "MSI", logo: renderSimpleIcon(siMsi) },
   { searchName: "ASUS", label: "ASUS", logo: renderSimpleIcon(siAsus) },
-  { searchName: "Lenovo", label: "Lenovo", logo: renderSimpleIcon(siLenovo) },
+  { searchName: "Lenovo", label: "LENOVO", logo: renderSimpleIcon(siLenovo) },
 
   // ── NOT in simple-icons — use file paths ─────────────────────────────
-  { searchName: "Fantech", label: "Fantech", logo: "/brands/fantech.svg", alt: "Fantech" },
-  { searchName: "Attack Shark", label: "Attack Shark", logo: "/brands/attack-shark.svg", alt: "Attack Shark" },
-  { searchName: "Havit", label: "Havit", logo: "/brands/havit.svg", alt: "Havit" },
-  { searchName: "A4Tech", label: "A4Tech", logo: "/brands/a4tech.svg", alt: "A4Tech" },
-  { searchName: "Netac", label: "Netac", logo: "/brands/netac.svg", alt: "Netac" },
+  { searchName: "Fantech", label: "FANTECH", logo: "/brands/fantech.svg", alt: "Fantech" },
+  { searchName: "Attack Shark", label: "ATTACK SHARK", logo: "/brands/attack-shark.svg", alt: "Attack Shark" },
+  { searchName: "Havit", label: "HAVIT", logo: "/brands/havit.svg", alt: "Havit" },
+  { searchName: "A4Tech", label: "A4TECH", logo: "/brands/a4tech.svg", alt: "A4Tech" },
+  { searchName: "Netac", label: "NETAC", logo: "/brands/netac.svg", alt: "Netac" },
 ];
 
 /* ─────────────────────────── Brand card ──────────────────────────── */
@@ -99,7 +99,7 @@ function BrandCard({ brand, onSelect }: BrandCardProps) {
       </div>
 
       {brand.label && (
-        <span className="text-[11px] font-semibold text-gray-600 transition-colors group-hover:text-blue-600 md:text-xs">
+        <span className="text-[11px] font-semibold text-gray-600 transition-colors group-hover:text-blue-600 md:text-lg">
           {brand.label}
         </span>
       )}

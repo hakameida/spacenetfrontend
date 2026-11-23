@@ -9,6 +9,8 @@ import { useGetPlayStationByIdQuery } from "@/data-access/api/playstation";
 import { useGetCameraByIdQuery } from "@/data-access/api/camera";
 import { useGetStorageByIdQuery } from "@/data-access/api/storage";
 import { useGetCaseByIdQuery } from "@/data-access/api/case";
+import { useGetBagByIdQuery } from "@/data-access/api/bag"; // NEW
+import { useGetTableGamingChairByIdQuery } from "@/data-access/api/table-gaming-chair"; // NEW
 import { useGetDollarQuery } from "@/data-access/api/shared";
 import { IoMdCart, IoMdShare } from "react-icons/io";
 import { Skeleton } from "@mui/material";
@@ -63,6 +65,8 @@ const getModuleName = (module: string | undefined) => {
     case 'CAMERA': return 'كاميرا';
     case 'STORAGE': return 'وحدات تخزين';
     case 'CASE': return 'كيس كامل';
+    case 'BAG': return 'حقائب'; // NEW
+    case 'TABLE_GAMINGCHAIR': return 'طاولات وكراسي'; // NEW
     default: return '';
   }
 };
@@ -78,6 +82,8 @@ const getModuleColor = (module: string | undefined) => {
     case 'CAMERA': return 'bg-red-100 text-red-700';
     case 'STORAGE': return 'bg-cyan-100 text-cyan-700';
     case 'CASE': return 'bg-teal-100 text-teal-700';
+    case 'BAG': return 'bg-amber-100 text-amber-700'; // NEW
+    case 'TABLE_GAMINGCHAIR': return 'bg-orange-100 text-orange-700'; // NEW
     default: return 'bg-blue-100 text-blue-700';
   }
 };
@@ -126,23 +132,32 @@ interface ProductType {
   psu?: string;
   case?: string;
   cooling?: string;
+  // NEW
+  material_name?: string;
+  materialName?: string;
+  laptop_size?: string;
+  laptopSize?: string;
+  water_resistant?: boolean;
+  waterResistant?: boolean;
+  dimensions?: string;
+  max_weight?: string;
+  maxWeight?: string;
+  height_adjustable?: boolean;
+  heightAdjustable?: boolean;
+  weight?: string;
   [key: string]: any;
 }
 
 // ============ HELPER: Extract product data from response ============
 const extractProductData = (response: any, key: string): any => {
   if (!response) return null;
-  // Check if response has nested data structure (e.g., { data: { laptopById: {...} } })
   if (response?.data?.[key]) {
     return response.data[key];
   }
-  // Check if response itself is the product (has an id)
   if (response?.id) {
     return response;
   }
-  // Check if response has data property but no key (fallback)
   if (response?.data && typeof response.data === 'object') {
-    // Try to find the first key that looks like a product
     const keys = Object.keys(response.data);
     for (const k of keys) {
       if (response.data[k]?.id) {
@@ -210,6 +225,17 @@ export default function OfferPage({ params }: { params: { id: string } }) {
     { skip: !productId || productModule?.toUpperCase() !== 'CASE' }
   );
 
+  // NEW: Bag & TableGamingChair hooks
+  const { data: bagData, isLoading: bagLoading } = useGetBagByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'BAG' }
+  );
+
+  const { data: tableGamingChairData, isLoading: tableGamingChairLoading } = useGetTableGamingChairByIdQuery(
+    { id: productId },
+    { skip: !productId || productModule?.toUpperCase() !== 'TABLE_GAMINGCHAIR' }
+  );
+
   useEffect(() => {
     if (dollarData?.data?.dollarPriceByPk) {
       setDollar(dollarData.data.dollarPriceByPk.dollarPrice ?? 0);
@@ -241,6 +267,12 @@ export default function OfferPage({ params }: { params: { id: string } }) {
   } else if (productModule?.toUpperCase() === 'CASE' && caseData) {
     product = extractProductData(caseData, 'caseById');
     isLoading = caseLoading;
+  } else if (productModule?.toUpperCase() === 'BAG' && bagData) { // NEW
+    product = extractProductData(bagData, 'bagById');
+    isLoading = bagLoading;
+  } else if (productModule?.toUpperCase() === 'TABLE_GAMINGCHAIR' && tableGamingChairData) { // NEW
+    product = extractProductData(tableGamingChairData, 'tableGamingChairById');
+    isLoading = tableGamingChairLoading;
   }
 
   // Calculate discount
@@ -371,6 +403,33 @@ export default function OfferPage({ params }: { params: { id: string } }) {
       if (product.cooling) specsList.push(`• التبريد: ${product.cooling}`);
       if (product.os) specsList.push(`• نظام التشغيل: ${product.os}`);
       if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+    }
+
+    // NEW: Bag specs
+    if (productModule?.toUpperCase() === 'BAG') {
+      const mat = product.material_name || product.materialName;
+      const model = product.modelNumber || product.model_number;
+      const lsize = product.laptopSize || product.laptop_size;
+      const wr = product.waterResistant ?? product.water_resistant;
+      if (mat) specsList.push(`• المادة: ${mat}`);
+      if (model) specsList.push(`• رقم الموديل: ${model}`);
+      if (lsize) specsList.push(`• مقاس اللابتوب: ${lsize}`);
+      if (product.color) specsList.push(`• اللون: ${product.color}`);
+      if (wr) specsList.push(`• مقاوم للماء: نعم`);
+    }
+
+    // NEW: TableGamingChair specs
+    if (productModule?.toUpperCase() === 'TABLE_GAMINGCHAIR') {
+      const model = product.modelNumber || product.model_number;
+      const mw = product.maxWeight || product.max_weight;
+      const ha = product.heightAdjustable ?? product.height_adjustable;
+      if (product.type_name) specsList.push(`• النوع: ${product.type_name}`);
+      if (model) specsList.push(`• رقم الموديل: ${model}`);
+      if (product.dimensions) specsList.push(`• الأبعاد: ${product.dimensions}`);
+      if (mw) specsList.push(`• الحد الأقصى للوزن: ${mw}`);
+      if (product.weight) specsList.push(`• الوزن: ${product.weight}`);
+      if (product.color) specsList.push(`• اللون: ${product.color}`);
+      if (ha) specsList.push(`• ارتفاع قابل للتعديل: نعم`);
     }
     
     // Dynamic specs for all types
@@ -810,6 +869,88 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                   )}
                 </>
               )}
+
+              {/* NEW: Bag specs */}
+              {productModule?.toUpperCase() === 'BAG' && (
+                <>
+                  {(product.material_name || product.materialName) && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">المادة</p>
+                      <p className="text-sm font-medium text-gray-800">{product.material_name || product.materialName}</p>
+                    </div>
+                  )}
+                  {(product.laptopSize || product.laptop_size) && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">مقاس اللابتوب</p>
+                      <p className="text-sm font-medium text-gray-800">{product.laptopSize || product.laptop_size}</p>
+                    </div>
+                  )}
+                  {(product.modelNumber || product.model_number) && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">رقم الموديل</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.modelNumber || product.model_number}</p>
+                    </div>
+                  )}
+                  {product.color && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">اللون</p>
+                      <p className="text-sm font-medium text-gray-800">{product.color}</p>
+                    </div>
+                  )}
+                  {(product.waterResistant ?? product.water_resistant) && (
+                    <div className="bg-blue-50 rounded-lg p-2 col-span-2">
+                      <p className="text-xs text-blue-600 font-semibold">💧 مقاوم للماء</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* NEW: TableGamingChair specs */}
+              {productModule?.toUpperCase() === 'TABLE_GAMINGCHAIR' && (
+                <>
+                  {product.type_name && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">النوع</p>
+                      <p className="text-sm font-medium text-gray-800">{product.type_name}</p>
+                    </div>
+                  )}
+                  {(product.modelNumber || product.model_number) && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">رقم الموديل</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.modelNumber || product.model_number}</p>
+                    </div>
+                  )}
+                  {product.dimensions && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الأبعاد</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">{product.dimensions}</p>
+                    </div>
+                  )}
+                  {(product.maxWeight || product.max_weight) && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الحد الأقصى للوزن</p>
+                      <p className="text-sm font-medium text-gray-800">{product.maxWeight || product.max_weight}</p>
+                    </div>
+                  )}
+                  {product.weight && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">الوزن</p>
+                      <p className="text-sm font-medium text-gray-800">{product.weight}</p>
+                    </div>
+                  )}
+                  {product.color && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-500">اللون</p>
+                      <p className="text-sm font-medium text-gray-800">{product.color}</p>
+                    </div>
+                  )}
+                  {(product.heightAdjustable ?? product.height_adjustable) && (
+                    <div className="bg-indigo-50 rounded-lg p-2 col-span-2">
+                      <p className="text-xs text-indigo-600 font-semibold">↕ ارتفاع قابل للتعديل</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -1134,6 +1275,94 @@ export default function OfferPage({ params }: { params: { id: string } }) {
                         <tr className="border-b border-gray-100">
                           <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">نظام التشغيل</td>
                           <td className="py-3 px-4 text-gray-600">{product.os}</td>
+                        </tr>
+                      )}
+                    </>
+                  )}
+
+                  {/* NEW: Bag specs */}
+                  {productModule?.toUpperCase() === 'BAG' && (
+                    <>
+                      {(product.material_name || product.materialName) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">المادة</td>
+                          <td className="py-3 px-4 text-gray-600">{product.material_name || product.materialName}</td>
+                        </tr>
+                      )}
+                      {(product.modelNumber || product.model_number) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.modelNumber || product.model_number}</td>
+                        </tr>
+                      )}
+                      {(product.laptopSize || product.laptop_size) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">مقاس اللابتوب</td>
+                          <td className="py-3 px-4 text-gray-600">{product.laptopSize || product.laptop_size}</td>
+                        </tr>
+                      )}
+                      {product.color && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">اللون</td>
+                          <td className="py-3 px-4 text-gray-600">{product.color}</td>
+                        </tr>
+                      )}
+                      {(product.waterResistant !== undefined || product.water_resistant !== undefined) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">مقاوم للماء</td>
+                          <td className="py-3 px-4 text-gray-600">
+                            {(product.waterResistant ?? product.water_resistant) ? '✅ نعم' : '❌ لا'}
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  )}
+
+                  {/* NEW: TableGamingChair specs */}
+                  {productModule?.toUpperCase() === 'TABLE_GAMINGCHAIR' && (
+                    <>
+                      {product.type_name && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">النوع</td>
+                          <td className="py-3 px-4 text-gray-600">{product.type_name}</td>
+                        </tr>
+                      )}
+                      {(product.modelNumber || product.model_number) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">رقم الموديل</td>
+                          <td className="py-3 px-4 text-gray-600">{product.modelNumber || product.model_number}</td>
+                        </tr>
+                      )}
+                      {product.dimensions && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الأبعاد</td>
+                          <td className="py-3 px-4 text-gray-600">{product.dimensions}</td>
+                        </tr>
+                      )}
+                      {(product.maxWeight || product.max_weight) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الحد الأقصى للوزن</td>
+                          <td className="py-3 px-4 text-gray-600">{product.maxWeight || product.max_weight}</td>
+                        </tr>
+                      )}
+                      {product.weight && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">الوزن</td>
+                          <td className="py-3 px-4 text-gray-600">{product.weight}</td>
+                        </tr>
+                      )}
+                      {product.color && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">اللون</td>
+                          <td className="py-3 px-4 text-gray-600">{product.color}</td>
+                        </tr>
+                      )}
+                      {(product.heightAdjustable !== undefined || product.height_adjustable !== undefined) && (
+                        <tr className="border-b border-gray-100">
+                          <td className="py-3 px-4 bg-gray-50 font-semibold text-gray-700">ارتفاع قابل للتعديل</td>
+                          <td className="py-3 px-4 text-gray-600">
+                            {(product.heightAdjustable ?? product.height_adjustable) ? '✅ نعم' : '❌ لا'}
+                          </td>
                         </tr>
                       )}
                     </>

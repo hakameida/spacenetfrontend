@@ -41,7 +41,7 @@ const sections = [
     name: "كاميرات", 
     href: "/cameras", 
     img: "/Design30.jpg",
-    description: "كاميرات احترافية وتصوير عالي الجودة",
+    description: "كاميرات مراقبة بافضل الانواع والجودة",
     color: "from-red-600 to-orange-600"
   },
   { 
@@ -55,14 +55,14 @@ const sections = [
     name: "حقائب", 
     href: "/bags", 
     img: "/bags.jpg",
-    description: "حقائب لابتوب ومدرسية بأفضل الأسعار",
+    description: "حقائب لابتوب  بأفضل الأسعار",
     color: "from-sky-600 to-blue-600"
   },
   { 
-    name: "طاولات وكراسي", 
+    name: "طاولات جيمنغ و كراسي جيمنغ", 
     href: "/tables-chairs", 
     img: "/tables-chairs-main.jpg",
-    description: "طاولات جيمينغ وكراسي مكتبية مريحة",
+    description: "طاولات  وكراسي جيمينغ  مريحة وعملية",
     color: "from-amber-600 to-orange-600"
   },
 ];

@@ -115,10 +115,10 @@ const CardAccessory = ({
           )}
 
           {/* ❤️ Like count badge — bottom-left of image */}
-<span className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm text-red-500 text-sm font-bold px-2.5 py-1.5 rounded-full shadow-md">
+{/* <span className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm text-red-500 text-sm font-bold px-2.5 py-1.5 rounded-full shadow-md">
   <Heart size={18} className="fill-red-500 text-red-500" />
   {likeCount}
-</span>
+</span> */}
         </div>
       </Link>
 
